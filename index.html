@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>프리코네 세미오토 </title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Malgun Gothic", sans-serif; background:#1b1c22; color:#eee; margin:0; padding:0; height:100vh; display:flex; flex-direction:column; }
+  h1 { font-size:16px; margin:0; padding:12px 16px; background:#25262e; border-bottom:1px solid #333; }
+  .main { flex:1; display:flex; min-height:0; }
+  .left { min-width:200px; }
+  .left iframe { width:100%; height:100%; border:0; }
+  .resizer { width:6px; cursor:col-resize; background:#333; }
+  .resizer:hover, .resizer.active { background:#4a6cf7; }
+  .right { width:460px; min-width:300px; max-width:75vw; display:flex; flex-direction:column; padding:14px; gap:10px; background:#1b1c22; overflow-y:auto; }
+  label { font-size:13px; color:#aaa; }
+  #pasteBox {
+    width:100%; min-height:140px; max-height:260px; overflow:auto;
+    font-family: monospace; font-size:12px; background:#fff; color:#111;
+    border:1px solid #444; border-radius:6px; padding:8px;
+  }
+  #pasteBox table { border-collapse:collapse; }
+  #pasteBox td { border:1px solid #ddd; padding:2px 4px; }
+  #pasteBox:empty::before { content: attr(data-placeholder); color:#888; font-family:-apple-system, sans-serif; }
+  input, button { font-size:14px; padding:7px 10px; border-radius:6px; border:1px solid #444; background:#111; color:#eee; }
+  .row { display:flex; gap:8px; align-items:center; }
+  button.primary { background:#4a6cf7; border:none; cursor:pointer; flex:1; }
+  button.primary:hover { background:#3b58cc; }
+  button.ghost { background:#25262e; }
+  table.timeline { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; background:#fff; color:#111; border-radius:6px; overflow:hidden; }
+  table.timeline th { background:#eef0f5; font-size:12px; text-align:left; padding:6px 8px; border-bottom:1px solid #ccc; }
+  table.timeline td { padding:5px 8px; border-bottom:1px solid #e3e3e3; vertical-align:top; }
+  td.time { width:52px; font-weight:bold; color:#1a56c4; white-space:nowrap; }
+  td.time.past { color:#aaa; text-decoration:line-through; }
+  td.action.past { color:#aaa; }
+  td.set { width:100px; font-family:monospace; white-space:nowrap; }
+  td.set span.past-fade { opacity:0.35; }
+  td.auto { width:56px; text-align:center; font-weight:bold; font-size:12px; border-radius:4px; }
+  td.auto.on-change { background:#bfe4ff; }
+  td.auto.off-change { background:#ffc9d6; color:#a3123a; }
+  .hint { font-size:12px; color:#888; line-height:1.5; }
+  .team-block + .team-block { margin-top:14px; padding-top:14px; border-top:1px dashed #333; }
+</style>
+</head>
+<body>
+
+
+<div class="main">
+  <div class="left" id="leftPane" style="flex:1;">
+    <iframe id="sheetFrame"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRsEMCFmWlIYvbmOBhjaPtK0rktOi-J2EC6LMGXIfCF9GHjrbZOy-f_hIaTKE6AT-6KRhKS-X0fqXLs/pubhtml?gid=382395547&single=true"></iframe>
+  </div>
+  <div class="resizer" id="resizer"></div>
+  <div class="right" id="rightPane">
+    <div class="hint">
+      여러 조합을 붙여넣을 땐 각 조합의 ⭐ 행도 함께 복사해주세요. 빈 줄과 1:30 재등장은 같은 조합으로 처리됩니다.
+    </div>
+    <label>붙여넣기</label>
+    <div id="pasteBox" contenteditable="true" data-placeholder="여기에 붙여넣으세요"></div>
+    <div class="row">
+      <button class="ghost" id="clearBtn">지우기</button>
+    </div>
+    <div class="row">
+      <label style="white-space:nowrap;">남은 시간(초)</label>
+      <input id="remainSec" type="number" value="90" style="width:80px">
+      <button class="primary" id="applyBtn">이월 시간 계산</button>
+    </div>
+    <div id="output"></div>
+  </div>
+</div>
+
+<script>
+const BASE_SECONDS = 90; // 시트에 원래 작성된 기준 시간
+
+function timeToSeconds(str) {
+  const m = str.match(/^(\d{1,2}):([0-5]\d)/);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+function secondsToTime(sec) {
+  const sign = sec < 0 ? "-" : "";
+  sec = Math.abs(sec);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return sign + m + ":" + String(s).padStart(2, "0");
+}
+function cellText(el) {
+  return el.textContent.replace(/\s+/g, " ").trim();
+}
+function isBlankRow(tds) {
+  return tds.every(td => cellText(td) === "" && !td.querySelector("img"));
+}
+
+// Set 패턴 셀 안의 색상이 입혀진 조각(span)들을 순서대로 추출
+function extractColorSegments(td) {
+  const segments = [];
+  td.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent) segments.push({ text: node.textContent, color: null });
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const text = node.textContent;
+      if (!text) return;
+      const color = node.style && node.style.color ? node.style.color : null;
+      segments.push({ text, color });
+    }
+  });
+  if (segments.length === 0 && cellText(td)) segments.push({ text: cellText(td), color: null });
+  return segments;
+}
+
+// 붙여넣은 영역(표 구조 있는 HTML)을 팀 블록 배열로 파싱
+function parseFromDom(container) {
+  const rows = Array.from(container.querySelectorAll("tr"));
+  if (rows.length === 0) return null; // 표 구조가 없으면 상위에서 텍스트 방식으로 폴백
+
+  const blocks = [];
+  let current = [];
+  rows.forEach(tr => {
+    const tds = Array.from(tr.querySelectorAll("td"));
+    if (tds.length === 0) return;
+    // 빈 줄은 조합 구분자가 아닙니다. 설명 사이의 줄바꿈도 같은 조합으로 유지합니다.
+    if (isBlankRow(tds)) return;
+
+    // 열 개수에 따라 [시간+동작 ...][Set][Auto] 로 유연하게 매핑
+    let timeTds, setTd, autoTd;
+    if (tds.length >= 3) {
+      timeTds = tds.slice(0, tds.length - 2);
+      setTd = tds[tds.length - 2];
+      autoTd = tds[tds.length - 1];
+    } else if (tds.length === 2) {
+      timeTds = [tds[0]];
+      setTd = null;
+      autoTd = tds[1];
+    } else {
+      timeTds = [tds[0]];
+      setTd = null;
+      autoTd = null;
+    }
+    const firstCell = timeTds.map(cellText).filter(Boolean).join(" ");
+    const setSegments = setTd ? extractColorSegments(setTd) : [];
+    const autoState = autoTd ? cellText(autoTd) : "";
+
+    // ⭐ 행을 명시적인 조합 시작 신호로 사용합니다.
+    // 같은 조합 안에서 1:30이 여러 번 나와도 분리하지 않습니다.
+    if (/^⭐(?:\s|$)/.test(firstCell) || firstCell === "⭐") {
+      if (current.length) blocks.push(current);
+      current = [];
+      return;
+    }
+
+    current.push({ firstCell, setSegments, autoState });
+  });
+  if (current.length) blocks.push(current);
+
+  return blocks.map(rowsInBlock => {
+    const entries = [];
+    let lastSeconds = null;
+    rowsInBlock.forEach(({ firstCell, setSegments, autoState }) => {
+      if (!firstCell) return;
+      const sec = timeToSeconds(firstCell);
+      let originalSeconds, action;
+      if (sec !== null) {
+        originalSeconds = sec;
+        action = firstCell.replace(/^(\d{1,2}):([0-5]\d)\s*/, "");
+        lastSeconds = sec;
+      } else if (lastSeconds !== null) {
+        originalSeconds = lastSeconds;
+        action = firstCell;
+      } else {
+        return; // 시간이 한 번도 안 나온 헤더성 줄은 스킵
+      }
+      entries.push({ originalSeconds, action, setSegments, autoState });
+    });
+    return entries;
+  }).filter(entries => entries.length > 0);
+}
+
+// 표 구조 없이 그냥 탭/줄바꿈 텍스트만 붙여넣은 경우를 위한 폴백
+function parseFromPlainText(text) {
+  const blocks = [];
+  let current = [];
+  let lastSeconds = null;
+
+  text.replace(/\r/g, "").split("\n").forEach(line => {
+    // 빈 줄은 조합 구분자가 아닙니다.
+    if (line.trim() === "") return;
+
+    const cols = line.split("\t").map(s => s.trim());
+    const firstCell = cols[0] || "";
+    const setPattern = cols[1] || "";
+    const autoState = cols[2] || "";
+    if (!firstCell) return;
+
+    // ⭐ 행을 명시적인 조합 시작 신호로 사용합니다.
+    if (/^⭐(?:\s|$)/.test(firstCell) || firstCell === "⭐") {
+      if (current.length) blocks.push(current);
+      current = [];
+      lastSeconds = null;
+      return;
+    }
+
+    const sec = timeToSeconds(firstCell);
+    let originalSeconds, action;
+    if (sec !== null) {
+      originalSeconds = sec;
+      action = firstCell.replace(/^(\d{1,2}):([0-5]\d)\s*/, "");
+      lastSeconds = sec;
+    } else if (lastSeconds !== null) {
+      originalSeconds = lastSeconds;
+      action = firstCell;
+    } else {
+      return;
+    }
+
+    current.push({
+      originalSeconds,
+      action,
+      setSegments: setPattern ? [{ text: setPattern, color: null }] : [],
+      autoState
+    });
+  });
+
+  if (current.length) blocks.push(current);
+  return blocks.filter(entries => entries.length > 0);
+}
+
+function render(teamsEntries, remainSeconds) {
+  const diff = BASE_SECONDS - remainSeconds;
+  const out = document.getElementById("output");
+  out.innerHTML = "";
+  teamsEntries.forEach((entries, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "team-block";
+    if (teamsEntries.length > 1) {
+      const h = document.createElement("div");
+      h.style.fontWeight = "bold";
+      h.style.fontSize = "13px";
+      h.style.color = "#ccc";
+      h.textContent = (idx + 1) + "번째 조합";
+      wrap.appendChild(h);
+    }
+    const table = document.createElement("table");
+    table.className = "timeline";
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>시간</th><th>동작</th><th>Set</th><th>Auto</th></tr>";
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+
+    let prevAuto = null;
+    entries.forEach(e => {
+      const newSec = e.originalSeconds - diff;
+      const isPast = newSec < 0;
+      const tr = document.createElement("tr");
+
+      const tdTime = document.createElement("td");
+      tdTime.className = "time" + (isPast ? " past" : "");
+      tdTime.textContent = secondsToTime(newSec);
+
+      const tdAction = document.createElement("td");
+      tdAction.className = "action" + (isPast ? " past" : "");
+      tdAction.textContent = e.action;
+
+      const tdSet = document.createElement("td");
+      tdSet.className = "set";
+      e.setSegments.forEach(seg => {
+        const span = document.createElement("span");
+        span.textContent = seg.text;
+        if (seg.color) span.style.color = seg.color;
+        if (isPast) span.classList.add("past-fade");
+        tdSet.appendChild(span);
+      });
+
+      const tdAuto = document.createElement("td");
+      tdAuto.className = "auto";
+      tdAuto.textContent = e.autoState;
+      if (e.autoState && e.autoState !== prevAuto) {
+        tdAuto.classList.add(e.autoState === "ON" ? "on-change" : "off-change");
+      }
+      if (e.autoState) prevAuto = e.autoState;
+
+      tr.appendChild(tdTime);
+      tr.appendChild(tdAction);
+      tr.appendChild(tdSet);
+      tr.appendChild(tdAuto);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    out.appendChild(wrap);
+  });
+}
+
+document.getElementById("applyBtn").addEventListener("click", () => {
+  const box = document.getElementById("pasteBox");
+  const remain = parseInt(document.getElementById("remainSec").value, 10);
+  if (!box.textContent.trim()) {
+    document.getElementById("output").innerHTML = "<div class='hint'>붙여넣은 내용이 없습니다.</div>";
+    return;
+  }
+  if (isNaN(remain)) return;
+
+  let teamsEntries = parseFromDom(box);
+  if (!teamsEntries || teamsEntries.length === 0) {
+    teamsEntries = parseFromPlainText(box.innerText);
+  }
+  render(teamsEntries, remain);
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.getElementById("pasteBox").innerHTML = "";
+  document.getElementById("output").innerHTML = "";
+});
+
+// 오른쪽 패널 크기 드래그 조절
+(function() {
+  const resizer = document.getElementById("resizer");
+  const rightPane = document.getElementById("rightPane");
+  let dragging = false;
+  resizer.addEventListener("mousedown", () => {
+  dragging = true;
+  resizer.classList.add("active");
+  document.getElementById("sheetFrame").style.pointerEvents = "none"; // iframe 이벤트 차단
+  document.body.style.userSelect = "none";
+});
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const newWidth = window.innerWidth - e.clientX;
+    rightPane.style.width = Math.max(300, Math.min(newWidth, window.innerWidth * 0.75)) + "px";
+  });
+window.addEventListener("mouseup", () => {
+  if (!dragging) return;
+  dragging = false;
+  resizer.classList.remove("active");
+  document.getElementById("sheetFrame").style.pointerEvents = "auto"; // iframe 이벤트 복원
+  document.body.style.userSelect = "";
+});
+})();
+
+// 붙여넣기 시 텍스트 및 테이블 스타일을 가독성 좋게 강제 보정
+document.getElementById("pasteBox").addEventListener("paste", (e) => {
+  // 스크립트가 DOM에 붙여넣어진 직후 실행되도록 약간의 지연(setTimeout)을 줍니다.
+  setTimeout(() => {
+    const box = document.getElementById("pasteBox");
+    
+    // 붙여넣어진 모든 요소의 배경색과 글자색을 명확하게 고정
+    box.querySelectorAll("*").forEach(el => {
+      el.style.backgroundColor = "transparent"; // 배경색 제거
+      if (el.tagName === "TD" || el.tagName === "TH" || el.tagName === "SPAN") {
+        // 원래 글자색이 지정되어 있지 않다면 검은색으로 고정
+        if (!el.style.color) {
+          el.style.color = "#111111";
+        }
+      }
+    });
+
+    // 테이블 구조가 있을 경우 박스 크기에 맞게 조절
+    const table = box.querySelector("table");
+    if (table) {
+      table.style.width = "100%";
+      table.style.color = "#111111";
+    }
+  }, 10);
+});
+</script>
+</body>
+</html>
