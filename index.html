@@ -421,22 +421,33 @@ toggleBtn.addEventListener("click", () => {
 // PC 리사이저 조절
 (function() {
   let dragging = false;
+  
   resizer.addEventListener("mousedown", () => {
     if (rightPane.classList.contains("collapsed")) return;
     dragging = true;
     resizer.classList.add("active");
+    
+    // 📌 드래그 중 부드러운 반응을 위해 transition을 일시적으로 끔
+    rightPane.style.transition = "none";
+    
     document.getElementById("sheetFrame").style.pointerEvents = "none";
     document.body.style.userSelect = "none";
   });
+
   window.addEventListener("mousemove", (e) => {
     if (!dragging) return;
     const newWidth = window.innerWidth - e.clientX;
     rightPane.style.width = Math.max(280, Math.min(newWidth, window.innerWidth * 0.75)) + "px";
   });
+
   window.addEventListener("mouseup", () => {
     if (!dragging) return;
     dragging = false;
     resizer.classList.remove("active");
+    
+    // 📌 드래그 끝난 후 transition 원복 (접기/펼치기 애니메이션용)
+    rightPane.style.transition = "width 0.2s ease, height 0.2s ease";
+    
     document.getElementById("sheetFrame").style.pointerEvents = "auto";
     document.body.style.userSelect = "";
   });
