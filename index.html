@@ -2,20 +2,45 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>프리코네 세미오토 </title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프리코네 세미오토</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, "Malgun Gothic", sans-serif; background:#1b1c22; color:#eee; margin:0; padding:0; height:100vh; display:flex; flex-direction:column; }
   h1 { font-size:16px; margin:0; padding:12px 16px; background:#25262e; border-bottom:1px solid #333; }
-  .main { flex:1; display:flex; min-height:0; }
-  .left { min-width:200px; }
+  .main { flex:1; display:flex; min-height:0; position:relative; }
+  .left { min-width:100px; flex:1; }
   .left iframe { width:100%; height:100%; border:0; }
-  .resizer { width:6px; cursor:col-resize; background:#333; }
+  .resizer { width:6px; cursor:col-resize; background:#333; transition: background 0.2s; }
   .resizer:hover, .resizer.active { background:#4a6cf7; }
-  .right { width:460px; min-width:300px; max-width:75vw; display:flex; flex-direction:column; padding:14px; gap:10px; background:#1b1c22; overflow-y:auto; }
+  
+  /* 오른쪽 패널 기본 스타일 */
+  .right { 
+    width:460px; min-width:280px; max-width:75vw; 
+    display:flex; flex-direction:column; padding:14px; gap:10px; 
+    background:#1b1c22; overflow-y:auto; transition: width 0.2s ease, height 0.2s ease;
+  }
+  
+  /* 패널 토글 헤더 버튼 */
+  .panel-header {
+    display:flex; justify-content:space-between; align-items:center;
+    background:#25262e; padding:8px 12px; border-radius:6px; border:1px solid #333;
+  }
+  .panel-title { font-size:14px; font-weight:bold; color:#eee; }
+  .toggle-btn { 
+    background:transparent; border:none; color:#aaa; font-size:13px; cursor:pointer; padding:2px 6px; 
+  }
+  .toggle-btn:hover { color:#fff; }
+
+  /* 접힘 상태 (PC / 모바일 공통) */
+  .right.collapsed .panel-body { display: none !important; }
+  .right.collapsed { width: 50px !important; min-width: 50px !important; padding: 8px !important; overflow: hidden; }
+  .right.collapsed .panel-header { padding: 8px 4px; justify-content: center; }
+  .right.collapsed .panel-title { display: none; }
+  
   label { font-size:13px; color:#aaa; }
   #pasteBox {
-    width:100%; min-height:140px; max-height:260px; overflow:auto;
+    width:100%; min-height:120px; max-height:220px; overflow:auto;
     font-family: monospace; font-size:12px; background:#fff; color:#111;
     border:1px solid #444; border-radius:6px; padding:8px;
   }
@@ -26,7 +51,7 @@
   .row { display:flex; gap:8px; align-items:center; }
   button.primary { background:#4a6cf7; border:none; cursor:pointer; flex:1; }
   button.primary:hover { background:#3b58cc; }
-  button.ghost { background:#25262e; }
+  button.ghost { background:#25262e; cursor:pointer; }
   table.timeline { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; background:#fff; color:#111; border-radius:6px; overflow:hidden; }
   table.timeline th { background:#eef0f5; font-size:12px; text-align:left; padding:6px 8px; border-bottom:1px solid #ccc; }
   table.timeline td { padding:5px 8px; border-bottom:1px solid #e3e3e3; vertical-align:top; }
@@ -40,34 +65,57 @@
   td.auto.off-change { background:#ffc9d6; color:#a3123a; }
   .hint { font-size:12px; color:#888; line-height:1.5; }
   .team-block + .team-block { margin-top:14px; padding-top:14px; border-top:1px dashed #333; }
+
+  /* 📱 모바일/작은 화면 레이아웃 최적화 (768px 이하) */
+  @media (max-width: 768px) {
+    .main { flex-direction: column; }
+    .resizer { display: none; } /* 모바일에서는 드래그 구분선 숨김 */
+    .right { 
+      width: 100% !important; max-width: 100% !important; 
+      height: 45vh; min-height: 40px; border-top: 1px solid #333; 
+    }
+    .right.collapsed { 
+      height: 42px !important; min-height: 42px !important; width: 100% !important; 
+    }
+    .right.collapsed .panel-title { display: inline; }
+    .right.collapsed .panel-header { justify-content: space-between; }
+  }
 </style>
 </head>
 <body>
 
-
 <div class="main">
-  <div class="left" id="leftPane" style="flex:1;">
+  <div class="left" id="leftPane">
     <iframe id="sheetFrame"
       src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRsEMCFmWlIYvbmOBhjaPtK0rktOi-J2EC6LMGXIfCF9GHjrbZOy-f_hIaTKE6AT-6KRhKS-X0fqXLs/pubhtml?gid=382395547&single=true"></iframe>
   </div>
   <div class="resizer" id="resizer"></div>
+  
   <div class="right" id="rightPane">
-    <label>이월 계산기</label>
-    <div id="pasteBox" contenteditable="true" data-placeholder="여기에 붙여넣으세요"></div>
-    <div class="row">
-      <button class="ghost" id="clearBtn">지우기</button>
+    <!-- 접기/펼치기 헤더 추가 -->
+    <div class="panel-header">
+      <span class="panel-title">이월 계산기</span>
+      <button class="toggle-btn" id="togglePaneBtn">▶ 접기</button>
     </div>
-    <div class="row">
-      <label style="white-space:nowrap;">남은 시간(초)</label>
-      <input id="remainSec" type="number" value="90" style="width:80px">
-      <button class="primary" id="applyBtn">이월 시간 계산</button>
+
+    <!-- 패널 본문 영역 -->
+    <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
+      <div id="pasteBox" contenteditable="true" data-placeholder="여기에 붙여넣으세요"></div>
+      <div class="row">
+        <button class="ghost" id="clearBtn">지우기</button>
+      </div>
+      <div class="row">
+        <label style="white-space:nowrap;">남은 시간(초)</label>
+        <input id="remainSec" type="number" value="90" style="width:80px">
+        <button class="primary" id="applyBtn">이월 시간 계산</button>
+      </div>
+      <div id="output"></div>
     </div>
-    <div id="output"></div>
   </div>
 </div>
 
 <script>
-const BASE_SECONDS = 90; // 시트에 원래 작성된 기준 시간
+const BASE_SECONDS = 90;
 
 function timeToSeconds(str) {
   const m = str.match(/^(\d{1,2}):([0-5]\d)/);
@@ -85,30 +133,21 @@ function cellText(el) {
   return el.textContent.replace(/\s+/g, " ").trim();
 }
 
-// 📌 순수 td 6개(패턴A) 또는 단일 td가 colspan="6" 이상인 완전 병합 행(패턴B)만 조합 구분자로 판별
 function isBlankRow(tds) {
   if (tds.length === 0) return false;
-
-  // 1. 행 내부 모든 셀에 텍스트나 이미지가 완전히 비어있는지 확인
   const isEmpty = tds.every(td => cellText(td) === "" && !td.querySelector("img"));
   if (!isEmpty) return false;
 
-  // 2. 패턴 A: colspan 없이 순수 td 6개인 경우 (R123 패턴)
   if (tds.length === 6 && !tds.some(td => td.hasAttribute("colspan"))) {
     return true;
   }
-
-  // 3. 패턴 B: 단일 td 1개가 전체 열(colspan >= 6)을 통째로 병합한 경우 (R256 패턴)
   if (tds.length === 1) {
     const span = parseInt(tds[0].getAttribute("colspan") || "1", 10);
     if (span >= 6) return true;
   }
-
-  // R119처럼 colspan="4" + td + td (tds.length가 3개 이상인 부분 병합 행)는 구분자에서 제외됨
   return false;
 }
 
-// Set 패턴 셀 안의 색상이 입혀진 조각(span)들을 순서대로 추출
 function extractColorSegments(td) {
   const segments = [];
   td.childNodes.forEach(node => {
@@ -125,8 +164,6 @@ function extractColorSegments(td) {
   return segments;
 }
 
-// DOM 파싱 함수
-// DOM 파싱 함수
 function parseFromDom(container) {
   const rows = Array.from(container.querySelectorAll("tr"));
   if (rows.length === 0) return null;
@@ -138,7 +175,6 @@ function parseFromDom(container) {
     const tds = Array.from(tr.querySelectorAll("td"));
     if (tds.length === 0) return;
 
-    // 6개 td가 비어있는 행만 조합 구분자로 분리
     if (isBlankRow(tds)) {
       if (current.length > 0) {
         blocks.push(current);
@@ -186,11 +222,9 @@ function parseFromDom(container) {
         hasTimeStarted = true;
         action = firstCell.replace(/^(\d{1,2}):([0-5]\d)\s*/, "");
       } else {
-        // 첫 시간이 시작되기 전 상단 헤더/제목 정보만 스킵
         if (!hasTimeStarted) return;
       }
 
-      // 📌 내용이 비어있는 일반 행이라도 스킵하지 않고 그대로 엔트리에 추가
       entries.push({ 
         originalSeconds, 
         lastKnownSeconds: currentSeconds, 
@@ -203,7 +237,6 @@ function parseFromDom(container) {
   }).filter(entries => entries.length > 0);
 }
 
-// 텍스트 파싱 폴백 함수
 function parseFromPlainText(text) {
   const blocks = [];
   let current = [];
@@ -266,9 +299,6 @@ function parseFromPlainText(text) {
   }).filter(entries => entries.length > 0);
 }
 
-
-
-// 렌더링 함수
 function render(teamsEntries, remainSeconds) {
   const diff = BASE_SECONDS - remainSeconds;
   const out = document.getElementById("output");
@@ -301,14 +331,11 @@ function render(teamsEntries, remainSeconds) {
       let isPast = false;
       let displayTime = "";
 
-      // 1. 시간이 적힌 라인인 경우
       if (e.originalSeconds !== null) {
         const newSec = e.originalSeconds - diff;
         displayTime = secondsToTime(newSec);
         isPast = newSec < 0;
-      } 
-      // 2. 시간이 없는 라인인 경우 (가장 최근 알려진 시간으로 과거 여부 판별)
-      else if (e.lastKnownSeconds !== null) {
+      } else if (e.lastKnownSeconds !== null) {
         const checkSec = e.lastKnownSeconds - diff;
         isPast = checkSec < 0;
       }
@@ -317,7 +344,7 @@ function render(teamsEntries, remainSeconds) {
 
       const tdTime = document.createElement("td");
       tdTime.className = "time" + (isPast ? " past" : "");
-      tdTime.textContent = displayTime; // 시간이 없는 라인은 빈 칸으로 표시
+      tdTime.textContent = displayTime;
 
       const tdAction = document.createElement("td");
       tdAction.className = "action" + (isPast ? " past" : "");
@@ -375,49 +402,58 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("output").innerHTML = "";
 });
 
-// 오른쪽 패널 크기 드래그 조절
+// 📌 패널 접기/펼치기 제어 스크립트
+const rightPane = document.getElementById("rightPane");
+const toggleBtn = document.getElementById("togglePaneBtn");
+const resizer = document.getElementById("resizer");
+
+toggleBtn.addEventListener("click", () => {
+  const isCollapsed = rightPane.classList.toggle("collapsed");
+  if (isCollapsed) {
+    toggleBtn.textContent = "◀ 펼치기";
+    resizer.style.display = "none";
+  } else {
+    toggleBtn.textContent = "▶ 접기";
+    if (window.innerWidth > 768) resizer.style.display = "block";
+  }
+});
+
+// PC 리사이저 조절
 (function() {
-  const resizer = document.getElementById("resizer");
-  const rightPane = document.getElementById("rightPane");
   let dragging = false;
   resizer.addEventListener("mousedown", () => {
-  dragging = true;
-  resizer.classList.add("active");
-  document.getElementById("sheetFrame").style.pointerEvents = "none"; // iframe 이벤트 차단
-  document.body.style.userSelect = "none";
-});
+    if (rightPane.classList.contains("collapsed")) return;
+    dragging = true;
+    resizer.classList.add("active");
+    document.getElementById("sheetFrame").style.pointerEvents = "none";
+    document.body.style.userSelect = "none";
+  });
   window.addEventListener("mousemove", (e) => {
     if (!dragging) return;
     const newWidth = window.innerWidth - e.clientX;
-    rightPane.style.width = Math.max(300, Math.min(newWidth, window.innerWidth * 0.75)) + "px";
+    rightPane.style.width = Math.max(280, Math.min(newWidth, window.innerWidth * 0.75)) + "px";
   });
-window.addEventListener("mouseup", () => {
-  if (!dragging) return;
-  dragging = false;
-  resizer.classList.remove("active");
-  document.getElementById("sheetFrame").style.pointerEvents = "auto"; // iframe 이벤트 복원
-  document.body.style.userSelect = "";
-});
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove("active");
+    document.getElementById("sheetFrame").style.pointerEvents = "auto";
+    document.body.style.userSelect = "";
+  });
 })();
 
-// 붙여넣기 시 텍스트 및 테이블 스타일을 가독성 좋게 강제 보정
 document.getElementById("pasteBox").addEventListener("paste", (e) => {
-  // 스크립트가 DOM에 붙여넣어진 직후 실행되도록 약간의 지연(setTimeout)을 줍니다.
   setTimeout(() => {
     const box = document.getElementById("pasteBox");
-    
-    // 붙여넣어진 모든 요소의 배경색과 글자색을 명확하게 고정
     box.querySelectorAll("*").forEach(el => {
-      el.style.backgroundColor = "transparent"; // 배경색 제거
+      el.style.backgroundColor = "transparent";
       if (el.tagName === "TD" || el.tagName === "TH" || el.tagName === "SPAN") {
-        // 원래 글자색이 지정되어 있지 않다면 검은색으로 고정
         if (!el.style.color) {
           el.style.color = "#111111";
         }
       }
     });
 
-    // 테이블 구조가 있을 경우 박스 크기에 맞게 조절
     const table = box.querySelector("table");
     if (table) {
       table.style.width = "100%";
