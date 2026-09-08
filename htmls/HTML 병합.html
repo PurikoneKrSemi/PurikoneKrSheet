@@ -146,18 +146,44 @@
         const firstFileText = await fileEntries[0].file.text();
         const baseDoc = new DOMParser().parseFromString(firstFileText, 'text/html');
         
-        // CSS 추가 (하단 고정바, 드래그 스크롤 전용 스타일)
+        // CSS 추가 (본문 중앙 정렬 및 하단 패널 최대 너비 설정)
         const styleTag = baseDoc.querySelector('style');
         if (styleTag) {
             styleTag.textContent += `
                 body {
                     padding-bottom: 120px !important;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                #content-container {
+                    width: 100%;
+                    max-width: 1000px;
+                    margin: 0 auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .tab-content {
+                    display: none;
+                    width: 100%;
+                    margin: 0 auto;
+                }
+                .tab-content.active {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .tab-content table {
+                    margin-left: auto;
+                    margin-right: auto;
                 }
                 .bottom-fixed-panel {
                     position: fixed;
                     bottom: 0;
                     left: 0;
                     right: 0;
+                    width: 100%;
                     background: #ffffff;
                     border-top: 1px solid #cbd5e1;
                     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
@@ -165,7 +191,10 @@
                     z-index: 9999;
                     display: flex;
                     flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
                     gap: 8px;
+                    box-sizing: border-box;
                 }
                 .timeline-control-panel {
                     display: flex;
@@ -173,6 +202,7 @@
                     justify-content: center;
                     gap: 8px;
                     font-size: 0.85rem;
+                    width: 100%;
                 }
                 .timeline-control-panel input {
                     width: 60px;
@@ -183,7 +213,6 @@
                 }
                 .tab-scroll-container {
                     width: 100%;
-                    max-width: 1000px;
                     margin: 0 auto;
                     overflow-x: auto;
                     white-space: nowrap;
@@ -191,11 +220,11 @@
                     cursor: grab;
                     user-select: none;
                     -webkit-user-select: none;
+                    text-align: center;
                 }
                 .tab-scroll-container.active {
                     cursor: grabbing;
                 }
-                /* 스크롤바 숨기기 (드래그 느낌 극대화) */
                 .tab-scroll-container::-webkit-scrollbar {
                     display: none;
                 }
@@ -205,6 +234,7 @@
                 }
                 .tab-nav {
                     display: inline-flex;
+                    justify-content: center;
                     gap: 6px;
                 }
                 .tab-btn {
@@ -221,8 +251,6 @@
                 }
                 .tab-btn:hover { background: #cbd5e1; }
                 .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
-                .tab-content { display: none; width: 100%; }
-                .tab-content.active { display: block; }
                 
                 tr.timeline-past {
                     text-decoration: line-through !important;
@@ -232,13 +260,12 @@
             `;
         }
 
-        // JS 스크립트 주입 (드래그 스크롤 로직 추가)
+        // JS 스크립트 주입 (드래그 스크롤 및 타임라인 계산 로직)
         const scriptTag = baseDoc.createElement('script');
         scriptTag.textContent = `
             const BASE_SECONDS = 90;
 
             function openTab(evt, tabId) {
-                // 단순 클릭 시에만 탭 이동 (드래그 판별)
                 if (window.isTabDragging) return;
                 
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -247,7 +274,6 @@
                 evt.currentTarget.classList.add('active');
             }
 
-            // 마우스/터치 드래그 스크롤 기능
             function initTabDragScroll() {
                 const slider = document.querySelector('.tab-scroll-container');
                 if (!slider) return;
@@ -274,7 +300,6 @@
                 slider.addEventListener('mouseup', () => {
                     isDown = false;
                     slider.classList.remove('active');
-                    // 드래그 거리가 5px 초과인 경우 클릭 동작 방지
                     if (dragDistance > 5) {
                         window.isTabDragging = true;
                         setTimeout(() => { window.isTabDragging = false; }, 50);
@@ -285,7 +310,7 @@
                     if (!isDown) return;
                     e.preventDefault();
                     const x = e.pageX - slider.offsetLeft;
-                    const walk = (x - startX) * 1.5; // 스크롤 속도 배율
+                    const walk = (x - startX) * 1.5;
                     dragDistance = Math.abs(x - startX);
                     slider.scrollLeft = scrollLeft - walk;
                 });
@@ -372,7 +397,6 @@
             document.addEventListener('DOMContentLoaded', () => {
                 initTabDragScroll();
             });
-            // DOMContentLoaded가 이미 지난 경우 처리
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
                 initTabDragScroll();
             }
@@ -398,7 +422,7 @@
             const bottomPanelHtml = `
                 <div class="bottom-fixed-panel">
                     <div class="timeline-control-panel">
-                        <strong>⏱️ 이월 시간 설정:</strong>
+                        <strong>⏱️ 남은 시간 설정:</strong>
                         <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
                         <button class="card-btn add-space-btn" style="padding: 4px 12px; cursor: pointer;" onclick="applyCustomTimeline()">적용</button>
                     </div>
