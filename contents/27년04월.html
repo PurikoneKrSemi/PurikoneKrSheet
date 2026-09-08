@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="ko" data-hwp-extension="rhwp" data-hwp-extension-version="0.8.6"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터 리포트</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: JetBrains Mono & Roboto Mono 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Roboto+Mono:wght@500&amp;display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================
+           1. 기본 변수 및 리셋
+           ========================================== */
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --primary-color: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ==========================================
+           2. 레이아웃 컨테이너
+           ========================================== */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        /* ==========================================
+           3. 본문 내 대문 이미지 (Main Banner - 카드 너비 맞춤)
+           ========================================== */
+        .header-banner {
+            width: 100%;
+            max-width: 648px; /* Card 전체 가로 너비(630px table + 16px padding + border)와 동일하게 설정 */
+            position: relative;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            display: none; /* 이미지가 설정되면 block으로 전환 */
+            overflow: hidden;
+        }
+
+        .header-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .header-banner .banner-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+
+        /* ==========================================
+           4. 테이블 카드 컨테이너 및 구분 공백
+           ========================================== */
+        .card {
+            width: 100%;
+            max-width: 648px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: block;
+            position: relative;
+        }
+
+        .card-body {
+            padding: 8px;
+        }
+
+        .boss-divider {
+            width: 100%;
+            max-width: 648px;
+            height: 40px;
+            margin: 10px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-tools {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .card-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .card-btn:hover {
+            opacity: 1;
+        }
+
+        .card-btn.add-space-btn {
+            background: #0284c7;
+        }
+
+        .card-btn.delete-btn {
+            background: #ef4444;
+        }
+
+        .divider-delete-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .divider-delete-btn:hover {
+            opacity: 1;
+        }
+
+        /* ==========================================
+           5. 반응형 테이블 및 스타일
+           ========================================== */
+        .table-responsive {
+            width: auto;
+            overflow-x: auto;
+        }
+
+        .output-table {
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: center;
+            width: 630px;
+            table-layout: fixed;
+        }
+
+        .output-table th, 
+        .output-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .output-table td:empty::before {
+            content: "\00a0";
+            display: inline-block;
+        }
+
+        .output-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: normal;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .output-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .output-table tbody tr:nth-child(-n+5) td {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        .output-table tbody tr:nth-child(n+6) td:nth-last-child(2):not([colspan]) {
+            font-family: 'Roboto Mono', monospace !important;
+            letter-spacing: 2px !important;
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
+        }
+
+        .output-table tbody tr td.th-label,
+        .output-table tbody tr td.text-left {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        .header-link {
+            text-align: left !important;
+            padding: 6px 8px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 630px;
+        }
+
+        .header-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: normal;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .header-link a:hover {
+            text-decoration: underline;
+        }
+
+        .img-td {
+            padding: 1px !important;
+            width: 105px;
+        }
+
+        .img-td img {
+            width: 100%;
+            height: 105px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .boss-clickable {
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .boss-clickable:hover {
+            background-color: #e2e8f0;
+            border-color: var(--primary-color);
+        }
+
+        .boss-placeholder {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .th-label {
+            font-weight: normal;
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+        }
+
+        .text-left {
+            text-align: left !important;
+        }
+
+        .change-x {
+            color: #ef4444;
+            font-weight: normal;
+        }
+
+        .auto-td {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            font-weight: normal;
+        }
+
+        .auto-changed-on, .bg-auto-on {
+            background-color: #e0f2fe !important;
+            color: #0284c7 !important;
+        }
+
+        .auto-changed-off, .bg-auto-off {
+            background-color: #ffe4e6 !important;
+            color: #e11d48 !important;
+        }
+
+        /* ==========================================
+           6. 선택 모달 (보스 / 대문 통합)
+           ========================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .boss-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .boss-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .boss-item, .header-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .boss-item:hover, .header-item:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+            transform: translateY(-2px);
+        }
+
+        .boss-item img, .header-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .boss-item.recent-item {
+            border-color: var(--primary-color);
+            background-color: #f5f3ff;
+        }
+
+        /* ==========================================
+           7. 푸터 (Footer)
+           ========================================== */
+        .page-footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================
+           8. 관리자 도구 패널
+           ========================================== */
+        #admin-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+        }
+
+        #admin-toggle-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        #admin-panel-root {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            z-index: 900;
+            width: min(420px, calc(100vw - 40px));
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            padding: 16px;
+        }
+
+        #admin-panel-root.open {
+            display: block;
+        }
+
+        #admin-panel-root h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        #admin-panel-root p.admin-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        #admin-paste-area {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-btn.header-select {
+            background-color: #8b5cf6;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.add {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .admin-btn.save {
+            background-color: #10b981;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.load {
+            background-color: #0284c7;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-status {
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .admin-status.success { color: #059669; }
+        .admin-status.error { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="main-content">
+        <div class="container" id="content-container">
+            
+            <!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
+            <div id="main-header-banner" class="header-banner" style="display: block;">
+                
+                <img id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/4.png" alt="대문 이미지">
+            </div>
+
+        <section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=ukbp6AJOuGY" target="_blank">D11 - 541.8m 目押し1</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%B9%B4%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%BC%EB%A7%88%ED%86%A05.png"></td>
+        </tr>
+        <tr>
+            <td>54180</td>
+            <td>윈카나</td><td>메두사</td><td>그레이스</td><td>알리스</td><td>야마토</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>15</td><td>15</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.5+</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XXOXO 오토X</td>
+            <td>XXOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:17 그레이스 → 그레이스 OFF</td>
+            <td>XX<span class="change-x">X</span>XO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 보스 → 그레이스 SET 오토 ON</td>
+            <td>XX<span class="change-x">O</span>XO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:01 윈카나 → 메두사 알리스 SET</td>
+            <td>X<span class="change-x">O</span>O<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">알리스 → 알리스 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:49 알리스 스러스트 후 ※ 0:47 보스 UB 오면 OK</td>
+            <td>XOOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 야마토 → 알리스 SET 그레이스 야마토 OFF</td>
+            <td>XO<span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:41 윈카나 → 오토 OFF</td>
+            <td>XOXOX</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:36 메두사 → 오토 ON</td>
+            <td>XOXOX</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:21 윈카나 → 그레이스 야마토 SET 알리스 OFF 오토 OFF</td>
+            <td>XO<span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:10 메두사 → 알리스 SET 오토 ON</td>
+            <td>XOO<span class="change-x">O</span>O</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=jue5HvUzM6k" target="_blank">フロストハウンド 51570 目押し1改</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%B9%B4%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%BC%EB%A7%88%ED%86%A05.png"></td>
+        </tr>
+        <tr>
+            <td>51570</td>
+            <td>윈카나</td><td>메두사</td><td>그레이스</td><td>알리스</td><td>야마토</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>15</td><td>15</td><td>15</td><td>9</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.5+</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XXOXO 오토X</td>
+            <td>XXOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:17 그레이스 → 그레이스 OFF</td>
+            <td>XX<span class="change-x">X</span>XO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 보스 → 오토 ON</td>
+            <td>XXXXO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:07 메두사 → 메두사 OFF 오토 OFF</td>
+            <td>X<span class="change-x">O</span>XXO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 야마토 → 야마토 OFF 오토 ON</td>
+            <td>XOXX<span class="change-x">X</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:01 그레이스 → 윈카나 그레이스 SET 오토 OFF</td>
+            <td><span class="change-x">O</span>O<span class="change-x">O</span>XX</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 알리스 스러스트 후 → 알리스 SET 윈카나 OFF 오토 ON
+※0:47 보스 UB 오면 OK</td>
+            <td><span class="change-x">X</span>OO<span class="change-x">O</span>X</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:41 윈카나 →  그레이스 OFF 오토 OFF</td>
+            <td>XO<span class="change-x">X</span>OX</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:36 메두사 → 그레이스 SET 오토 ON</td>
+            <td>XO<span class="change-x">O</span>OX</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:21 윈카나 → 야마토 SET 알리스 OFF 오토 OFF</td>
+            <td>XOO<span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:10 메두사 → 알리스 SET 오토 ON</td>
+            <td>XOO<span class="change-x">O</span>O</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=r-c8cqddS5E" target="_blank">フロストハウンド 48790 目押し1</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%B9%B4%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%BC%EB%A7%88%ED%86%A05.png"></td>
+        </tr>
+        <tr>
+            <td>48790</td>
+            <td>윈카나</td><td>메두사</td><td>그레이스</td><td>알리스</td><td>야마토</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>9</td><td>15</td><td>15</td><td>0</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.5</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XXOXO 오토X</td>
+            <td>XXOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:17 그레이스 → 그레이스 OFF</td>
+            <td>XX<span class="change-x">X</span>XO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 보스 → 그레이스 SET 오토 ON</td>
+            <td>XX<span class="change-x">O</span>XO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:01 윈카나 → 메두사 알리스 SET</td>
+            <td>X<span class="change-x">O</span>O<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">알리스 → 알리스 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:49 알리스 스러스트 후 ※ 0:47 보스 UB 오면 OK</td>
+            <td>XOOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 야마토 → 알리스 SET 야마토 OFF</td>
+            <td>XOO<span class="change-x">O</span><span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:12 알리스 → 윈카나 야마토 SET 알리스 OFF</td>
+            <td><span class="change-x">O</span>OO<span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:04 야마토 → 알리스 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=686" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%B9%B4%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>38800</td>
+            <td>윈카나</td><td>메두사</td><td>그레이스</td><td>알리스</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>0</td><td>3</td><td>6</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOOO 오토X</td>
+            <td>OOOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:15 그레이스 → 그레이스 OFF</td>
+            <td>OO<span class="change-x">X</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 보스 → 그레이스 SET 메두사 OFF 오토 ON</td>
+            <td>O<span class="change-x">X</span><span class="change-x">O</span>OO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 메두사 → 메두사 SET 그레이스 OFF 오토 OFF</td>
+            <td>O<span class="change-x">O</span><span class="change-x">X</span>OO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 보스 → 그레이스 SET 메두사 OFF</td>
+            <td>O<span class="change-x">X</span><span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:35 윈카나 → 메두사 SET 윈카나 그레이스 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:26 보스 → 그레이스 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:18 알리스 → 윈카나 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=802" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%B9%B4%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>40000</td>
+            <td>윈카나</td><td>메두사</td><td>그레이스</td><td>알리스</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td></td><td>3</td><td>6</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOXO 오토X</td>
+            <td>OOOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:15 그레이스 → 그레이스 OFF</td>
+            <td>OO<span class="change-x">X</span>XO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:09 윈카나 → 알리스 SET</td>
+            <td>OOX<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 보스 → 그레이스 SET 메두사 OFF 오토 ON</td>
+            <td>O<span class="change-x">X</span><span class="change-x">O</span>OO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 메두사 → 메두사 SET 윈카나 그레이스 알리스 OFF 오토 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span><span class="change-x">X</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:51 바이올렛 UB 데미지 표기가 보이고 나서 → 윈카나 알리스 SET</td>
+            <td><span class="change-x">O</span>OX<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 보스 → 그레이스 SET 메두사 OFF 오토 ON</td>
+            <td>O<span class="change-x">X</span><span class="change-x">O</span>OO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:35 메두사 → 메두사 SET 그레이스 OFF 오토 OFF</td>
+            <td>O<span class="change-x">O</span><span class="change-x">X</span>OO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:26 보스 → 그레이스 SET 알리스 OFF</td>
+            <td>OO<span class="change-x">O</span><span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:18 윈카나 → 알리스 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=946" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/1.4.png" alt="1.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%84%A4%EC%B9%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9A%94%EB%A6%AC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%B9%B4%EB%A6%AC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EB%A6%AC%EC%95%BC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>38800</td>
+            <td>알네카</td><td>요리</td><td>아카리</td><td>이리야</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>6</td><td>6</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>6</td><td>6</td><td>6</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OXOXO 오토X</td>
+            <td>OXOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:22 아카리 → 이리야 SET</td>
+            <td>OXO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">이리야 → 이리야 OFF</td>
+            <td>OXO<span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:16 알네카 → 요리 이리야 SET</td>
+            <td>O<span class="change-x">O</span>O<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:52 이리야 → 알네카 요리 이리야 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 아카리 → 알네카 SET</td>
+            <td><span class="change-x">O</span>XOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">알네카 → 요리 이리야 SET</td>
+            <td>O<span class="change-x">O</span>O<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">요리 → 요리 OFF</td>
+            <td>O<span class="change-x">X</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 아카리 → 요리 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:40 이리야 → 이리야 바이올렛 OFF</td>
+            <td>OOO<span class="change-x">X</span><span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:31 알네카 → 이리야 SET 오토 ON</td>
+            <td>OOO<span class="change-x">O</span>X</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:24 요리 → 바이올렛 SET 요리 OFF 오토 OFF</td>
+            <td>O<span class="change-x">X</span>OO<span class="change-x">O</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 아카리 → 요리 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:14 이리야 → 이리야 OFF</td>
+            <td>OOO<span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:09 아카리 → 이리야 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">이리야 → 이리야 OFF</td>
+            <td>OOO<span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:02 알네카 → 이리야 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=cg0nIAN5n3U" target="_blank">デミ・カリド 強騎士CR無 4.36億 目押し2回</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/2.1.png" alt="2.1"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%98%EB%9E%80%ED%8C%8C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%BC%EC%98%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%96%A5%EC%BD%94%EB%A1%9C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EB%9D%BC%EC%97%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%A6%88%EB%A3%A85.png"></td>
+        </tr>
+        <tr>
+            <td>43600</td>
+            <td>의란파</td><td>피오</td><td>향코로</td><td>파라엘</td><td>뉴즈루</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>0</td><td>6</td><td>6</td><td>0</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP ?</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OXOOO 오토O</td>
+            <td>OXOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:10 의란파 → 의란파 OFF</td>
+            <td><span class="change-x">X</span>XOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:10 피오 OK 보고 ※1</td>
+            <td>XXOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 뉴즈루 → 의란파 SET 파라엘 OFF</td>
+            <td><span class="change-x">O</span>XO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:58 피오 → 오토 OFF</td>
+            <td>OXOXO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:49 의란파 → 파라엘 SET 의란파 OFF</td>
+            <td><span class="change-x">X</span>XO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:44 피오 OK 보고 ※2</td>
+            <td>XXOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:37 향코로 → 의란파 피오 SET</td>
+            <td><span class="change-x">O</span><span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:34 피오 → 피오 향코로 OFF 오토 ON</td>
+            <td>O<span class="change-x">X</span><span class="change-x">X</span>OO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:28 향코로 → 향코로 SET 오토 OFF</td>
+            <td>OX<span class="change-x">O</span>OO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 향코로 → 피오 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">피오 → 피오 OFF</td>
+            <td>O<span class="change-x">X</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:07 파라엘 → 피오 SET 의란파 파라엘 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span>O<span class="change-x">X</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:01 향코로 → 의란파 파라엘 SET</td>
+            <td><span class="change-x">O</span>OO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left"></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="6" class="text-left">※1 0:44 향코로 UB 직후에 피오 2스 TP를 넣기 위한 조정</td>
+        </tr>
+        <tr>
+            <td colspan="6" class="text-left">※2 향코로 UB 전후에 피오2스 TP가 파라엘에 안들어갔으면 성공</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1096" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/2.1.png" alt="2.1"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%98%EB%9E%80%ED%8C%8C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%BC%EC%98%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%96%A5%EC%BD%94%EB%A1%9C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EB%9D%BC%EC%97%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%A6%88%EB%A3%A85.png"></td>
+        </tr>
+        <tr>
+            <td>38800</td>
+            <td>의란파</td><td>피오</td><td>향코로</td><td>파라엘</td><td>뉴즈루</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>6</td><td>3</td><td>3</td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOOO 오토O</td>
+            <td>OOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:10 의란파 → 의란파 향코로 OFF</td>
+            <td><span class="change-x">X</span>O<span class="change-x">X</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 뉴즈루 → 의란파 향코로 SET 피오 파라엘 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:55 향코로 → 향코로 OFF 오토 OFF</td>
+            <td>OX<span class="change-x">X</span>XO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:49 의란파 → 향코로 파라엘 SET</td>
+            <td>OX<span class="change-x">O</span><span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 뉴즈루 → 뉴즈루 OFF 오토 ON</td>
+            <td>OXOO<span class="change-x">X</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:37 향코로 → 피오 SET 의란파 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span>OOX</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:35 피오 → 뉴즈루 SET 피오 OFF</td>
+            <td>X<span class="change-x">X</span>OO<span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:29 의란파 → 의란파 SET 오토 OFF</td>
+            <td><span class="change-x">O</span>XOOO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:21 의란파 → 피오 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">피오 → 피오 OFF</td>
+            <td>O<span class="change-x">X</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:07 파라엘 → 피오 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1234" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/2.1.png" alt="2.1"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%82%A4%EB%93%9C%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%84%A4%EC%B9%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%EB%A0%885.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%83%90%EB%A3%A85.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>36500</td>
+            <td>수키드나</td><td>알네카</td><td>수마레</td><td>냐루</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td>6</td><td></td><td>3</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOXOO 오토O</td>
+            <td>XOXOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:16 알네카 → 알네카 OFF</td>
+            <td>X<span class="change-x">X</span>XOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:01 수마레 → 수마레 SET</td>
+            <td>XX<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:51 알네카 → 알네카 SET</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:28 수키드나 → 수키드나 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1355" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/2.1.png" alt="2.1"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%82%A4%EB%93%9C%EB%82%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%84%A4%EC%B9%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%98%B8%EB%A7%88%EB%A0%885.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%83%90%EB%A3%A85.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>36200</td>
+            <td>수키드나</td><td>알네카</td><td>호마레</td><td>냐루</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td>6</td><td></td><td>3</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOOOO 오토O</td>
+            <td>XOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:16 알네카 → 알네카 OFF</td>
+            <td>X<span class="change-x">X</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:51 알네카 → 알네카 SET</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:28 수키드나 → 수키드나 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=A8TFMAJc7ko" target="_blank">【プリコネR】（更新版概要欄から）4段階目イワノヅチ　物理（水）4億1200万【3月クランバトル】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/3.16.png" alt="3.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%98%A4%EB%A6%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%85%B0%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%85%B0%ED%94%BC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>42300</td>
+            <td>수메스</td><td>윈오리</td><td>프셰피</td><td>셰피</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>0</td><td>9</td><td>0</td><td>6</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.2</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOXOO 오토O</td>
+            <td>XOXOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:06 프셰피 → 프셰피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 셰피 → 셰피 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:57 프셰피 → 셰피 SET 윈오리 OFF 오토 OFF</td>
+            <td>X<span class="change-x">X</span>O<span class="change-x">O</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 윈오리 평타 캔슬 → 윈오리 SET 오토 ON</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:40 셰피 → 윈오리 셰피 OFF</td>
+            <td>X<span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:31 수메스 → 셰피 SET 오토 OFF</td>
+            <td>XXO<span class="change-x">O</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:29 윈오리 평타 캔슬 → 윈오리 SET</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:10 프셰피 → 프셰피 OFF</td>
+            <td>XO<span class="change-x">X</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:01 셰피 → 프셰피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=A8TFMAJc7ko" target="_blank">【プリコネR】（更新版概要欄から）4段階目イワノヅチ　物理（水）4億1200万【3月クランバトル】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/3.16.png" alt="3.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%98%A4%EB%A6%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%85%B0%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%85%B0%ED%94%BC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>41200</td>
+            <td>수메스</td><td>윈오리</td><td>프셰피</td><td>셰피</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>6</td><td>9</td><td>9</td><td>9</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.1</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOXOO 오토O</td>
+            <td>XOXOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:06 프셰피 → 프셰피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 셰피 → 셰피 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:57 프셰피 → 셰피 SET</td>
+            <td>XOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:40 셰피 → 셰피 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:31 수메스 → 셰피 SET</td>
+            <td>XOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:10 프셰피 → 프셰피 OFF</td>
+            <td>XO<span class="change-x">X</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:01 셰피 → 프셰피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1461" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/3.16.png" alt="3.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%98%A4%EB%A6%AC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%85%B0%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%85%B0%ED%94%BC6.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>37000</td>
+            <td>수메스</td><td>윈오리</td><td>프셰피</td><td>셰피</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td></td><td>3</td><td>6</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOXOO 오토O</td>
+            <td>XOXOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:06 프셰피 → 프셰피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 셰피 → 셰피 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:57 프셰피 → 셰피 SET 윈오리 OFF 오토 OFF</td>
+            <td>X<span class="change-x">X</span>O<span class="change-x">O</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:48 이사올렛 → 윈오리 SET 오토 ON</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:40 셰피 → 셰피 OFF</td>
+            <td>XOO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:31 수메스 → 셰피 SET</td>
+            <td>XOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:30 윈오리 → 윈오리 OFF 오토 OFF</td>
+            <td>X<span class="change-x">X</span>OOO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:19 셰피 → 윈오리 SET 오토 ON</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1631" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/3.16.png" alt="3.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EC%A1%B0%EB%AF%B85.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%9D%BC%EB%B9%845.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%86%8C%EB%85%B85.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>36600</td>
+            <td>수메스</td><td>알조미</td><td>알라비</td><td>소노</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>6</td><td></td><td>3</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOOOO 오토O</td>
+            <td>XOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 알조미 → 알조미 OFF</td>
+            <td>X<span class="change-x">X</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:57 알라비 → 알조미 SET</td>
+            <td>X<span class="change-x">O</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:49 알조미 → 알조미 OFF</td>
+            <td>X<span class="change-x">X</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 수메스 → 알조미 SET</td>
+            <td>X<span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:28 소노 → 수메스 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:17 수메스 → 수메스 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:09 소노 → 수메스 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">수메스 → 수메스 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:06 알라비 → 수메스 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">수메스 → 수메스 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=ReRa950Izf8" target="_blank">バジリスク・アロス　目押し3　5億2528万</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/4.16.png" alt="4.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%80%EB%84%A4%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EB%A1%9C%ED%95%985.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%ED%8E%98%EC%BD%945.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%85%B0%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>52528</td>
+            <td>파오이</td><td>귀네피</td><td>이로하</td><td>뉴페코</td><td>수셰피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>9</td><td>9</td><td>0</td><td>3</td><td>9</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0이상</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OXOXO 오토O</td>
+            <td>OXOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:09 파오이 → 귀네피 뉴페코 SET</td>
+            <td>O<span class="change-x">O</span>O<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">뉴페코 → 파오이 뉴페코 OFF</td>
+            <td><span class="change-x">X</span>OO<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:03 파오이 → 파오이 SET 오토 OFF</td>
+            <td><span class="change-x">O</span>OOXO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:58~57 뉴페코 말풍선 후 오토 ON</td>
+            <td>OOOXO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:56 귀네피 → 뉴페코 SET</td>
+            <td>O<span class="change-x">X</span>O<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 귀네피 금강 배리어 후 일찍</td>
+            <td>O<span class="change-x">O</span><span class="change-x">X</span>O<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:30 이로하 → 뉴페코 OFF 오토 OFF</td>
+            <td>OOX<span class="change-x">X</span>X</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:27 귀네피 → 뉴페코 SET</td>
+            <td>OOX<span class="change-x">O</span>X</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:23 뉴페코 → 수셰피 SET</td>
+            <td>OOXO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20~19 이로하 TP 부여 후 빨리 → 이로하 SET 수셰피 OFF</td>
+            <td>OO<span class="change-x">O</span>O<span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:12 보스 UB →</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:05~04 이로하 → 파오이 이로하 뉴페코 수셰피 OFF 오토 ON</td>
+            <td><span class="change-x">X</span>O<span class="change-x">X</span><span class="change-x">X</span><span class="change-x">X</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:01 뉴페코 → 전체 SET</td>
+            <td><span class="change-x">O</span>O<span class="change-x">O</span><span class="change-x">O</span><span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=_K8Dk_FKvuM" target="_blank">プリコネR 202603バジリスク・アロス火物理 4段階目 46000 目押し2(+0.5)</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/4.16.png" alt="4.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%9D%BC%ED%81%AC%EB%84%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%ED%8E%98%EC%BD%945.png"></td>
+        </tr>
+        <tr>
+            <td>46000</td>
+            <td>아라크네</td><td>네피</td><td>봉황</td><td>카논</td><td>아페코</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.5</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OXOOO 오토O</td>
+            <td>OXOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:18 네피 → 오토 OFF</td>
+            <td>OXOOO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:03 네피 1스 말풍선 보고 오토 ON</td>
+            <td>OXOOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:01 네피 → 네피 SET 봉황 카논 아페코 OFF 오토 OFF</td>
+            <td>O<span class="change-x">O</span><span class="change-x">X</span><span class="change-x">X</span><span class="change-x">X</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:55 카논 말풍선 보고 빨리 → 카논 SET
+※ 첫 UB는 보스 UB 전에 나가야 하지만 두번째 UB는 후에도 OK</td>
+            <td>OOX<span class="change-x">O</span>X</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:55 보스 UB → 봉황 SET 오토 ON</td>
+            <td>OO<span class="change-x">O</span>OX</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:33 카논 → 아페코 SET 카논 OFF 오토 OFF</td>
+            <td>OOO<span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:32 아페코 → 카논 SET 아라크네 네피 봉황 아페코 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">X</span><span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:26 보스 → 봉황 네피 SET 오토 ON</td>
+            <td>X<span class="change-x">O</span><span class="change-x">O</span>OX</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 아페코 → 아라크네 아페코 SET 네피 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">X</span>OO<span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:12 봉황 → 네피 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:12 카논 → 봉황 카논 OFF</td>
+            <td>OO<span class="change-x">X</span><span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:03 네피 → 봉황 SET</td>
+            <td>OO<span class="change-x">O</span>XO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:03 카논 행동 패턴 변화 후 일찍 
+※봉황 UB 후 약간 느리게</td>
+            <td>OOOXO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=G6o8umB-SZ4" target="_blank">バジリスク・アロス ニュッコロ 44000 目押し2 合法ペコ</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/4.16.png" alt="4.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%80%EB%84%A4%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%ED%8E%98%EC%BD%945.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%BD%94%EB%A1%9C5.png"></td>
+        </tr>
+        <tr>
+            <td>44000</td>
+            <td>아메스</td><td>파오이</td><td>귀네피</td><td>뉴페코</td><td>뉴코로</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td>3</td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOXO 오토X</td>
+            <td>OOOXO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:19 뉴페코 초수 가장 빠르게 → 뉴페코 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:11 아메스 → 아메스 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:59 뉴페코 → 아메스 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:50 아메스 → 아메스 귀네피 OFF</td>
+            <td><span class="change-x">X</span>O<span class="change-x">X</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:47 뉴페코 → 귀네피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:44 뉴피코 → 아메스 SET</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:39 아메스 → 아메스 귀네피 뉴페코 OFF 오토 ON</td>
+            <td><span class="change-x">X</span>O<span class="change-x">X</span><span class="change-x">X</span>O</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:35 뉴페코 → 뉴페코 SET 오토 OFF</td>
+            <td>XOX<span class="change-x">O</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:30 파오이 → 귀네피 SET</td>
+            <td>XO<span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:29 아메스 루체 캔슬</td>
+            <td>XOOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:23 뉴코로 → 뉴코로 OFF 오토 ON</td>
+            <td>XOOO<span class="change-x">X</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 아메스 → 아메스 SET</td>
+            <td><span class="change-x">O</span>OOOX</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:13 귀네피 → 뉴코로 SET 귀네피 OFF 오토 OFF</td>
+            <td>OO<span class="change-x">X</span>O<span class="change-x">O</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:02 아메스 → 귀네피 SET</td>
+            <td>OO<span class="change-x">O</span>OO</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1775" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/4.16.png" alt="4.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%80%EB%84%A4%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%ED%8E%98%EC%BD%945.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%85%B0%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>38200</td>
+            <td>아메스</td><td>파오이</td><td>귀네피</td><td>뉴페코</td><td>수셰피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>39</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td>3</td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOXO 오토O</td>
+            <td>OOOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:18 뉴페코 → 뉴페코 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=1775" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/4.16.png" alt="4.16"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A9%94%EC%8A%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%80%EB%84%A4%ED%94%BC5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%ED%8E%98%EC%BD%945.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%85%B0%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>41100</td>
+            <td>아메스</td><td>파오이</td><td>귀네피</td><td>뉴페코</td><td>수셰피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>39</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td>3</td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOXXO 오토O</td>
+            <td>OOXXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:18 뉴페코 → 뉴페코 SET 오토 OFF</td>
+            <td>OOX<span class="change-x">O</span>O</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:12 귀네피 평타 캔슬 → 귀네피 SET 오토 ON  ※1:11 전환 직후도 OK</td>
+            <td>OO<span class="change-x">O</span>OO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:52 귀네피 → 귀네피 OFF</td>
+            <td>OO<span class="change-x">X</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 파오이 → 귀네피 SET 오토 OFF</td>
+            <td>OO<span class="change-x">O</span>OO</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:26 귀네피 → 아메스 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:22 아메스 시간보고 ※루체 캔슬. 0:23에 와도 OK</td>
+            <td>XOOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 파오이 → 아메스 SET 파오이 OFF 오토 ON</td>
+            <td><span class="change-x">O</span><span class="change-x">X</span>OOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:18 귀네피 → 귀네피 OFF</td>
+            <td>OX<span class="change-x">X</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:08 아메스 → 파오이 귀네피 SET</td>
+            <td>O<span class="change-x">O</span><span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=0Xo__hdnsQQ" target="_blank">【プリコネ】4段階目メサルティム　目押しなし5.6億前後（目押し1で追加1000万）</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/5.4.png" alt="5.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EC%9D%B4%EC%98%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%82%AC%EB%A0%8C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%EB%84%A4%EC%B9%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EB%AA%A8%EB%84%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%A4%EC%B9%B4%EB%A6%AC5.png"></td>
+        </tr>
+        <tr>
+            <td>46000</td>
+            <td>성이오</td><td>뉴사렌</td><td>네네카</td><td>수네모네</td><td>앤카리</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>15</td><td>15</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOXX 오토X</td>
+            <td>OOOXX</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:21 네네카 → 수네모네 SET</td>
+            <td>OOO<span class="change-x">O</span>X</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">수네모네 → 앤카리 SET</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:20 성이오 → 성이오 뉴사렌 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">X</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:17 앤카리 → 앤카리 OFF</td>
+            <td>XXOO<span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:09 수네모네 → 뉴사렌 앤카리 SET 네네카 OFF 오토 ON</td>
+            <td>X<span class="change-x">O</span><span class="change-x">X</span>O<span class="change-x">O</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:04 앤카리 → 앤카리 OFF 오토 OFF</td>
+            <td>XOXO<span class="change-x">X</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 뉴사렌 → 앤카리 SET 오토 ON</td>
+            <td>XOXO<span class="change-x">O</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:53 뉴사렌 → 성이오 네네카 SET 뉴사렌 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:44 성이오 → 뉴사렌 SET 성이오 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:42 앤카리 → 앤카리 OFF</td>
+            <td>XOOO<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:36 앤카리 → 오토 OFF</td>
+            <td>XOOOX</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:30 네네카 → 성이오 SET</td>
+            <td><span class="change-x">O</span>OOOX</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">성이오 → 앤카리 SET</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:25 앤카리 → 수네모네 앤카리 OFF</td>
+            <td>OOO<span class="change-x">X</span><span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:17 성이오 → 수네모네 SET</td>
+            <td>OOO<span class="change-x">O</span>X</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">수네모네 → 앤카리 SET</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">앤카리 → 뉴사렌 OFF</td>
+            <td>O<span class="change-x">X</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:13 보스 UB → 뉴사렌 SET</td>
+            <td>O<span class="change-x">O</span>OOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:09 앤카리 → 앤카리 OFF</td>
+            <td>OOOO<span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:03~02 앤카리 1스 캔슬</td>
+            <td>OOOOX</td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=2074" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/5.4.png" alt="5.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EC%9D%B4%EC%98%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%82%AC%EB%A0%8C5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%EB%84%A4%EC%B9%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EB%AA%A8%EB%84%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%A4%EC%B9%B4%EB%A6%AC5.png"></td>
+        </tr>
+        <tr>
+            <td>42400</td>
+            <td>성이오</td><td>뉴사렌</td><td>네네카</td><td>수네모네</td><td>앤카리</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td></td><td></td><td></td><td>6</td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 XOOOO 오토O</td>
+            <td>XOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:17 성이오 → 성이오 SET 뉴사렌 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">X</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:03 앤카리 → 뉴사렌 SET 앤카리 OFF</td>
+            <td>O<span class="change-x">O</span>OO<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:51 앤카리 → 앤카리 SET 성이오 뉴사렌 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">X</span>OO<span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:43 성이오 → 성이오 뉴사렌 SET 네네카 수네모네 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">O</span><span class="change-x">X</span><span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:38 뉴사렌 → 뉴사렌 OFF</td>
+            <td>O<span class="change-x">X</span>XXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:26 뉴사렌 → 뉴사렌 수네모네 SET</td>
+            <td>O<span class="change-x">O</span>X<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 뉴사렌 → 뉴사렌 OFF</td>
+            <td>O<span class="change-x">X</span>XOO</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://www.youtube.com/watch?v=R0D0OV5W1kI" target="_blank">【プリコネ】メサルティム物理参考4.09億（4段階目）目押し1</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8A%A4%EC%A6%88%EB%82%986.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EB%AA%A8%EB%84%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B2%8C%EB%AC%B4%EA%B8%B05.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%85%B0%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>40900</td>
+            <td>스즈나</td><td>수네모네</td><td>파오이</td><td>게무기</td><td>수셰피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>6</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.2</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOOO 오토O</td>
+            <td>OOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:09 아네모네 → 수네모네 게무기 OFF</td>
+            <td>O<span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:04 스즈나 → 스즈나 OFF</td>
+            <td><span class="change-x">X</span>XOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:55 스즈나 → 스즈나 SET</td>
+            <td><span class="change-x">O</span>XOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:28 파오이 → 수네모네 SET</td>
+            <td>O<span class="change-x">O</span>OXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:17 게무기 → 수네모네 파오이 수셰피 OFF</td>
+            <td>O<span class="change-x">X</span><span class="change-x">X</span>X<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:05 게무기 버프 후</td>
+            <td>OXXXX</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/qxgIz4_wzio?t=2205" target="_blank">【プリコネR】3月クラバト4段階目 簡単セミオート編成とフルオート編成紹介、2026年3月【フロストハウンド】【デミカリド】【イワノヅチ】【バジリスクアロス】【メサルティム】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/5.4.png" alt="5.4"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8A%A4%EC%A6%88%EB%82%986.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EB%AA%A8%EB%84%A45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%8C%EC%98%A4%EC%9D%B45.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B2%8C%EB%AC%B4%EA%B8%B05.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%85%B0%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>38300</td>
+            <td>스즈나</td><td>수네모네</td><td>파오이</td><td>게무기</td><td>수셰피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>6</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>40</td><td>40</td><td>40</td><td>40</td><td>40</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>6</td><td>3</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 7.0</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOOO 오토O</td>
+            <td>OOOOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:19 게무기 → 수네모네 게무기 OFF</td>
+            <td>O<span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:09 수네모네 → 수네모네 SET</td>
+            <td>O<span class="change-x">O</span>OXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:54 게무기 → 게무기</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:43 게무기 → 수네모네 게무기 OFF</td>
+            <td>O<span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section></div>
+    </main>
+
+    <!-- 관리자 도구 -->
+    
+    
+
+    <!-- 보스 선택 모달 레이어 -->
+    
+
+    <!-- 대문 이미지 선택 모달 레이어 -->
+    
+
+    <!-- 하단 푸터 -->
+    <footer class="page-footer">
+        <div class="container">
+            <p>© 2026 Data Dashboard. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
+
+        const bossList = [
+            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
+            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
+            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
+            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
+        ];
+
+        const headerList = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+        ];
+
+        let recentBosses = [];
+        let targetBossTd = null;
+
+        function initModals() {
+            // 보스 선택 모달 초기화
+            const bossContainer = document.getElementById('boss-grid-container');
+            bossContainer.innerHTML = '';
+            bossList.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                bossContainer.appendChild(item);
+            });
+
+            // 대문 이미지 모달 초기화
+            const headerContainer = document.getElementById('header-grid-container');
+            headerContainer.innerHTML = '';
+            headerList.forEach(header => {
+                const item = document.createElement('div');
+                item.className = 'header-item';
+                item.onclick = () => selectHeaderImage(header);
+                item.innerHTML = `<img src="${GITHUB_HEADER_IMAGE_BASE}${header}.png" alt="대문 ${header}">`;
+                headerContainer.appendChild(item);
+            });
+
+            renderRecentBosses();
+        }
+
+        function renderRecentBosses() {
+            const wrapper = document.getElementById('recent-boss-wrapper');
+            const recentContainer = document.getElementById('recent-boss-grid');
+            recentContainer.innerHTML = '';
+
+            if (recentBosses.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+
+            wrapper.style.display = 'block';
+            recentBosses.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item recent-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                recentContainer.appendChild(item);
+            });
+        }
+
+        // --- 보스 모달 함수 ---
+        function openBossModal(element) {
+            targetBossTd = element;
+            renderRecentBosses();
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+
+        function closeBossModal() {
+            document.getElementById('boss-modal').style.display = 'none';
+            targetBossTd = null;
+        }
+
+        function selectBoss(bossName) {
+            if (targetBossTd) {
+                const imgUrl = `${GITHUB_BOSS_IMAGE_BASE}${encodeURIComponent(bossName)}.png`;
+                targetBossTd.innerHTML = `<img src="${imgUrl}" alt="${bossName}">`;
+                targetBossTd.classList.remove('boss-clickable');
+            }
+
+            recentBosses = recentBosses.filter(b => b !== bossName);
+            recentBosses.unshift(bossName);
+            if (recentBosses.length > 10) {
+                recentBosses.pop();
+            }
+
+            closeBossModal();
+        }
+
+        // --- 대문 이미지 모달 및 관리 함수 ---
+        function openHeaderModal() {
+            document.getElementById('header-modal').style.display = 'flex';
+        }
+
+        function closeHeaderModal() {
+            document.getElementById('header-modal').style.display = 'none';
+        }
+
+        function selectHeaderImage(headerName) {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            
+            bannerImg.src = `${GITHUB_HEADER_IMAGE_BASE}${headerName}.png`;
+            bannerWrapper.style.display = 'block';
+
+            closeHeaderModal();
+        }
+
+        function removeHeaderBanner() {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            bannerImg.src = '';
+            bannerWrapper.style.display = 'none';
+        }
+
+        function attachBossClickToTable(table) {
+            const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+            if (firstImgTd) {
+                firstImgTd.classList.add('boss-clickable');
+                if (!firstImgTd.querySelector('img')) {
+                    firstImgTd.innerHTML = `<div class="boss-placeholder">👾 보스 선택<br>(클릭)</div>`;
+                }
+                firstImgTd.onclick = function() {
+                    openBossModal(this);
+                };
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initModals();
+            const tables = document.querySelectorAll('.output-table');
+            tables.forEach(table => attachBossClickToTable(table));
+        });
+
+        // ==========================================
+        // 관리자 도구 기능
+        // ==========================================
+        function toggleAdminPanel() {
+            document.getElementById('admin-panel-root').classList.toggle('open');
+        }
+
+        function findInsertionTarget() {
+            const containers = document.querySelectorAll('.card-body .table-responsive');
+            for (const c of containers) {
+                if (!c.querySelector('table')) return c;
+            }
+            return null;
+        }
+
+        function createNewCardSection() {
+            const section = document.createElement('section');
+            section.className = 'card';
+            
+            const tools = document.createElement('div');
+            tools.className = 'card-tools';
+
+            const spaceBtn = document.createElement('button');
+            spaceBtn.className = 'card-btn add-space-btn';
+            spaceBtn.textContent = '+ 구분선';
+            spaceBtn.onclick = function() {
+                addBossSpaceAfter(section);
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'card-btn delete-btn';
+            delBtn.textContent = '✕ 삭제';
+            delBtn.onclick = function() { section.remove(); };
+
+            tools.appendChild(spaceBtn);
+            tools.appendChild(delBtn);
+            section.appendChild(tools);
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+            const responsive = document.createElement('div');
+            responsive.className = 'table-responsive';
+            body.appendChild(responsive);
+            section.appendChild(body);
+            
+            document.getElementById('content-container').appendChild(section);
+            return responsive;
+        }
+
+        function addBossSpaceAfter(targetCard) {
+            const divider = document.createElement('div');
+            divider.className = 'boss-divider';
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'divider-delete-btn';
+            delBtn.textContent = '구분선 삭제 ✕';
+            delBtn.onclick = function() { divider.remove(); };
+            divider.appendChild(delBtn);
+
+            targetCard.after(divider);
+        }
+
+        function addGuideTable() {
+            const textarea = document.getElementById('admin-paste-area');
+            const statusEl = document.getElementById('admin-status');
+            const raw = textarea.value.trim();
+
+            statusEl.className = 'admin-status';
+            statusEl.textContent = '';
+
+            if (!raw) {
+                statusEl.textContent = '붙여넣을 테이블 HTML을 입력해주세요.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            const parser = new DOMParser();
+            const parsedDoc = parser.parseFromString(raw, 'text/html');
+            const tables = parsedDoc.querySelectorAll('table.output-table');
+
+            if (tables.length === 0) {
+                statusEl.textContent = '유효한 테이블(class="output-table")을 찾지 못했습니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            let addedCount = 0;
+            tables.forEach(table => {
+                const importedTable = document.importNode(table, true);
+                let target = findInsertionTarget();
+                if (!target) {
+                    target = createNewCardSection();
+                }
+                target.appendChild(importedTable);
+                attachBossClickToTable(importedTable);
+                addedCount++;
+            });
+
+            textarea.value = '';
+            statusEl.textContent = `테이블 ${addedCount}개를 추가했습니다.`;
+            statusEl.className = 'admin-status success';
+        }
+
+        // --- HTML 파일 불러오기 및 데이터 재복원 기능 ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                loadPageFromFile(e.target.result);
+                // 파일 선택 초기화 (동일 파일 재선택 허용)
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function loadPageFromFile(htmlContent) {
+            const statusEl = document.getElementById('admin-status');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            const newContent = doc.querySelector('#content-container');
+            if (!newContent) {
+                statusEl.textContent = '올바른 페이지 파일 구조가 아닙니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            // 1. 대문 배너 복원
+            const fileHeaderBanner = newContent.querySelector('#main-header-banner img');
+            const currentBanner = document.getElementById('main-header-banner');
+            const currentBannerImg = document.getElementById('header-banner-img');
+
+            if (fileHeaderBanner && fileHeaderBanner.getAttribute('src')) {
+                currentBannerImg.src = fileHeaderBanner.getAttribute('src');
+                currentBanner.style.display = 'block';
+            } else {
+                currentBannerImg.src = '';
+                currentBanner.style.display = 'none';
+            }
+
+            // 2. 기존 카드/구분선 삭제 후 불러온 요소로 교체
+            const currentContainer = document.getElementById('content-container');
+            currentContainer.querySelectorAll('.card, .boss-divider').forEach(el => el.remove());
+
+            // 3. 요소 복구 및 편집 도구/이벤트 재연결
+            const loadedNodes = newContent.children;
+            let loadedCardsCount = 0;
+
+            Array.from(loadedNodes).forEach(node => {
+                if (node.id === 'main-header-banner') return; // 배너는 위에서 처리함
+
+                const importedNode = document.importNode(node, true);
+
+                // 카드 복원 시 상단 관리 도구 버튼 재배치
+                if (importedNode.classList.contains('card')) {
+                    loadedCardsCount++;
+                    const tools = document.createElement('div');
+                    tools.className = 'card-tools';
+
+                    const spaceBtn = document.createElement('button');
+                    spaceBtn.className = 'card-btn add-space-btn';
+                    spaceBtn.textContent = '+ 구분선';
+                    spaceBtn.onclick = function() { addBossSpaceAfter(importedNode); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'card-btn delete-btn';
+                    delBtn.textContent = '✕ 삭제';
+                    delBtn.onclick = function() { importedNode.remove(); };
+
+                    tools.appendChild(spaceBtn);
+                    tools.appendChild(delBtn);
+                    importedNode.insertBefore(tools, importedNode.firstChild);
+
+                    // 테이블 내 보스 이벤트 재연결
+                    const table = importedNode.querySelector('.output-table');
+                    if (table) attachBossClickToTable(table);
+                }
+
+                // 구분선 복원 시 삭제 버튼 재배치
+                if (importedNode.classList.contains('boss-divider')) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'divider-delete-btn';
+                    delBtn.textContent = '구분선 삭제 ✕';
+                    delBtn.onclick = function() { importedNode.remove(); };
+                    importedNode.appendChild(delBtn);
+                }
+
+                currentContainer.appendChild(importedNode);
+            });
+
+            statusEl.textContent = `파일을 성공적으로 불러왔습니다. (${loadedCardsCount}개 카드 복원)`;
+            statusEl.className = 'admin-status success';
+        }
+
+        function downloadPage() {
+            const rawHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const parser = new DOMParser();
+            const cloneDoc = parser.parseFromString(rawHtml, 'text/html');
+
+            // 1. 관리자 요소 제거
+            const panel = cloneDoc.querySelector('#admin-panel-root');
+            if (panel) panel.remove();
+            const toggleBtn = cloneDoc.querySelector('#admin-toggle-btn');
+            if (toggleBtn) toggleBtn.remove();
+            const bossModal = cloneDoc.querySelector('#boss-modal');
+            if (bossModal) bossModal.remove();
+            const headerModal = cloneDoc.querySelector('#header-modal');
+            if (headerModal) headerModal.remove();
+
+            // 2. 대문 툴바, 카드 툴바 및 구분선 삭제 버튼 제거
+            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn').forEach(btn => btn.remove());
+
+            // 3. 보스 이미지 클릭 이벤트 무력화
+            cloneDoc.querySelectorAll('.output-table').forEach(table => {
+                const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+                if (firstImgTd) {
+                    firstImgTd.classList.remove('boss-clickable');
+                    firstImgTd.removeAttribute('onclick');
+
+                    if (!firstImgTd.querySelector('img')) {
+                        firstImgTd.innerHTML = '';
+                    }
+                }
+            });
+
+            const htmlString = '<!DOCTYPE html>\n' + cloneDoc.documentElement.outerHTML;
+            const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'webP.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+<whale-quicksearch translate="no" style="visibility: visible;"></whale-quicksearch></body></html>

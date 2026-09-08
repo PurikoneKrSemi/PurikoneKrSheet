@@ -53,12 +53,44 @@
         .main-content {
             flex: 1;
             padding: 20px 0;
+            width: 100%;
         }
 
         /* ==========================================
-           3. 테이블 카드 컨테이너 및 구분 공백
+           3. 본문 내 대문 이미지 (Main Banner - 카드 너비 맞춤)
+           ========================================== */
+        .header-banner {
+            width: 100%;
+            max-width: 648px; /* Card 전체 가로 너비(630px table + 16px padding + border)와 동일하게 설정 */
+            position: relative;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            display: none; /* 이미지가 설정되면 block으로 전환 */
+            overflow: hidden;
+        }
+
+        .header-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .header-banner .banner-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+
+        /* ==========================================
+           4. 테이블 카드 컨테이너 및 구분 공백
            ========================================== */
         .card {
+            width: 100%;
+            max-width: 648px;
             background-color: var(--card-bg);
             border-radius: 8px;
             border: 1px solid var(--border-color);
@@ -75,7 +107,8 @@
 
         .boss-divider {
             width: 100%;
-            height: 80px;
+            max-width: 648px;
+            height: 40px;
             margin: 10px 0;
             position: relative;
             display: flex;
@@ -137,7 +170,7 @@
         }
 
         /* ==========================================
-           4. 반응형 테이블 및 스타일 (수정됨)
+           5. 반응형 테이블 및 스타일
            ========================================== */
         .table-responsive {
             width: auto;
@@ -158,8 +191,8 @@
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
             vertical-align: middle;
-            white-space: pre-wrap; /* \n 및 긴문자열 자동 줄바꿈 적용 */
-            word-break: break-all;  /* 셀 영역 초과 방지 */
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         .output-table td:empty::before {
@@ -289,7 +322,7 @@
         }
 
         /* ==========================================
-           5. 보스 선택 모달 팝업 스타일
+           6. 선택 모달 (보스 / 대문 통합)
            ========================================== */
         .modal-overlay {
             display: none;
@@ -334,7 +367,14 @@
             margin-bottom: 12px;
         }
 
-        .boss-item {
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .boss-item, .header-item {
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 6px;
@@ -344,13 +384,13 @@
             background: #fff;
         }
 
-        .boss-item:hover {
+        .boss-item:hover, .header-item:hover {
             border-color: var(--primary-color);
             background-color: #eef2ff;
             transform: translateY(-2px);
         }
 
-        .boss-item img {
+        .boss-item img, .header-item img {
             width: 100%;
             height: auto;
             display: block;
@@ -363,7 +403,7 @@
         }
 
         /* ==========================================
-           6. 푸터 (Footer)
+           7. 푸터 (Footer)
            ========================================== */
         .page-footer {
             background-color: var(--card-bg);
@@ -375,7 +415,7 @@
         }
 
         /* ==========================================
-           7. 관리자 도구 패널
+           8. 관리자 도구 패널
            ========================================== */
         #admin-toggle-btn {
             position: fixed;
@@ -432,7 +472,7 @@
 
         #admin-paste-area {
             width: 100%;
-            min-height: 160px;
+            min-height: 140px;
             resize: vertical;
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
@@ -460,6 +500,12 @@
             cursor: pointer;
         }
 
+        .admin-btn.header-select {
+            background-color: #8b5cf6;
+            color: #fff;
+            width: 100%;
+        }
+
         .admin-btn.add {
             background-color: var(--primary-color);
             color: #fff;
@@ -467,6 +513,12 @@
 
         .admin-btn.save {
             background-color: #10b981;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.load {
+            background-color: #0284c7;
             color: #fff;
             width: 100%;
         }
@@ -487,6 +539,12 @@
     <main class="main-content">
         <div class="container" id="content-container">
             
+            <!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
+            <div id="main-header-banner" class="header-banner" style="display: block;">
+                
+                <img id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/9.png" alt="대문 이미지">
+            </div>
+
         <section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
     <colgroup>
         <col style="width: 16.66%;">
@@ -2033,6 +2091,9 @@
     <!-- 보스 선택 모달 레이어 -->
     
 
+    <!-- 대문 이미지 선택 모달 레이어 -->
+    
+
     <!-- 하단 푸터 -->
     <footer class="page-footer">
         <div class="container">
@@ -2041,7 +2102,8 @@
     </footer>
 
     <script>
-        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/";
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
 
         const bossList = [
             "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
@@ -2051,19 +2113,36 @@
             "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
         ];
 
+        const headerList = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+        ];
+
         let recentBosses = [];
         let targetBossTd = null;
 
-        function initBossModal() {
-            const container = document.getElementById('boss-grid-container');
-            container.innerHTML = '';
+        function initModals() {
+            // 보스 선택 모달 초기화
+            const bossContainer = document.getElementById('boss-grid-container');
+            bossContainer.innerHTML = '';
             bossList.forEach(boss => {
                 const item = document.createElement('div');
                 item.className = 'boss-item';
                 item.onclick = () => selectBoss(boss);
                 item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
-                container.appendChild(item);
+                bossContainer.appendChild(item);
             });
+
+            // 대문 이미지 모달 초기화
+            const headerContainer = document.getElementById('header-grid-container');
+            headerContainer.innerHTML = '';
+            headerList.forEach(header => {
+                const item = document.createElement('div');
+                item.className = 'header-item';
+                item.onclick = () => selectHeaderImage(header);
+                item.innerHTML = `<img src="${GITHUB_HEADER_IMAGE_BASE}${header}.png" alt="대문 ${header}">`;
+                headerContainer.appendChild(item);
+            });
+
             renderRecentBosses();
         }
 
@@ -2087,6 +2166,7 @@
             });
         }
 
+        // --- 보스 모달 함수 ---
         function openBossModal(element) {
             targetBossTd = element;
             renderRecentBosses();
@@ -2114,6 +2194,32 @@
             closeBossModal();
         }
 
+        // --- 대문 이미지 모달 및 관리 함수 ---
+        function openHeaderModal() {
+            document.getElementById('header-modal').style.display = 'flex';
+        }
+
+        function closeHeaderModal() {
+            document.getElementById('header-modal').style.display = 'none';
+        }
+
+        function selectHeaderImage(headerName) {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            
+            bannerImg.src = `${GITHUB_HEADER_IMAGE_BASE}${headerName}.png`;
+            bannerWrapper.style.display = 'block';
+
+            closeHeaderModal();
+        }
+
+        function removeHeaderBanner() {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            bannerImg.src = '';
+            bannerWrapper.style.display = 'none';
+        }
+
         function attachBossClickToTable(table) {
             const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
             if (firstImgTd) {
@@ -2128,7 +2234,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            initBossModal();
+            initModals();
             const tables = document.querySelectorAll('.output-table');
             tables.forEach(table => attachBossClickToTable(table));
         });
@@ -2236,20 +2342,118 @@
             statusEl.className = 'admin-status success';
         }
 
+        // --- HTML 파일 불러오기 및 데이터 재복원 기능 ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                loadPageFromFile(e.target.result);
+                // 파일 선택 초기화 (동일 파일 재선택 허용)
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function loadPageFromFile(htmlContent) {
+            const statusEl = document.getElementById('admin-status');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            const newContent = doc.querySelector('#content-container');
+            if (!newContent) {
+                statusEl.textContent = '올바른 페이지 파일 구조가 아닙니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            // 1. 대문 배너 복원
+            const fileHeaderBanner = newContent.querySelector('#main-header-banner img');
+            const currentBanner = document.getElementById('main-header-banner');
+            const currentBannerImg = document.getElementById('header-banner-img');
+
+            if (fileHeaderBanner && fileHeaderBanner.getAttribute('src')) {
+                currentBannerImg.src = fileHeaderBanner.getAttribute('src');
+                currentBanner.style.display = 'block';
+            } else {
+                currentBannerImg.src = '';
+                currentBanner.style.display = 'none';
+            }
+
+            // 2. 기존 카드/구분선 삭제 후 불러온 요소로 교체
+            const currentContainer = document.getElementById('content-container');
+            currentContainer.querySelectorAll('.card, .boss-divider').forEach(el => el.remove());
+
+            // 3. 요소 복구 및 편집 도구/이벤트 재연결
+            const loadedNodes = newContent.children;
+            let loadedCardsCount = 0;
+
+            Array.from(loadedNodes).forEach(node => {
+                if (node.id === 'main-header-banner') return; // 배너는 위에서 처리함
+
+                const importedNode = document.importNode(node, true);
+
+                // 카드 복원 시 상단 관리 도구 버튼 재배치
+                if (importedNode.classList.contains('card')) {
+                    loadedCardsCount++;
+                    const tools = document.createElement('div');
+                    tools.className = 'card-tools';
+
+                    const spaceBtn = document.createElement('button');
+                    spaceBtn.className = 'card-btn add-space-btn';
+                    spaceBtn.textContent = '+ 구분선';
+                    spaceBtn.onclick = function() { addBossSpaceAfter(importedNode); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'card-btn delete-btn';
+                    delBtn.textContent = '✕ 삭제';
+                    delBtn.onclick = function() { importedNode.remove(); };
+
+                    tools.appendChild(spaceBtn);
+                    tools.appendChild(delBtn);
+                    importedNode.insertBefore(tools, importedNode.firstChild);
+
+                    // 테이블 내 보스 이벤트 재연결
+                    const table = importedNode.querySelector('.output-table');
+                    if (table) attachBossClickToTable(table);
+                }
+
+                // 구분선 복원 시 삭제 버튼 재배치
+                if (importedNode.classList.contains('boss-divider')) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'divider-delete-btn';
+                    delBtn.textContent = '구분선 삭제 ✕';
+                    delBtn.onclick = function() { importedNode.remove(); };
+                    importedNode.appendChild(delBtn);
+                }
+
+                currentContainer.appendChild(importedNode);
+            });
+
+            statusEl.textContent = `파일을 성공적으로 불러왔습니다. (${loadedCardsCount}개 카드 복원)`;
+            statusEl.className = 'admin-status success';
+        }
+
         function downloadPage() {
             const rawHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
             const parser = new DOMParser();
             const cloneDoc = parser.parseFromString(rawHtml, 'text/html');
 
+            // 1. 관리자 요소 제거
             const panel = cloneDoc.querySelector('#admin-panel-root');
             if (panel) panel.remove();
             const toggleBtn = cloneDoc.querySelector('#admin-toggle-btn');
             if (toggleBtn) toggleBtn.remove();
-            const modal = cloneDoc.querySelector('#boss-modal');
-            if (modal) modal.remove();
+            const bossModal = cloneDoc.querySelector('#boss-modal');
+            if (bossModal) bossModal.remove();
+            const headerModal = cloneDoc.querySelector('#header-modal');
+            if (headerModal) headerModal.remove();
 
-            cloneDoc.querySelectorAll('.card-tools, .divider-delete-btn').forEach(btn => btn.remove());
+            // 2. 대문 툴바, 카드 툴바 및 구분선 삭제 버튼 제거
+            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn').forEach(btn => btn.remove());
 
+            // 3. 보스 이미지 클릭 이벤트 무력화
             cloneDoc.querySelectorAll('.output-table').forEach(table => {
                 const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
                 if (firstImgTd) {
