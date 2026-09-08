@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터 리포트</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: JetBrains Mono & Roboto Mono 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================
+           1. 기본 변수 및 리셋
+           ========================================== */
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --primary-color: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ==========================================
+           2. 레이아웃 컨테이너
+           ========================================== */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        /* ==========================================
+           3. 본문 내 대문 이미지 (Main Banner - 카드 너비 맞춤)
+           ========================================== */
+        .header-banner {
+            width: 100%;
+            max-width: 648px; /* Card 전체 가로 너비(630px table + 16px padding + border)와 동일하게 설정 */
+            position: relative;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            display: none; /* 이미지가 설정되면 block으로 전환 */
+            overflow: hidden;
+        }
+
+        .header-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .header-banner .banner-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+
+        /* ==========================================
+           4. 테이블 카드 컨테이너 및 구분 공백
+           ========================================== */
+        .card {
+            width: 100%;
+            max-width: 648px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: block;
+            position: relative;
+        }
+
+        .card-body {
+            padding: 8px;
+        }
+
+        .boss-divider {
+            width: 100%;
+            max-width: 648px;
+            height: 40px;
+            margin: 10px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-tools {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .card-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .card-btn:hover {
+            opacity: 1;
+        }
+
+        .card-btn.add-space-btn {
+            background: #0284c7;
+        }
+
+        .card-btn.delete-btn {
+            background: #ef4444;
+        }
+
+        .divider-delete-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .divider-delete-btn:hover {
+            opacity: 1;
+        }
+
+        /* ==========================================
+           5. 반응형 테이블 및 스타일
+           ========================================== */
+        .table-responsive {
+            width: auto;
+            overflow-x: auto;
+        }
+
+        .output-table {
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: center;
+            width: 630px;
+            table-layout: fixed;
+        }
+
+        .output-table th, 
+        .output-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .output-table td:empty::before {
+            content: "\00a0";
+            display: inline-block;
+        }
+
+        .output-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: normal;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .output-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .output-table tbody tr:nth-child(-n+5) td {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        .output-table tbody tr:nth-child(n+7) td:nth-last-child(2):not([colspan]) {
+            font-family: 'Roboto Mono', monospace !important;
+            letter-spacing: 2px !important;
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
+        }
+
+        .output-table tbody tr td.th-label,
+        .output-table tbody tr td.text-left {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        .header-link {
+            text-align: left !important;
+            padding: 6px 8px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 630px;
+        }
+
+        .header-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: normal;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .header-link a:hover {
+            text-decoration: underline;
+        }
+
+        .img-td {
+            padding: 1px !important;
+            width: 105px;
+        }
+
+        .img-td img {
+            width: 100%;
+            height: 105px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .boss-clickable {
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .boss-clickable:hover {
+            background-color: #e2e8f0;
+            border-color: var(--primary-color);
+        }
+
+        .boss-placeholder {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .th-label {
+            font-weight: normal;
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+        }
+
+        .text-left {
+            text-align: left !important;
+        }
+
+        .change-x {
+            color: #ef4444;
+            font-weight: normal;
+        }
+
+        .auto-td {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            font-weight: normal;
+        }
+
+        .auto-changed-on, .bg-auto-on {
+            background-color: #e0f2fe !important;
+            color: #0284c7 !important;
+        }
+
+        .auto-changed-off, .bg-auto-off {
+            background-color: #ffe4e6 !important;
+            color: #e11d48 !important;
+        }
+
+        /* ==========================================
+           6. 선택 모달 (보스 / 대문 통합)
+           ========================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .boss-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .boss-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .boss-item, .header-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .boss-item:hover, .header-item:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+            transform: translateY(-2px);
+        }
+
+        .boss-item img, .header-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .boss-item.recent-item {
+            border-color: var(--primary-color);
+            background-color: #f5f3ff;
+        }
+
+        /* ==========================================
+           7. 푸터 (Footer)
+           ========================================== */
+        .page-footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================
+           8. 관리자 도구 패널
+           ========================================== */
+        #admin-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+        }
+
+        #admin-toggle-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        #admin-panel-root {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            z-index: 900;
+            width: min(420px, calc(100vw - 40px));
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            padding: 16px;
+        }
+
+        #admin-panel-root.open {
+            display: block;
+        }
+
+        #admin-panel-root h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        #admin-panel-root p.admin-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        #admin-paste-area {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-btn.header-select {
+            background-color: #8b5cf6;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.add {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .admin-btn.save {
+            background-color: #10b981;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.load {
+            background-color: #0284c7;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-status {
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .admin-status.success { color: #059669; }
+        .admin-status.error { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="main-content">
+        <div class="container" id="content-container">
+            
+            <!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
+            <div id="main-header-banner" class="header-banner">
+                <div class="banner-tools">
+                    <button class="card-btn delete-btn" onclick="removeHeaderBanner()">✕ 대문 삭제</button>
+                </div>
+                <img id="header-banner-img" src="" alt="대문 이미지">
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 관리자 도구 -->
+    <button id="admin-toggle-btn" onclick="toggleAdminPanel()" title="관리자 도구">🛠</button>
+    <div id="admin-panel-root">
+        <h4>공략 테이블 관리</h4>
+        <p class="admin-desc">저장된 HTML을 불러와 수정하거나, 대문 선택 및 HTML을 추가할 수 있습니다.</p>
+
+        <!-- 파일 불러오기 버튼 및 숨겨진 Input -->
+        <input type="file" id="html-file-input" accept=".html,.htm" style="display: none;" onchange="handleFileSelect(event)">
+        <div class="admin-btn-row">
+            <button class="admin-btn load" onclick="document.getElementById('html-file-input').click()">📁 HTML 파일 불러오기</button>
+        </div>
+
+        <div class="admin-btn-row">
+            <button class="admin-btn header-select" onclick="openHeaderModal()">🖼️ 대문 이미지 선택</button>
+        </div>
+
+        <textarea id="admin-paste-area" placeholder="여기에 <table class=&quot;output-table&quot;>...</table> HTML을 붙여넣으세요"></textarea>
+        
+        <div class="admin-btn-row">
+            <button class="admin-btn add" onclick="addGuideTable()">테이블 추가</button>
+        </div>
+        <div class="admin-btn-row">
+            <button class="admin-btn save" onclick="downloadPage()">페이지 파일로 저장</button>
+        </div>
+        <div id="admin-status" class="admin-status"></div>
+    </div>
+
+    <!-- 보스 선택 모달 레이어 -->
+    <div class="modal-overlay" id="boss-modal" onclick="closeBossModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size: 18px;">보스 선택</h3>
+                <button onclick="closeBossModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            
+            <div id="recent-boss-wrapper" style="display: none;">
+                <div class="boss-section-title">⭐ 최근 선택한 보스</div>
+                <div class="boss-grid" id="recent-boss-grid"></div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
+            </div>
+
+            <div class="boss-section-title" style="color: var(--text-secondary);">전체 보스 목록</div>
+            <div class="boss-grid" id="boss-grid-container"></div>
+        </div>
+    </div>
+
+    <!-- 대문 이미지 선택 모달 레이어 -->
+    <div class="modal-overlay" id="header-modal" onclick="closeHeaderModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size: 18px;">대문 이미지 선택</h3>
+                <button onclick="closeHeaderModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            <div class="header-grid" id="header-grid-container"></div>
+        </div>
+    </div>
+
+    <!-- 하단 푸터 -->
+    <footer class="page-footer">
+        <div class="container">
+            <p>&copy; 2026 Data Dashboard. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
+
+        const bossList = [
+            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
+            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
+            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
+            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
+        ];
+
+        const headerList = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+        ];
+
+        let recentBosses = [];
+        let targetBossTd = null;
+
+        function initModals() {
+            // 보스 선택 모달 초기화
+            const bossContainer = document.getElementById('boss-grid-container');
+            bossContainer.innerHTML = '';
+            bossList.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                bossContainer.appendChild(item);
+            });
+
+            // 대문 이미지 모달 초기화
+            const headerContainer = document.getElementById('header-grid-container');
+            headerContainer.innerHTML = '';
+            headerList.forEach(header => {
+                const item = document.createElement('div');
+                item.className = 'header-item';
+                item.onclick = () => selectHeaderImage(header);
+                item.innerHTML = `<img src="${GITHUB_HEADER_IMAGE_BASE}${header}.png" alt="대문 ${header}">`;
+                headerContainer.appendChild(item);
+            });
+
+            renderRecentBosses();
+        }
+
+        function renderRecentBosses() {
+            const wrapper = document.getElementById('recent-boss-wrapper');
+            const recentContainer = document.getElementById('recent-boss-grid');
+            recentContainer.innerHTML = '';
+
+            if (recentBosses.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+
+            wrapper.style.display = 'block';
+            recentBosses.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item recent-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                recentContainer.appendChild(item);
+            });
+        }
+
+        // --- 보스 모달 함수 ---
+        function openBossModal(element) {
+            targetBossTd = element;
+            renderRecentBosses();
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+
+        function closeBossModal() {
+            document.getElementById('boss-modal').style.display = 'none';
+            targetBossTd = null;
+        }
+
+        function selectBoss(bossName) {
+            if (targetBossTd) {
+                const imgUrl = `${GITHUB_BOSS_IMAGE_BASE}${encodeURIComponent(bossName)}.png`;
+                targetBossTd.innerHTML = `<img src="${imgUrl}" alt="${bossName}">`;
+                targetBossTd.classList.remove('boss-clickable');
+            }
+
+            recentBosses = recentBosses.filter(b => b !== bossName);
+            recentBosses.unshift(bossName);
+            if (recentBosses.length > 10) {
+                recentBosses.pop();
+            }
+
+            closeBossModal();
+        }
+
+        // --- 대문 이미지 모달 및 관리 함수 ---
+        function openHeaderModal() {
+            document.getElementById('header-modal').style.display = 'flex';
+        }
+
+        function closeHeaderModal() {
+            document.getElementById('header-modal').style.display = 'none';
+        }
+
+        function selectHeaderImage(headerName) {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            
+            bannerImg.src = `${GITHUB_HEADER_IMAGE_BASE}${headerName}.png`;
+            bannerWrapper.style.display = 'block';
+
+            closeHeaderModal();
+        }
+
+        function removeHeaderBanner() {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            bannerImg.src = '';
+            bannerWrapper.style.display = 'none';
+        }
+
+        function attachBossClickToTable(table) {
+            const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+            if (firstImgTd) {
+                firstImgTd.classList.add('boss-clickable');
+                if (!firstImgTd.querySelector('img')) {
+                    firstImgTd.innerHTML = `<div class="boss-placeholder">👾 보스 선택<br>(클릭)</div>`;
+                }
+                firstImgTd.onclick = function() {
+                    openBossModal(this);
+                };
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initModals();
+            const tables = document.querySelectorAll('.output-table');
+            tables.forEach(table => attachBossClickToTable(table));
+        });
+
+        // ==========================================
+        // 관리자 도구 기능
+        // ==========================================
+        function toggleAdminPanel() {
+            document.getElementById('admin-panel-root').classList.toggle('open');
+        }
+
+        function findInsertionTarget() {
+            const containers = document.querySelectorAll('.card-body .table-responsive');
+            for (const c of containers) {
+                if (!c.querySelector('table')) return c;
+            }
+            return null;
+        }
+
+        function createNewCardSection() {
+            const section = document.createElement('section');
+            section.className = 'card';
+            
+            const tools = document.createElement('div');
+            tools.className = 'card-tools';
+
+            const spaceBtn = document.createElement('button');
+            spaceBtn.className = 'card-btn add-space-btn';
+            spaceBtn.textContent = '+ 구분선';
+            spaceBtn.onclick = function() {
+                addBossSpaceAfter(section);
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'card-btn delete-btn';
+            delBtn.textContent = '✕ 삭제';
+            delBtn.onclick = function() { section.remove(); };
+
+            tools.appendChild(spaceBtn);
+            tools.appendChild(delBtn);
+            section.appendChild(tools);
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+            const responsive = document.createElement('div');
+            responsive.className = 'table-responsive';
+            body.appendChild(responsive);
+            section.appendChild(body);
+            
+            document.getElementById('content-container').appendChild(section);
+            return responsive;
+        }
+
+        function addBossSpaceAfter(targetCard) {
+            const divider = document.createElement('div');
+            divider.className = 'boss-divider';
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'divider-delete-btn';
+            delBtn.textContent = '구분선 삭제 ✕';
+            delBtn.onclick = function() { divider.remove(); };
+            divider.appendChild(delBtn);
+
+            targetCard.after(divider);
+        }
+
+        function addGuideTable() {
+            const textarea = document.getElementById('admin-paste-area');
+            const statusEl = document.getElementById('admin-status');
+            const raw = textarea.value.trim();
+
+            statusEl.className = 'admin-status';
+            statusEl.textContent = '';
+
+            if (!raw) {
+                statusEl.textContent = '붙여넣을 테이블 HTML을 입력해주세요.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            const parser = new DOMParser();
+            const parsedDoc = parser.parseFromString(raw, 'text/html');
+            const tables = parsedDoc.querySelectorAll('table.output-table');
+
+            if (tables.length === 0) {
+                statusEl.textContent = '유효한 테이블(class="output-table")을 찾지 못했습니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            let addedCount = 0;
+            tables.forEach(table => {
+                const importedTable = document.importNode(table, true);
+                let target = findInsertionTarget();
+                if (!target) {
+                    target = createNewCardSection();
+                }
+                target.appendChild(importedTable);
+                attachBossClickToTable(importedTable);
+                addedCount++;
+            });
+
+            textarea.value = '';
+            statusEl.textContent = `테이블 ${addedCount}개를 추가했습니다.`;
+            statusEl.className = 'admin-status success';
+        }
+
+        // --- HTML 파일 불러오기 및 데이터 재복원 기능 ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                loadPageFromFile(e.target.result);
+                // 파일 선택 초기화 (동일 파일 재선택 허용)
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function loadPageFromFile(htmlContent) {
+            const statusEl = document.getElementById('admin-status');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            const newContent = doc.querySelector('#content-container');
+            if (!newContent) {
+                statusEl.textContent = '올바른 페이지 파일 구조가 아닙니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            // 1. 대문 배너 복원
+            const fileHeaderBanner = newContent.querySelector('#main-header-banner img');
+            const currentBanner = document.getElementById('main-header-banner');
+            const currentBannerImg = document.getElementById('header-banner-img');
+
+            if (fileHeaderBanner && fileHeaderBanner.getAttribute('src')) {
+                currentBannerImg.src = fileHeaderBanner.getAttribute('src');
+                currentBanner.style.display = 'block';
+            } else {
+                currentBannerImg.src = '';
+                currentBanner.style.display = 'none';
+            }
+
+            // 2. 기존 카드/구분선 삭제 후 불러온 요소로 교체
+            const currentContainer = document.getElementById('content-container');
+            currentContainer.querySelectorAll('.card, .boss-divider').forEach(el => el.remove());
+
+            // 3. 요소 복구 및 편집 도구/이벤트 재연결
+            const loadedNodes = newContent.children;
+            let loadedCardsCount = 0;
+
+            Array.from(loadedNodes).forEach(node => {
+                if (node.id === 'main-header-banner') return; // 배너는 위에서 처리함
+
+                const importedNode = document.importNode(node, true);
+
+                // 카드 복원 시 상단 관리 도구 버튼 재배치
+                if (importedNode.classList.contains('card')) {
+                    loadedCardsCount++;
+                    const tools = document.createElement('div');
+                    tools.className = 'card-tools';
+
+                    const spaceBtn = document.createElement('button');
+                    spaceBtn.className = 'card-btn add-space-btn';
+                    spaceBtn.textContent = '+ 구분선';
+                    spaceBtn.onclick = function() { addBossSpaceAfter(importedNode); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'card-btn delete-btn';
+                    delBtn.textContent = '✕ 삭제';
+                    delBtn.onclick = function() { importedNode.remove(); };
+
+                    tools.appendChild(spaceBtn);
+                    tools.appendChild(delBtn);
+                    importedNode.insertBefore(tools, importedNode.firstChild);
+
+                    // 테이블 내 보스 이벤트 재연결
+                    const table = importedNode.querySelector('.output-table');
+                    if (table) attachBossClickToTable(table);
+                }
+
+                // 구분선 복원 시 삭제 버튼 재배치
+                if (importedNode.classList.contains('boss-divider')) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'divider-delete-btn';
+                    delBtn.textContent = '구분선 삭제 ✕';
+                    delBtn.onclick = function() { importedNode.remove(); };
+                    importedNode.appendChild(delBtn);
+                }
+
+                currentContainer.appendChild(importedNode);
+            });
+
+            statusEl.textContent = `파일을 성공적으로 불러왔습니다. (${loadedCardsCount}개 카드 복원)`;
+            statusEl.className = 'admin-status success';
+        }
+
+        function downloadPage() {
+            const rawHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const parser = new DOMParser();
+            const cloneDoc = parser.parseFromString(rawHtml, 'text/html');
+
+            // 1. 관리자 요소 제거
+            const panel = cloneDoc.querySelector('#admin-panel-root');
+            if (panel) panel.remove();
+            const toggleBtn = cloneDoc.querySelector('#admin-toggle-btn');
+            if (toggleBtn) toggleBtn.remove();
+            const bossModal = cloneDoc.querySelector('#boss-modal');
+            if (bossModal) bossModal.remove();
+            const headerModal = cloneDoc.querySelector('#header-modal');
+            if (headerModal) headerModal.remove();
+
+            // 2. 대문 툴바, 카드 툴바 및 구분선 삭제 버튼 제거
+            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn').forEach(btn => btn.remove());
+
+            // 3. 보스 이미지 클릭 이벤트 무력화
+            cloneDoc.querySelectorAll('.output-table').forEach(table => {
+                const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+                if (firstImgTd) {
+                    firstImgTd.classList.remove('boss-clickable');
+                    firstImgTd.removeAttribute('onclick');
+
+                    if (!firstImgTd.querySelector('img')) {
+                        firstImgTd.innerHTML = '';
+                    }
+                }
+            });
+
+            const htmlString = '<!DOCTYPE html>\n' + cloneDoc.documentElement.outerHTML;
+            const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'webP.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

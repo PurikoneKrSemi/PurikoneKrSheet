@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13개 HTML 페이지 통합 도구</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h2 { margin-top: 0; color: #0f172a; font-size: 1.25rem; }
+        p { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            background: #f1f5f9;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .file-list {
+            margin-bottom: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .file-item input {
+            padding: 4px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            width: 140px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📄 페이지 통합 도구 (SPA 탭 변환기)</h2>
+    <p>HTML 파일들을 올려주세요. 하단 고정 탭 컨트롤러가 포함된 하나의 HTML 파일로 합성됩니다.</p>
+
+    <div class="upload-area" onclick="document.getElementById('filesInput').click()">
+        📁 HTML 파일 선택하기 (Ctrl/Shift 키로 다중 선택)
+        <input type="file" id="filesInput" accept=".html,.htm" multiple style="display: none;" onchange="handleFiles(this.files)">
+    </div>
+
+    <div class="file-list" id="fileList"></div>
+
+    <button id="mergeBtn" class="btn" onclick="generateMergedHtml()" disabled>통합 HTML 생성 및 다운로드</button>
+</div>
+
+<script>
+    let fileEntries = [];
+
+    function handleFiles(files) {
+        if (!files.length) return;
+        
+        const fileArray = Array.from(files).sort((a, b) => 
+            a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+        );
+
+        fileEntries = fileArray.map((file) => {
+            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            return {
+                file,
+                tabName: nameWithoutExt
+            };
+        });
+
+        renderList();
+        document.getElementById('mergeBtn').disabled = false;
+    }
+
+    function renderList() {
+        const listEl = document.getElementById('fileList');
+        listEl.innerHTML = '';
+
+        fileEntries.forEach((entry, idx) => {
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.innerHTML = `
+                <span><strong>${idx + 1}.</strong> ${entry.file.name}</span>
+                <div>
+                    <label style="font-size: 0.75rem; color:#64748b;">탭 이름: </label>
+                    <input type="text" value="${entry.tabName}" onchange="fileEntries[${idx}].tabName = this.value">
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+
+    async function generateMergedHtml() {
+        const parsedContents = [];
+
+        for (const entry of fileEntries) {
+            const text = await entry.file.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const contentContainer = doc.querySelector('#content-container');
+            
+            parsedContents.push({
+                tabName: entry.tabName,
+                html: contentContainer ? contentContainer.innerHTML : text
+            });
+        }
+
+        const firstFileText = await fileEntries[0].file.text();
+        const baseDoc = new DOMParser().parseFromString(firstFileText, 'text/html');
+        
+        // CSS 추가 (하단 고정바, 드래그 스크롤 전용 스타일)
+        const styleTag = baseDoc.querySelector('style');
+        if (styleTag) {
+            styleTag.textContent += `
+                body {
+                    padding-bottom: 120px !important;
+                }
+                .bottom-fixed-panel {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background: #ffffff;
+                    border-top: 1px solid #cbd5e1;
+                    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+                    padding: 10px 16px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .timeline-control-panel {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    font-size: 0.85rem;
+                }
+                .timeline-control-panel input {
+                    width: 60px;
+                    padding: 4px 8px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 4px;
+                    text-align: center;
+                }
+                .tab-scroll-container {
+                    width: 100%;
+                    max-width: 1000px;
+                    margin: 0 auto;
+                    overflow-x: auto;
+                    white-space: nowrap;
+                    padding-bottom: 4px;
+                    cursor: grab;
+                    user-select: none;
+                    -webkit-user-select: none;
+                }
+                .tab-scroll-container.active {
+                    cursor: grabbing;
+                }
+                /* 스크롤바 숨기기 (드래그 느낌 극대화) */
+                .tab-scroll-container::-webkit-scrollbar {
+                    display: none;
+                }
+                .tab-scroll-container {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+                .tab-nav {
+                    display: inline-flex;
+                    gap: 6px;
+                }
+                .tab-btn {
+                    flex: 0 0 auto;
+                    padding: 6px 14px;
+                    background: #e2e8f0;
+                    border: none;
+                    border-radius: 6px;
+                    color: #475569;
+                    font-weight: 600;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                .tab-btn:hover { background: #cbd5e1; }
+                .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
+                .tab-content { display: none; width: 100%; }
+                .tab-content.active { display: block; }
+                
+                tr.timeline-past {
+                    text-decoration: line-through !important;
+                    opacity: 0.45 !important;
+                    color: #888888 !important;
+                }
+            `;
+        }
+
+        // JS 스크립트 주입 (드래그 스크롤 로직 추가)
+        const scriptTag = baseDoc.createElement('script');
+        scriptTag.textContent = `
+            const BASE_SECONDS = 90;
+
+            function openTab(evt, tabId) {
+                // 단순 클릭 시에만 탭 이동 (드래그 판별)
+                if (window.isTabDragging) return;
+                
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                evt.currentTarget.classList.add('active');
+            }
+
+            // 마우스/터치 드래그 스크롤 기능
+            function initTabDragScroll() {
+                const slider = document.querySelector('.tab-scroll-container');
+                if (!slider) return;
+
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+                let dragDistance = 0;
+
+                slider.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    window.isTabDragging = false;
+                    dragDistance = 0;
+                    slider.classList.add('active');
+                    startX = e.pageX - slider.offsetLeft;
+                    scrollLeft = slider.scrollLeft;
+                });
+
+                slider.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    slider.classList.remove('active');
+                });
+
+                slider.addEventListener('mouseup', () => {
+                    isDown = false;
+                    slider.classList.remove('active');
+                    // 드래그 거리가 5px 초과인 경우 클릭 동작 방지
+                    if (dragDistance > 5) {
+                        window.isTabDragging = true;
+                        setTimeout(() => { window.isTabDragging = false; }, 50);
+                    }
+                });
+
+                slider.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - slider.offsetLeft;
+                    const walk = (x - startX) * 1.5; // 스크롤 속도 배율
+                    dragDistance = Math.abs(x - startX);
+                    slider.scrollLeft = scrollLeft - walk;
+                });
+            }
+
+            function timeToSeconds(str) {
+                if (!str) return null;
+                const m = str.trim().match(/^(\\d{1,2}):([0-5]\\d)/);
+                if (!m) return null;
+                return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+            }
+
+            function secondsToTime(sec) {
+                const sign = sec < 0 ? "-" : "";
+                sec = Math.abs(sec);
+                const m = Math.floor(sec / 60);
+                const s = sec % 60;
+                return sign + m + ":" + String(s).padStart(2, "0");
+            }
+
+            function applyCustomTimeline() {
+                const remainSecInput = document.getElementById('user-timeline-input');
+                let remainSec = parseInt(remainSecInput.value, 10);
+                
+                if (isNaN(remainSec)) return;
+
+                if (remainSec < 20) remainSec = 20;
+                if (remainSec > 90) remainSec = 90;
+                remainSecInput.value = remainSec;
+
+                const diff = BASE_SECONDS - remainSec;
+                const activeTab = document.querySelector('.tab-content.active');
+                if (!activeTab) return;
+
+                const tables = activeTab.querySelectorAll('table');
+
+                tables.forEach(table => {
+                    const rows = table.querySelectorAll('tbody tr');
+                    let lastKnownOriginalSec = null;
+
+                    rows.forEach(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        if (tds.length === 0) return;
+
+                        const timeCell = tr.querySelector('td.time') || tds[0];
+                        if (!timeCell) return;
+
+                        if (!timeCell.hasAttribute('data-orig-text')) {
+                            timeCell.setAttribute('data-orig-text', timeCell.textContent.trim());
+                        }
+
+                        const origText = timeCell.getAttribute('data-orig-text');
+                        const sec = timeToSeconds(origText);
+
+                        let checkSec = null;
+
+                        if (sec !== null) {
+                            lastKnownOriginalSec = sec;
+                            const newSec = sec - diff;
+                            checkSec = newSec;
+                            
+                            const timeMatch = origText.match(/^(\\d{1,2}):([0-5]\\d)/);
+                            if (timeMatch) {
+                                const actionText = origText.replace(/^(\\d{1,2}):([0-5]\\d)\\s*/, "");
+                                timeCell.textContent = secondsToTime(newSec) + (actionText ? " " + actionText : "");
+                            } else {
+                                timeCell.textContent = secondsToTime(newSec);
+                            }
+                        } else {
+                            if (lastKnownOriginalSec !== null) {
+                                checkSec = lastKnownOriginalSec - diff;
+                            }
+                        }
+
+                        if (checkSec !== null && checkSec <= 0) {
+                            tr.classList.add('timeline-past');
+                        } else {
+                            tr.classList.remove('timeline-past');
+                        }
+                    });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                initTabDragScroll();
+            });
+            // DOMContentLoaded가 이미 지난 경우 처리
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                initTabDragScroll();
+            }
+        `;
+        baseDoc.body.appendChild(scriptTag);
+
+        // 레이아웃 재배치
+        const container = baseDoc.querySelector('#content-container');
+        if (container) {
+            let tabButtonsHtml = '<div class="tab-scroll-container"><div class="tab-nav">';
+            let tabContentsHtml = '';
+
+            parsedContents.forEach((item, idx) => {
+                const tabId = `tab-page-${idx + 1}`;
+                const isActive = idx === 0 ? 'active' : '';
+                
+                tabButtonsHtml += `<button class="tab-btn ${isActive}" onclick="openTab(event, '${tabId}')">${item.tabName}</button>`;
+                tabContentsHtml += `<div id="${tabId}" class="tab-content ${isActive}">${item.html}</div>`;
+            });
+
+            tabButtonsHtml += '</div></div>';
+
+            const bottomPanelHtml = `
+                <div class="bottom-fixed-panel">
+                    <div class="timeline-control-panel">
+                        <strong>⏱️ 남은 시간 설정:</strong>
+                        <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
+                        <button class="card-btn add-space-btn" style="padding: 4px 12px; cursor: pointer;" onclick="applyCustomTimeline()">적용</button>
+                    </div>
+                    ${tabButtonsHtml}
+                </div>
+            `;
+
+            container.innerHTML = tabContentsHtml + bottomPanelHtml;
+        }
+
+        // 파일 다운로드
+        const finalHtml = '<!DOCTYPE html>\n' + baseDoc.documentElement.outerHTML;
+        const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'merged_dashboard.html';
+        a.click();
+    }
+</script>
+
+</body>
+</html>
