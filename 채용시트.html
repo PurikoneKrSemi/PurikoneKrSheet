@@ -95,6 +95,21 @@
   height: 100%;
   object-fit: cover;     /* 비율을 유지하면서 셀 전체를 여백 없이 채움 */
 }
+/* 1. 첫 번째 헤더 행 고정 (메인 탭 바 바로 아래에 밀착) */
+.roster-table thead tr:nth-child(1) th {
+  position: sticky;
+  top: 53px; /* 메인 탭 바 높이(약 53px)만큼 아래로 설정 */
+  z-index: 10;
+  background-color: #eef2f5; /* 스크롤 시 뒤 텍스트 비침 방지 */
+}
+
+/* 2. 두 번째 헤더 행 고정 (첫 번째 헤더 행 바로 아래에 밀착) */
+.roster-table thead tr:nth-child(2) th {
+  position: sticky;
+  top: 88px; /* 53px(메인 탭 바) + 35px(첫 번째 헤더 행 높이) */
+  z-index: 9;
+  background-color: #eef2f5;
+}
     </style>
 </head>
 <body>
