@@ -1,477 +1,100 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>프리코네 세미오토</title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Malgun Gothic", sans-serif; background:#1b1c22; color:#eee; margin:0; padding:0; height:100vh; display:flex; flex-direction:column; }
-  h1 { font-size:16px; margin:0; padding:12px 16px; background:#25262e; border-bottom:1px solid #333; }
-  .main { flex:1; display:flex; min-height:0; position:relative; }
-  .left { min-width:100px; flex:1; }
-  .left iframe { width:100%; height:100%; border:0; }
-  .resizer { width:6px; cursor:col-resize; background:#333; transition: background 0.2s; }
-  .resizer:hover, .resizer.active { background:#4a6cf7; }
-  
-  /* 오른쪽 패널 기본 스타일 */
-  .right { 
-    width:460px; min-width:280px; max-width:75vw; 
-    display:flex; flex-direction:column; padding:14px; gap:10px; 
-    background:#1b1c22; overflow-y:auto; transition: width 0.2s ease, height 0.2s ease;
-  }
-  
-  /* 패널 토글 헤더 버튼 */
-  .panel-header {
-    display:flex; justify-content:space-between; align-items:center;
-    background:#25262e; padding:8px 12px; border-radius:6px; border:1px solid #333;
-  }
-  .panel-title { font-size:14px; font-weight:bold; color:#eee; }
-  .toggle-btn { 
-    background:transparent; border:none; color:#aaa; font-size:13px; cursor:pointer; padding:2px 6px; 
-  }
-  .toggle-btn:hover { color:#fff; }
-
-  /* 접힘 상태 (PC / 모바일 공통) */
-  .right.collapsed .panel-body { display: none !important; }
-  .right.collapsed { width: 50px !important; min-width: 50px !important; padding: 8px !important; overflow: hidden; }
-  .right.collapsed .panel-header { padding: 8px 4px; justify-content: center; }
-  .right.collapsed .panel-title { display: none; }
-  
-  label { font-size:13px; color:#aaa; }
-  #pasteBox {
-    width:100%; min-height:120px; max-height:220px; overflow:auto;
-    font-family: monospace; font-size:12px; background:#fff; color:#111;
-    border:1px solid #444; border-radius:6px; padding:8px;
-  }
-  #pasteBox table { border-collapse:collapse; }
-  #pasteBox td { border:1px solid #ddd; padding:2px 4px; }
-  #pasteBox:empty::before { content: attr(data-placeholder); color:#888; font-family:-apple-system, sans-serif; }
-  input, button { font-size:14px; padding:7px 10px; border-radius:6px; border:1px solid #444; background:#111; color:#eee; }
-  .row { display:flex; gap:8px; align-items:center; }
-  button.primary { background:#4a6cf7; border:none; cursor:pointer; flex:1; }
-  button.primary:hover { background:#3b58cc; }
-  button.ghost { background:#25262e; cursor:pointer; }
-  table.timeline { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; background:#fff; color:#111; border-radius:6px; overflow:hidden; }
-  table.timeline th { background:#eef0f5; font-size:12px; text-align:left; padding:6px 8px; border-bottom:1px solid #ccc; }
-  table.timeline td { padding:5px 8px; border-bottom:1px solid #e3e3e3; vertical-align:top; }
-  td.time { width:52px; font-weight:bold; color:#1a56c4; white-space:nowrap; }
-  td.time.past { color:#aaa; text-decoration:line-through; }
-  td.action.past { color:#aaa; }
-  td.set { width:100px; font-family:monospace; white-space:nowrap; }
-  td.set span.past-fade { opacity:0.35; }
-  td.auto { width:56px; text-align:center; font-weight:bold; font-size:12px; border-radius:4px; }
-  td.auto.on-change { background:#bfe4ff; }
-  td.auto.off-change { background:#ffc9d6; color:#a3123a; }
-  .hint { font-size:12px; color:#888; line-height:1.5; }
-  .team-block + .team-block { margin-top:14px; padding-top:14px; border-top:1px dashed #333; }
-
-  /* 📱 모바일/작은 화면 레이아웃 최적화 (768px 이하) */
-  @media (max-width: 768px) {
-    .main { flex-direction: column; }
-    .resizer { display: none; } /* 모바일에서는 드래그 구분선 숨김 */
-    .right { 
-      width: 100% !important; max-width: 100% !important; 
-      height: 45vh; min-height: 40px; border-top: 1px solid #333; 
-    }
-    .right.collapsed { 
-      height: 42px !important; min-height: 42px !important; width: 100% !important; 
-    }
-    .right.collapsed .panel-title { display: inline; }
-    .right.collapsed .panel-header { justify-content: space-between; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프리코네 공략</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 10px; background: #fff; }
+    img { max-width: 100%; height: auto; }
+    
+    /* 파티 세팅 카드 스타일 */
+    .party-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align: center; font-size: 12px; margin-bottom: 15px; }
+    .party-card img { width: 100%; border-radius: 4px; }
+    
+    /* 타임라인 테이블 스타일 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+    .text-left { text-align: left; }
+    
+    /* Auto 하이라이트 색상 */
+    .auto-on { background-color: #e3f2fd; color: #0d47a1; font-weight: bold; }
+    .auto-off { background-color: #ffebee; color: #c62828; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-<div class="main">
-  <div class="left" id="leftPane">
-    <iframe id="sheetFrame"
-      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRsEMCFmWlIYvbmOBhjaPtK0rktOi-J2EC6LMGXIfCF9GHjrbZOy-f_hIaTKE6AT-6KRhKS-X0fqXLs/pubhtml?gid=382395547&single=true"></iframe>
+  <div id="loading">공략 데이터를 불러오는 중...</div>
+  <div id="content" style="display:none;">
+    <!-- 인트로 이미지 & 원본 링크 -->
+    <div id="intro-area"></div>
+    
+    <!-- 파티 세팅 -->
+    <div class="party-grid" id="party-area"></div>
+    
+    <!-- 타임라인 -->
+    <table>
+      <thead>
+        <tr>
+          <th>시간</th>
+          <th>내용</th>
+          <th>Set</th>
+          <th>Auto</th>
+        </tr>
+      </thead>
+      <tbody id="timeline-area"></tbody>
+    </table>
   </div>
-  <div class="resizer" id="resizer"></div>
-  
-  <div class="right" id="rightPane">
-    <!-- 접기/펼치기 헤더 추가 -->
-    <div class="panel-header">
-      <span class="panel-title">이월 계산기</span>
-      <button class="toggle-btn" id="togglePaneBtn">▶ 접기</button>
-    </div>
 
-    <!-- 패널 본문 영역 -->
-    <div class="panel-body" style="display:flex; flex-direction:column; gap:10px;">
-      <div id="pasteBox" contenteditable="true" data-placeholder="여기에 붙여넣으세요"></div>
-      <div class="row">
-        <button class="ghost" id="clearBtn">지우기</button>
-      </div>
-      <div class="row">
-        <label style="white-space:nowrap;">남은 시간(초)</label>
-        <input id="remainSec" type="number" value="90" style="width:80px">
-        <button class="primary" id="applyBtn">이월 시간 계산</button>
-      </div>
-      <div id="output"></div>
-    </div>
-  </div>
-</div>
+  <script>
+    // 2단계에서 복사한 웹 앱 URL
+    const GAS_API_URL = "여기에_배포한_웹앱_URL_입력";
 
-<script>
-const BASE_SECONDS = 90;
+    async function loadGuide() {
+      try {
+        const res = await fetch(GAS_API_URL);
+        const data = await res.json();
 
-function timeToSeconds(str) {
-  const m = str.match(/^(\d{1,2}):([0-5]\d)/);
-  if (!m) return null;
-  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
-}
-function secondsToTime(sec) {
-  const sign = sec < 0 ? "-" : "";
-  sec = Math.abs(sec);
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return sign + m + ":" + String(s).padStart(2, "0");
-}
-function cellText(el) {
-  return el.textContent.replace(/\s+/g, " ").trim();
-}
-
-function isBlankRow(tds) {
-  if (tds.length === 0) return false;
-  const isEmpty = tds.every(td => cellText(td) === "" && !td.querySelector("img"));
-  if (!isEmpty) return false;
-
-  if (tds.length === 6 && !tds.some(td => td.hasAttribute("colspan"))) {
-    return true;
-  }
-  if (tds.length === 1) {
-    const span = parseInt(tds[0].getAttribute("colspan") || "1", 10);
-    if (span >= 6) return true;
-  }
-  return false;
-}
-
-function extractColorSegments(td) {
-  const segments = [];
-  td.childNodes.forEach(node => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      if (node.textContent) segments.push({ text: node.textContent, color: null });
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const text = node.textContent;
-      if (!text) return;
-      const color = node.style && node.style.color ? node.style.color : null;
-      segments.push({ text, color });
-    }
-  });
-  if (segments.length === 0 && cellText(td)) segments.push({ text: cellText(td), color: null });
-  return segments;
-}
-
-function parseFromDom(container) {
-  const rows = Array.from(container.querySelectorAll("tr"));
-  if (rows.length === 0) return null;
-
-  const blocks = [];
-  let current = [];
-
-  rows.forEach(tr => {
-    const tds = Array.from(tr.querySelectorAll("td"));
-    if (tds.length === 0) return;
-
-    if (isBlankRow(tds)) {
-      if (current.length > 0) {
-        blocks.push(current);
-        current = [];
-      }
-      return;
-    }
-
-    let timeTds, setTd, autoTd;
-    if (tds.length >= 3) {
-      timeTds = tds.slice(0, tds.length - 2);
-      setTd = tds[tds.length - 2];
-      autoTd = tds[tds.length - 1];
-    } else if (tds.length === 2) {
-      timeTds = [tds[0]];
-      setTd = null;
-      autoTd = tds[1];
-    } else {
-      timeTds = [tds[0]];
-      setTd = null;
-      autoTd = null;
-    }
-    const firstCell = timeTds.map(cellText).filter(Boolean).join(" ");
-    const setSegments = setTd ? extractColorSegments(setTd) : [];
-    const autoState = autoTd ? cellText(autoTd) : "";
-
-    current.push({ firstCell, setSegments, autoState });
-  });
-
-  if (current.length > 0) blocks.push(current);
-
-  return blocks.map(rowsInBlock => {
-    const entries = [];
-    let currentSeconds = null;
-    let hasTimeStarted = false;
-
-    rowsInBlock.forEach(({ firstCell, setSegments, autoState }) => {
-      const sec = timeToSeconds(firstCell);
-      let originalSeconds = null;
-      let action = firstCell;
-
-      if (sec !== null) {
-        originalSeconds = sec;
-        currentSeconds = sec;
-        hasTimeStarted = true;
-        action = firstCell.replace(/^(\d{1,2}):([0-5]\d)\s*/, "");
-      } else {
-        if (!hasTimeStarted) return;
-      }
-
-      entries.push({ 
-        originalSeconds, 
-        lastKnownSeconds: currentSeconds, 
-        action, 
-        setSegments, 
-        autoState 
-      });
-    });
-    return entries;
-  }).filter(entries => entries.length > 0);
-}
-
-function parseFromPlainText(text) {
-  const blocks = [];
-  let current = [];
-
-  text.replace(/\r/g, "").split("\n").forEach(line => {
-    if (line.trim() === "") {
-      if (current.length > 0) {
-        blocks.push(current);
-        current = [];
-      }
-      return;
-    }
-
-    const cols = line.split("\t").map(s => s.trim());
-    const firstCell = cols[0] || "";
-    const setPattern = cols[1] || "";
-    const autoState = cols[2] || "";
-
-    const sec = timeToSeconds(firstCell);
-    let originalSeconds = null;
-    let action = firstCell;
-
-    if (sec !== null) {
-      originalSeconds = sec;
-      action = firstCell.replace(/^(\d{1,2}):([0-5]\d)\s*/, "");
-    }
-
-    current.push({
-      originalSeconds,
-      action,
-      setSegments: setPattern ? [{ text: setPattern, color: null }] : [],
-      autoState
-    });
-  });
-
-  if (current.length > 0) blocks.push(current);
-
-  return blocks.map(lines => {
-    const entries = [];
-    let currentSeconds = null;
-    let hasTimeStarted = false;
-
-    lines.forEach(({ originalSeconds, action, setSegments, autoState }) => {
-      if (originalSeconds !== null) {
-        currentSeconds = originalSeconds;
-        hasTimeStarted = true;
-      } else {
-        if (!hasTimeStarted) return;
-      }
-
-      entries.push({
-        originalSeconds,
-        lastKnownSeconds: currentSeconds,
-        action,
-        setSegments,
-        autoState
-      });
-    });
-    return entries;
-  }).filter(entries => entries.length > 0);
-}
-
-function render(teamsEntries, remainSeconds) {
-  const diff = BASE_SECONDS - remainSeconds;
-  const out = document.getElementById("output");
-  out.innerHTML = "";
-
-  teamsEntries.forEach((entries, idx) => {
-    const wrap = document.createElement("div");
-    wrap.className = "team-block";
-
-    if (teamsEntries.length > 1) {
-      const h = document.createElement("div");
-      h.style.fontWeight = "bold";
-      h.style.fontSize = "13px";
-      h.style.color = "#ccc";
-      h.style.marginBottom = "6px";
-      h.textContent = (idx + 1) + "번째 조합";
-      wrap.appendChild(h);
-    }
-
-    const table = document.createElement("table");
-    table.className = "timeline";
-    const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>시간</th><th>동작</th><th>Set</th><th>Auto</th></tr>";
-    table.appendChild(thead);
-    const tbody = document.createElement("tbody");
-
-    let prevAuto = null;
-
-    entries.forEach(e => {
-      let isPast = false;
-      let displayTime = "";
-
-      if (e.originalSeconds !== null) {
-        const newSec = e.originalSeconds - diff;
-        displayTime = secondsToTime(newSec);
-        isPast = newSec < 0;
-      } else if (e.lastKnownSeconds !== null) {
-        const checkSec = e.lastKnownSeconds - diff;
-        isPast = checkSec < 0;
-      }
-
-      const tr = document.createElement("tr");
-
-      const tdTime = document.createElement("td");
-      tdTime.className = "time" + (isPast ? " past" : "");
-      tdTime.textContent = displayTime;
-
-      const tdAction = document.createElement("td");
-      tdAction.className = "action" + (isPast ? " past" : "");
-      tdAction.textContent = e.action;
-
-      const tdSet = document.createElement("td");
-      tdSet.className = "set";
-      e.setSegments.forEach(seg => {
-        const span = document.createElement("span");
-        span.textContent = seg.text;
-        if (seg.color) span.style.color = seg.color;
-        if (isPast) span.classList.add("past-fade");
-        tdSet.appendChild(span);
-      });
-
-      const tdAuto = document.createElement("td");
-      tdAuto.className = "auto";
-      tdAuto.textContent = e.autoState;
-      if (e.autoState && e.autoState !== prevAuto) {
-        tdAuto.classList.add(e.autoState === "ON" ? "on-change" : "off-change");
-      }
-      if (e.autoState) prevAuto = e.autoState;
-
-      tr.appendChild(tdTime);
-      tr.appendChild(tdAction);
-      tr.appendChild(tdSet);
-      tr.appendChild(tdAuto);
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    out.appendChild(wrap);
-  });
-}
-
-document.getElementById("applyBtn").addEventListener("click", () => {
-  const box = document.getElementById("pasteBox");
-  const remain = parseInt(document.getElementById("remainSec").value, 10);
-  if (!box.textContent.trim()) {
-    document.getElementById("output").innerHTML = "<div class='hint'>붙여넣은 내용이 없습니다.</div>";
-    return;
-  }
-  if (isNaN(remain)) return;
-
-  let teamsEntries = parseFromDom(box);
-  if (!teamsEntries || teamsEntries.length === 0) {
-    teamsEntries = parseFromPlainText(box.innerText);
-  }
-  render(teamsEntries, remain);
-});
-
-document.getElementById("clearBtn").addEventListener("click", () => {
-  document.getElementById("pasteBox").innerHTML = "";
-  document.getElementById("output").innerHTML = "";
-});
-
-// 📌 패널 접기/펼치기 제어 스크립트
-const rightPane = document.getElementById("rightPane");
-const toggleBtn = document.getElementById("togglePaneBtn");
-const resizer = document.getElementById("resizer");
-
-toggleBtn.addEventListener("click", () => {
-  const isCollapsed = rightPane.classList.toggle("collapsed");
-  if (isCollapsed) {
-    toggleBtn.textContent = "◀ 펼치기";
-    resizer.style.display = "none";
-  } else {
-    toggleBtn.textContent = "▶ 접기";
-    if (window.innerWidth > 768) resizer.style.display = "block";
-  }
-});
-
-// PC 리사이저 조절
-(function() {
-  let dragging = false;
-  
-  resizer.addEventListener("mousedown", () => {
-    if (rightPane.classList.contains("collapsed")) return;
-    dragging = true;
-    resizer.classList.add("active");
-    
-    // 📌 드래그 중 부드러운 반응을 위해 transition을 일시적으로 끔
-    rightPane.style.transition = "none";
-    
-    document.getElementById("sheetFrame").style.pointerEvents = "none";
-    document.body.style.userSelect = "none";
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
-    const newWidth = window.innerWidth - e.clientX;
-    rightPane.style.width = Math.max(280, Math.min(newWidth, window.innerWidth * 0.75)) + "px";
-  });
-
-  window.addEventListener("mouseup", () => {
-    if (!dragging) return;
-    dragging = false;
-    resizer.classList.remove("active");
-    
-    // 📌 드래그 끝난 후 transition 원복 (접기/펼치기 애니메이션용)
-    rightPane.style.transition = "width 0.2s ease, height 0.2s ease";
-    
-    document.getElementById("sheetFrame").style.pointerEvents = "auto";
-    document.body.style.userSelect = "";
-  });
-})();
-
-document.getElementById("pasteBox").addEventListener("paste", (e) => {
-  setTimeout(() => {
-    const box = document.getElementById("pasteBox");
-    box.querySelectorAll("*").forEach(el => {
-      el.style.backgroundColor = "transparent";
-      if (el.tagName === "TD" || el.tagName === "TH" || el.tagName === "SPAN") {
-        if (!el.style.color) {
-          el.style.color = "#111111";
+        // 1. 인트로 이미지 & 원본 링크
+        if (data.sourceLink) {
+          document.getElementById('intro-area').innerHTML = `<a href="${data.sourceLink}" target="_blank"><img src="${data.introImage}"></a>`;
+        } else {
+          document.getElementById('intro-area').innerHTML = `<img src="${data.introImage}">`;
         }
-      }
-    });
 
-    const table = box.querySelector("table");
-    if (table) {
-      table.style.width = "100%";
-      table.style.color = "#111111";
+        // 2. 파티 세팅
+        const partyHTML = data.party.map(p => `
+          <div class="party-card">
+            <img src="${p.img}">
+            <div><b>${p.name}</b></div>
+            <div>★ ${p.star}</div>
+            <div>RANK ${p.rank}</div>
+          </div>
+        `).join('');
+        document.getElementById('party-area').innerHTML = partyHTML;
+
+        // 3. 타임라인
+        const timelineHTML = data.timeline.map(t => {
+          const autoClass = t.auto === 'ON' ? 'auto-on' : (t.auto === 'OFF' ? 'auto-off' : '');
+          return `
+            <tr>
+              <td>${t.time}</td>
+              <td class="text-left">${t.action}</td>
+              <td>${t.set}</td>
+              <td class="${autoClass}">${t.auto}</td>
+            </tr>
+          `;
+        }).join('');
+        document.getElementById('timeline-area').innerHTML = timelineHTML;
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+      } catch (err) {
+        document.getElementById('loading').innerText = "데이터를 불러오는 데 실패했습니다.";
+      }
     }
-  }, 10);
-});
-</script>
+
+    loadGuide();
+  </script>
 </body>
 </html>
