@@ -84,8 +84,11 @@
 /* 캐릭터 이미지 셀의 여백을 완전히 제거 */
 .roster-table td.roster-img {
   padding: 0 !important;
-  width: 110px;           /* 필요 시 셀 고정 너비 지정 (선택) */
-  height: 110px;          /* 필요 시 셀 고정 높이 지정 (선택) */
+  width: 110px;
+  height: 110px;
+  min-width: 110px;  /* 핵심: 브라우저가 줄어들어도 셀 너비 유지 */
+  min-height: 110px; /* 핵심: 셀 높이 유지 */
+  box-sizing: border-box;
 }
 
 /* 이미지가 셀 크기에 맞춰 완전히 채워지도록 설정 */
@@ -93,7 +96,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;     /* 비율을 유지하면서 셀 전체를 여백 없이 채움 */
+  object-fit: cover;
 }
 /* 1. 첫 번째 헤더 행 고정 (메인 탭 바 바로 아래에 밀착) */
 .roster-table thead tr:nth-child(1) th {
