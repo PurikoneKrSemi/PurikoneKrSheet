@@ -3,94 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>프리코네 공략</title>
+  <title>프리코네 공략 모음</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 10px; background: #fff; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 12px; background: #f8f9fa; color: #333; }
     img { max-width: 100%; height: auto; }
     
+    /* 택틱 카터 컨테이너 */
+    .tactic-block { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .tactic-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #1a73e8; border-bottom: 2px solid #e8f0fe; padding-bottom: 6px; }
+    
+    /* 인트로 이미지 & 원본 링크 */
+    .intro-area { text-align: center; margin-bottom: 12px; }
+    .intro-area img { border-radius: 6px; }
+
     /* 파티 세팅 카드 스타일 */
-    .party-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align: center; font-size: 12px; margin-bottom: 15px; }
-    .party-card img { width: 100%; border-radius: 4px; }
+    .party-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; font-size: 12px; margin-bottom: 16px; background: #fafafa; padding: 8px; border-radius: 6px; }
+    .party-card img { width: 100%; border-radius: 4px; border: 1px solid #ddd; }
+    .party-name { font-weight: bold; margin-top: 2px; }
     
     /* 타임라인 테이블 스타일 */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    th, td { border: 1px solid #e0e0e0; padding: 6px 8px; text-align: center; }
+    th { background-color: #f1f3f4; }
     .text-left { text-align: left; }
     
     /* Auto 하이라이트 색상 */
     .auto-on { background-color: #e3f2fd; color: #0d47a1; font-weight: bold; }
     .auto-off { background-color: #ffebee; color: #c62828; font-weight: bold; }
+
+    #loading { text-align: center; padding: 40px; color: #666; font-size: 15px; }
   </style>
 </head>
 <body>
 
   <div id="loading">공략 데이터를 불러오는 중...</div>
-  <div id="content" style="display:none;">
-    <!-- 인트로 이미지 & 원본 링크 -->
-    <div id="intro-area"></div>
-    
-    <!-- 파티 세팅 -->
-    <div class="party-grid" id="party-area"></div>
-    
-    <!-- 타임라인 -->
-    <table>
-      <thead>
-        <tr>
-          <th>시간</th>
-          <th>내용</th>
-          <th>Set</th>
-          <th>Auto</th>
-        </tr>
-      </thead>
-      <tbody id="timeline-area"></tbody>
-    </table>
-  </div>
+  <div id="tactic-container"></div>
 
   <script>
-    // 2단계에서 복사한 웹 앱 URL
+    // 1. Google Apps Script 배포 URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwk3Ol0zODBEr30pG1mXMrt1RymsK9TK3TpuOJKCJCiRuKO5f-0wmfx9rVTzN0H9lu5/exec";
 
-    async function loadGuide() {
-      try {
-        const res = await fetch(GAS_API_URL);
-        const data = await res.json();
+    // 2. 불러올 구글 시트(탭) 이름 지정
+    // 원하는 시트 이름을 적어주세요. (예: "9월_클랜전", "1월_택틱" 등)
+    // 비워두면("") 시트의 첫 번째 탭을 불러옵니다.
+    const TARGET_SHEET_NAME = ""; 
 
-        // 1. 인트로 이미지 & 원본 링크
-        if (data.sourceLink) {
-          document.getElementById('intro-area').innerHTML = `<a href="${data.sourceLink}" target="_blank"><img src="${data.introImage}"></a>`;
-        } else {
-          document.getElementById('intro-area').innerHTML = `<img src="${data.introImage}">`;
+    async function loadGuide() {
+      const loadingEl = document.getElementById('loading');
+      const containerEl = document.getElementById('tactic-container');
+
+      try {
+        // 시트 이름 파라미터(?sheet=...) 붙이기
+        let requestUrl = GAS_API_URL;
+        if (TARGET_SHEET_NAME) {
+          requestUrl += `?sheet=${encodeURIComponent(TARGET_SHEET_NAME)}`;
         }
 
-        // 2. 파티 세팅
-        const partyHTML = data.party.map(p => `
-          <div class="party-card">
-            <img src="${p.img}">
-            <div><b>${p.name}</b></div>
-            <div>★ ${p.star}</div>
-            <div>RANK ${p.rank}</div>
-          </div>
-        `).join('');
-        document.getElementById('party-area').innerHTML = partyHTML;
+        const res = await fetch(requestUrl);
+        const data = await res.json();
 
-        // 3. 타임라인
-        const timelineHTML = data.timeline.map(t => {
-          const autoClass = t.auto === 'ON' ? 'auto-on' : (t.auto === 'OFF' ? 'auto-off' : '');
+        if (!data.tactics || data.tactics.length === 0) {
+          loadingEl.innerText = "등록된 공략 데이터가 없습니다.";
+          return;
+        }
+
+        // 받아온 여러 택틱(tactics) 배열을 순회하며 HTML 생성
+        const htmlContent = data.tactics.map(tactic => {
+          // A. 인트로 이미지 & 원본 링크
+          let introHTML = "";
+          if (tactic.introImage) {
+            if (tactic.sourceLink) {
+              introHTML = `<div class="intro-area"><a href="${tactic.sourceLink}" target="_blank"><img src="${tactic.introImage}"></a></div>`;
+            } else {
+              introHTML = `<div class="intro-area"><img src="${tactic.introImage}"></div>`;
+            }
+          }
+
+          // B. 파티 세팅 카드
+          const partyHTML = tactic.party && tactic.party.length > 0 ? `
+            <div class="party-grid">
+              ${tactic.party.map(p => `
+                <div class="party-card">
+                  <img src="${p.img || ''}" alt="${p.name}">
+                  <div class="party-name">${p.name}</div>
+                  <div>★ ${p.star}</div>
+                  <div>RANK ${p.rank}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : '';
+
+          // C. 타임라인 테이블
+          const timelineRows = tactic.timeline.map(t => {
+            const autoClass = t.auto === 'ON' ? 'auto-on' : (t.auto === 'OFF' ? 'auto-off' : '');
+            return `
+              <tr>
+                <td>${t.time}</td>
+                <td class="text-left">${t.action}</td>
+                <td>${t.set}</td>
+                <td class="${autoClass}">${t.auto}</td>
+              </tr>
+            `;
+          }).join('');
+
           return `
-            <tr>
-              <td>${t.time}</td>
-              <td class="text-left">${t.action}</td>
-              <td>${t.set}</td>
-              <td class="${autoClass}">${t.auto}</td>
-            </tr>
+            <div class="tactic-block">
+              ${tactic.title ? `<div class="tactic-title">${tactic.title}</div>` : ''}
+              ${introHTML}
+              ${partyHTML}
+              <table>
+                <thead>
+                  <tr>
+                    <th>시간</th>
+                    <th>내용</th>
+                    <th>Set</th>
+                    <th>Auto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${timelineRows}
+                </tbody>
+              </table>
+            </div>
           `;
         }).join('');
-        document.getElementById('timeline-area').innerHTML = timelineHTML;
 
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
+        loadingEl.style.display = 'none';
+        containerEl.innerHTML = htmlContent;
+
       } catch (err) {
-        document.getElementById('loading').innerText = "데이터를 불러오는 데 실패했습니다.";
+        console.error(err);
+        loadingEl.innerText = "데이터를 불러오는 데 실패했습니다.";
       }
     }
 
