@@ -50,32 +50,46 @@ def process_semi_auto_merge(files):
         .timeline-apply-btn:hover { background: #4338ca; }
         .timeline-apply-btn:active { transform: scale(0.97); }
 
-        /* 하단 탭 가로 스크롤 보장 */
+        /* 하단 탭 가로 스크롤 및 스크롤바 강제 표시 */
         .tab-scroll-container { 
-            width: 100%; 
-            max-width: 100%; 
-            margin: 0 auto; 
+            width: 100% !important; 
+            max-width: 100% !important; 
+            margin: 0 auto !important; 
             overflow-x: auto !important; 
-            white-space: nowrap; 
-            padding-bottom: 4px; 
+            white-space: nowrap !important; 
+            padding-bottom: 8px !important; 
             cursor: grab; 
             user-select: none; 
             text-align: center; 
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            scrollbar-width: auto !important;
+            -ms-overflow-style: auto !important;
         }
-        .tab-scroll-container::-webkit-scrollbar { display: none; }
+        .tab-scroll-container::-webkit-scrollbar { 
+            display: block !important; 
+            height: 8px !important; 
+        }
+        .tab-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+        .tab-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 4px !important;
+        }
+        .tab-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
+        }
         .tab-scroll-container.active { cursor: grabbing; }
         .tab-nav { 
-            display: inline-flex; 
-            justify-content: center; 
-            gap: 6px; 
-            min-width: max-content;
+            display: inline-flex !important; 
+            justify-content: center !important; 
+            gap: 6px !important; 
+            min-width: max-content !important;
         }
         .tab-btn { 
             flex: 0 0 auto !important; 
-            padding: 6px 14px; 
+            padding: 6px 14px !important; 
             background: #e2e8f0; 
             border: none; 
             border-radius: 6px; 
@@ -229,32 +243,46 @@ def process_full_auto_merge(files):
         .tab-content img { max-width: 100% !important; height: auto !important; }
         .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 8px 16px; z-index: 9999; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
         
-        /* 하단 탭 가로 스크롤 보장 */
+        /* 하단 탭 가로 스크롤 및 스크롤바 강제 표시 */
         .tab-scroll-container { 
-            width: 100%; 
-            max-width: 100%; 
-            margin: 0 auto; 
+            width: 100% !important; 
+            max-width: 100% !important; 
+            margin: 0 auto !important; 
             overflow-x: auto !important; 
-            white-space: nowrap; 
-            padding: 2px 0; 
+            white-space: nowrap !important; 
+            padding: 4px 0 8px 0 !important; 
             cursor: grab; 
             user-select: none; 
             text-align: center; 
-            -ms-overflow-style: none; 
-            scrollbar-width: none; 
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            scrollbar-width: auto !important;
+            -ms-overflow-style: auto !important;
         }
-        .tab-scroll-container::-webkit-scrollbar { display: none; }
+        .tab-scroll-container::-webkit-scrollbar { 
+            display: block !important; 
+            height: 8px !important; 
+        }
+        .tab-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+        .tab-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 4px !important;
+        }
+        .tab-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
+        }
         .tab-scroll-container.active { cursor: grabbing; }
         .tab-nav { 
-            display: inline-flex; 
-            justify-content: center; 
-            gap: 6px; 
-            min-width: max-content;
+            display: inline-flex !important; 
+            justify-content: center !important; 
+            gap: 6px !important; 
+            min-width: max-content !important;
         }
         .tab-btn { 
             flex: 0 0 auto !important; 
-            padding: 8px 16px; 
+            padding: 8px 16px !important; 
             background: #e2e8f0; 
             border: none; 
             border-radius: 6px; 
