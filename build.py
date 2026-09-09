@@ -149,7 +149,7 @@ def process_semi_auto_merge(files):
     panel_html = f'''
         <div class="bottom-fixed-panel">
             <div class="timeline-control-panel">
-                <strong>⏱️ 남은 시간 설정:</strong>
+                <strong>⏱️ 이월 시간 설정:</strong>
                 <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
                 <button type="button" class="timeline-apply-btn" onclick="applyCustomTimeline()">적용</button>
             </div>
