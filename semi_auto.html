@@ -530,6 +530,22 @@
         .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 10px 16px; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
         .timeline-control-panel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; width: 100%; }
         .timeline-control-panel input { width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+        
+        /* 적용 버튼 스타일 개선 */
+        .timeline-apply-btn {
+            padding: 5px 14px;
+            background: #4f46e5;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .timeline-apply-btn:hover { background: #4338ca; }
+        .timeline-apply-btn:active { transform: scale(0.97); }
+
         .tab-scroll-container { width: 100%; margin: 0 auto; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; cursor: grab; user-select: none; text-align: center; -ms-overflow-style: none; scrollbar-width: none; }
         .tab-scroll-container::-webkit-scrollbar { display: none; }
         .tab-scroll-container.active { cursor: grabbing; }
@@ -21465,7 +21481,7 @@
 <div class="timeline-control-panel">
 <strong>⏱️ 남은 시간 설정:</strong>
 <input id="user-timeline-input" max="90" min="20" type="number" value="90"/> 초
-                <button onclick="applyCustomTimeline()" style="padding: 4px 12px; cursor: pointer;">적용</button>
+                <button class="timeline-apply-btn" onclick="applyCustomTimeline()" type="button">적용</button>
 </div>
 <div class="tab-scroll-container"><div class="tab-nav"><button class="tab-btn active" onclick="openTab(event, 'tab-page-1')">26년09월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-2')">26년10월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-3')">26년11월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-4')">26년12월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-5')">27년01월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-6')">27년02월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-7')">27년03월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-8')">27년04월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-9')">27년05월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-10')">27년06월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-11')">27년07월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-12')">27년08월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-13')">27년09월</button></div></div>
 </div>

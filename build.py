@@ -34,6 +34,22 @@ def process_semi_auto_merge(files):
         .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 10px 16px; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
         .timeline-control-panel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; width: 100%; }
         .timeline-control-panel input { width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+        
+        /* 적용 버튼 스타일 개선 */
+        .timeline-apply-btn {
+            padding: 5px 14px;
+            background: #4f46e5;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .timeline-apply-btn:hover { background: #4338ca; }
+        .timeline-apply-btn:active { transform: scale(0.97); }
+
         .tab-scroll-container { width: 100%; margin: 0 auto; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; cursor: grab; user-select: none; text-align: center; -ms-overflow-style: none; scrollbar-width: none; }
         .tab-scroll-container::-webkit-scrollbar { display: none; }
         .tab-scroll-container.active { cursor: grabbing; }
@@ -135,7 +151,7 @@ def process_semi_auto_merge(files):
             <div class="timeline-control-panel">
                 <strong>⏱️ 남은 시간 설정:</strong>
                 <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
-                <button style="padding: 4px 12px; cursor: pointer;" onclick="applyCustomTimeline()">적용</button>
+                <button type="button" class="timeline-apply-btn" onclick="applyCustomTimeline()">적용</button>
             </div>
             <div class="tab-scroll-container"><div class="tab-nav">{btns}</div></div>
         </div>
@@ -264,27 +280,23 @@ def process_full_auto_merge(files):
 
 
 def build_site():
-    # 1. 루트에 semi_auto.html 생성
     semi_files = sorted(glob.glob("data/semi_auto/*.html"))
     merged_semi = process_semi_auto_merge(semi_files)
     if merged_semi:
         with open("semi_auto.html", "w", encoding="utf-8") as f:
             f.write(merged_semi)
 
-    # 2. 루트에 full_auto.html 생성
     full_files = sorted(glob.glob("data/full_auto/*.html"))
     merged_full = process_full_auto_merge(full_files)
     if merged_full:
         with open("full_auto.html", "w", encoding="utf-8") as f:
             f.write(merged_full)
 
-    # 3. 루트에 recruits.html 복사
     if os.path.exists("data/recruits.html"):
         with open("data/recruits.html", "r", encoding="utf-8") as f:
             with open("recruits.html", "w", encoding="utf-8") as f_out:
                 f_out.write(f.read())
 
-    # 4. templates/index_template.html을 루트의 index.html로 복사
     if os.path.exists("templates/index_template.html"):
         shutil.copy("templates/index_template.html", "index.html")
 
