@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>공략 메인</title>
+  <style>
+/* 1. 페이지 전체 기본 설정 */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* 자식 요소들이 너비를 100% 채우도록 설정 */
+  justify-content: flex-start; /* 상단 정렬 고정 */
+  width: 100%;
+}
+
+/* 2. 상단 탭 바 고정 및 너비 설정 */
+.tab-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start; /* 탭 버튼 왼쪽 정렬 */
+  border-bottom: 2px solid #ccc;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  padding: 8px 16px; /* 탭 바 내부에 여백 추가 */
+  
+  /* 스크롤 시에도 최상단 고정 (선택 사항) */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* 3. 본문 컨테이너 (너비 제한 제거) */
+#tab-content-area {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px; /* 본문 여백 */
+}
+/* css: 서브 페이지 버튼 스타일의 영향을 받지 않도록 고정 */
+.main-tab-btn {
+  /* 기본 버튼 스타일 초기화 (외부 CSS 영향 차단) */
+  all: unset;
+  
+  /* 메인 탭 전용 스타일 작성 */
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f1f3f5;
+  color: #333;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.main-tab-btn.active {
+  background-color: #3182ce;
+  color: #ffffff;
+}
+  </style>
+</head>
+<body>
+
+
+  <!-- 탭 메뉴 영역 -->
+  <div class="tab-bar">
+      <div class="main-tab-bar">
+  <button class="main-tab-btn active" onclick="switchTab(this, '세미오토.html')">세미오토</button>
+  <button class="main-tab-btn" onclick="switchTab(this, '풀오토.html')">풀오토</button>
+  <button class="main-tab-btn" onclick="switchTab(this, '채용시트.html')">채용시트</button>
+</div>
+
+  </div>
+
+  <!-- 외부 파일 내용이 불러와질 컨테이너 -->
+  <div id="tab-content-area"></div>
+
+  <script>
+    // 탭 콘텐츠 로드 함수
+    function loadPage(fileUrl) {
+      const container = document.getElementById('tab-content-area');
+      
+      fetch(fileUrl)
+        .then(response => {
+          if (!response.ok) throw new Error('파일을 찾을 수 없습니다.');
+          return response.text();
+        })
+        .then(html => {
+          container.innerHTML = html;
+        })
+        .catch(error => {
+          container.innerHTML = `<p style="color:red;">페이지 로딩 실패: ${error.message}</p>`;
+        });
+    }
+
+    // 탭 전환 이벤트
+    function switchTab(buttonEl, fileUrl) {
+  // 1. 모든 메인 탭 버튼의 active 클래스 제거 (클래스명 수정!)
+  const buttons = document.querySelectorAll('.main-tab-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+
+  // 2. 현재 클릭된 버튼에만 active 클래스 추가
+  buttonEl.classList.add('active');
+
+  // 3. 페이지 로드 함수 호출
+  loadPage(fileUrl);
+}
+    function loadPage(fileUrl) {
+  const container = document.getElementById('tab-content-area');
+
+  fetch(fileUrl)
+    .then(response => response.text())
+    .then(html => {
+      container.innerHTML = html;
+
+      // 1. 가져온 HTML 안의 <script> 태그를 강제로 다시 생성하여 실행시킴
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+      });
+
+      // 2. 세미오토 초기화 함수가 존재하면 실행
+      if (typeof initSemiAutoScript === 'function') {
+        initSemiAutoScript();
+      }
+    })
+    .catch(err => console.error('페이지 로드 실패:', err));
+}
+    // 처음 접속 시 기본 탭(세미오토) 로드
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPage('세미오토.html');
+    });
+  </script>
+</body>
+</html>
