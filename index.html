@@ -75,64 +75,54 @@ body {
 
   <!-- 외부 파일 내용이 불러와질 컨테이너 -->
   <div id="tab-content-area"></div>
-
+<!-- content-container 영역 -->
+<div id="content-container"></div>
   <script>
-    // 탭 콘텐츠 로드 함수
-    function loadPage(fileUrl) {
-      const container = document.getElementById('tab-content-area');
-      
-      fetch(fileUrl)
-        .then(response => {
-          if (!response.ok) throw new Error('파일을 찾을 수 없습니다.');
-          return response.text();
-        })
-        .then(html => {
-          container.innerHTML = html;
-        })
-        .catch(error => {
-          container.innerHTML = `<p style="color:red;">페이지 로딩 실패: ${error.message}</p>`;
-        });
-    }
+async function loadPage(fileUrl) {
+  const container = document.getElementById('content-container');
+  
+  if (!container) {
+    console.error("오류: #content-container 엘리먼트를 찾을 수 없습니다.");
+    return;
+  }
 
-    // 탭 전환 이벤트
-    function switchTab(buttonEl, fileUrl) {
-  // 1. 모든 메인 탭 버튼의 active 클래스 제거 (클래스명 수정!)
+  try {
+    const response = await fetch('./' + fileUrl);
+    if (!response.ok) {
+      throw new Error(`파일을 불러올 수 없습니다 (HTTP ${response.status})`);
+    }
+    const html = await response.text();
+    
+    // 1. HTML 주입
+    container.innerHTML = html;
+
+    // 2. 동적으로 삽입된 inline script 재실행
+    const scripts = Array.from(container.querySelectorAll('script'));
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+
+  } catch (err) {
+    console.error('페이지 로드 실패:', err);
+    if (container) {
+      container.innerHTML = `<div style="padding: 20px; color: red;">페이지 로드 실패: ${err.message}</div>`;
+    }
+  }
+}
+
+function switchTab(buttonEl, fileUrl) {
   const buttons = document.querySelectorAll('.main-tab-btn');
   buttons.forEach(btn => btn.classList.remove('active'));
-
-  // 2. 현재 클릭된 버튼에만 active 클래스 추가
   buttonEl.classList.add('active');
-
-  // 3. 페이지 로드 함수 호출
   loadPage(fileUrl);
 }
-    function loadPage(fileUrl) {
-  const container = document.getElementById('tab-content-area');
 
-  fetch(fileUrl)
-    .then(response => response.text())
-    .then(html => {
-      container.innerHTML = html;
-
-      // 1. 가져온 HTML 안의 <script> 태그를 강제로 다시 생성하여 실행시킴
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-
-      // 2. 세미오토 초기화 함수가 존재하면 실행
-      if (typeof initSemiAutoScript === 'function') {
-        initSemiAutoScript();
-      }
-    })
-    .catch(err => console.error('페이지 로드 실패:', err));
-}
-    // 처음 접속 시 기본 탭(세미오토) 로드
-    window.addEventListener('DOMContentLoaded', () => {
-      loadPage('semi_auto.html');
-    });
-  </script>
+document.addEventListener('DOMContentLoaded', () => {
+  loadPage('semi_auto.html');
+});
+</script>
 </body>
 </html>

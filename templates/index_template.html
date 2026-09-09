@@ -75,41 +75,54 @@ body {
 
   <!-- 외부 파일 내용이 불러와질 컨테이너 -->
   <div id="tab-content-area"></div>
-
+<!-- content-container 영역 -->
+<div id="content-container"></div>
   <script>
-  async function loadPage(fileUrl) {
-    const container = document.getElementById('content-container');
-    try {
-      // 상대 경로 구분을 위해 ./ 추가
-      const response = await fetch('./' + fileUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const html = await response.text();
-      container.innerHTML = html;
+async function loadPage(fileUrl) {
+  const container = document.getElementById('content-container');
+  
+  if (!container) {
+    console.error("오류: #content-container 엘리먼트를 찾을 수 없습니다.");
+    return;
+  }
 
-      // 동적으로 주입된 HTML 내부의 script 태그 재실행 처리
-      const scripts = container.getElementsByTagName('script');
-      for (let i = 0; i < scripts.length; i++) {
-        eval(scripts[i].innerText);
-      }
-    } catch (err) {
-      console.error('페이지 로드 실패:', err);
-      container.innerHTML = `<div style="padding: 20px; color: red;">페이지를 불러오는 데 실패했습니다. (${err.message})</div>`;
+  try {
+    const response = await fetch('./' + fileUrl);
+    if (!response.ok) {
+      throw new Error(`파일을 불러올 수 없습니다 (HTTP ${response.status})`);
+    }
+    const html = await response.text();
+    
+    // 1. HTML 주입
+    container.innerHTML = html;
+
+    // 2. 동적으로 삽입된 inline script 재실행
+    const scripts = Array.from(container.querySelectorAll('script'));
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+
+  } catch (err) {
+    console.error('페이지 로드 실패:', err);
+    if (container) {
+      container.innerHTML = `<div style="padding: 20px; color: red;">페이지 로드 실패: ${err.message}</div>`;
     }
   }
+}
 
-  function switchTab(buttonEl, fileUrl) {
-    const buttons = document.querySelectorAll('.main-tab-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    buttonEl.classList.add('active');
-    loadPage(fileUrl);
-  }
+function switchTab(buttonEl, fileUrl) {
+  const buttons = document.querySelectorAll('.main-tab-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+  buttonEl.classList.add('active');
+  loadPage(fileUrl);
+}
 
-  // 첫 화면 로드
-  window.addEventListener('DOMContentLoaded', () => {
-    loadPage('semi_auto.html');
-  });
+document.addEventListener('DOMContentLoaded', () => {
+  loadPage('semi_auto.html');
+});
 </script>
 </body>
 </html>
