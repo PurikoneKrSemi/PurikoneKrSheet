@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SemiAutoSheet</title>
-  <!-- 파비콘 404 경고 방지 -->
   <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
   <style>
     .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -15,70 +14,57 @@
 </head>
 <body>
 
-  <!-- 상단 탭 (event 객체 전달 및 type="button" 명시) -->
   <div class="tab-bar">
     <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
     <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
     <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
   </div>
 
-  <!-- 콘텐츠 영역 -->
   <div id="content-container">페이지를 로딩 중입니다...</div>
 
   <script>
-    async function loadPage(fileUrl) {
-  console.log('loadPage 호출됨:', fileUrl);
-  const container = document.getElementById('content-container');
-  
-  if (!container) {
-    console.error("오류: #content-container 엘리먼트가 없습니다.");
-    return;
-  }
+    function loadPage(fileUrl) {
+      console.log('loadPage 시작:', fileUrl);
+      const container = document.getElementById('content-container');
+      if (!container) return;
 
-  try {
-    // ./ 생략하여 현재 디렉터리 기준 상대 경로 명시
-    const response = await fetch(fileUrl);
-    console.log('fetch 응답 상태:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`파일을 불러올 수 없습니다. (HTTP ${response.status})`);
+      fetch(fileUrl)
+        .then(response => {
+          console.log('Fetch response:', response.status);
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(html => {
+          container.innerHTML = html;
+          // script 태그 재실행
+          const scripts = Array.from(container.querySelectorAll('script'));
+          scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        })
+        .catch(err => {
+          console.error('Fetch 에러:', err);
+          container.innerHTML = '<div style="color:red; padding:20px;">불러오기 실패: ' + err.message + '</div>';
+        });
     }
-    
-    const html = await response.text();
-    container.innerHTML = html;
-
-    // 주입된 script 태그 재실행
-    const scripts = Array.from(container.querySelectorAll('script'));
-    scripts.forEach(oldScript => {
-      const newScript = document.createElement('script');
-      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-      oldScript.parentNode.replaceChild(newScript, oldScript);
-    });
-
-  } catch (err) {
-    console.error('페이지 로드 중 에러 발생:', err);
-    container.innerHTML = `<div style="color: red; padding: 20px;">불러오기 실패: ${err.message}</div>`;
-  }
-}
 
     function switchTab(evt, buttonEl, fileUrl) {
-      // 페이지 새로고침/리다이렉트 완전 차단
       if (evt) evt.preventDefault();
-      
-      console.log('switchTab 클릭됨:', fileUrl);
       const buttons = document.querySelectorAll('.main-tab-btn');
       buttons.forEach(btn => btn.classList.remove('active'));
       buttonEl.classList.add('active');
-      
       loadPage(fileUrl);
     }
 
-    // DOM 완료 시 초기 로드
-    window.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded 실행됨');
+    // DOMContentLoaded 및 즉시 실행 이중 보장
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => loadPage('semi_auto.html'));
+    } else {
       loadPage('semi_auto.html');
-    });
+    }
   </script>
 </body>
 </html>
