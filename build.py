@@ -1,17 +1,15 @@
 import os
 import glob
+import shutil
 from bs4 import BeautifulSoup
 
 def process_semi_auto_merge(files):
-    """세미오토 전용 병합 로직 (타임라인 컨트롤 포함)"""
     if not files:
         return ""
     
-    # 1. 첫 번째 파일 기반으로 기본 문서 생성
     with open(files[0], 'r', encoding='utf-8') as f:
         base_soup = BeautifulSoup(f.read(), 'html.parser')
 
-    # 2. 월별 파일 파싱
     parsed_contents = []
     for filepath in files:
         tab_name = os.path.splitext(os.path.basename(filepath))[0]
@@ -21,7 +19,6 @@ def process_semi_auto_merge(files):
             html_content = container.decode_contents() if container else soup.decode_contents()
             parsed_contents.append((tab_name, html_content))
 
-    # 3. CSS 주입
     style_tag = base_soup.find('style')
     if not style_tag:
         style_tag = base_soup.new_tag('style')
@@ -47,7 +44,6 @@ def process_semi_auto_merge(files):
         tr.timeline-past { text-decoration: line-through !important; opacity: 0.45 !important; color: #888888 !important; }
     """
 
-    # 4. 스크립트 주입
     script_tag = base_soup.new_tag('script')
     script_tag.string = """
         const BASE_SECONDS = 90;
@@ -127,7 +123,6 @@ def process_semi_auto_merge(files):
     if base_soup.body:
         base_soup.body.append(script_tag)
 
-    # 5. HTML 동적 재구성
     btns, contents = "", ""
     for idx, (tab_name, html) in enumerate(parsed_contents):
         tab_id = f"tab-page-{idx + 1}"
@@ -140,7 +135,7 @@ def process_semi_auto_merge(files):
             <div class="timeline-control-panel">
                 <strong>⏱️ 남은 시간 설정:</strong>
                 <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
-                <button class="card-btn add-space-btn" style="padding: 4px 12px; cursor: pointer;" onclick="applyCustomTimeline()">적용</button>
+                <button style="padding: 4px 12px; cursor: pointer;" onclick="applyCustomTimeline()">적용</button>
             </div>
             <div class="tab-scroll-container"><div class="tab-nav">{btns}</div></div>
         </div>
@@ -155,7 +150,6 @@ def process_semi_auto_merge(files):
 
 
 def process_full_auto_merge(files):
-    """풀오토 전용 병합 로직 (테이블 스케일링 포함)"""
     if not files:
         return ""
     
@@ -270,30 +264,29 @@ def process_full_auto_merge(files):
 
 
 def build_site():
-    # 자연어 정렬(2026-08, 2026-09 순서대로 정렬)
+    # 저장 타겟 폴더를 templates로 지정
+    target_dir = "templates"
+    os.makedirs(target_dir, exist_ok=True)
+
+    # 1. templates/세미오토.html 생성
     semi_files = sorted(glob.glob("data/semi_auto/*.html"))
+    merged_semi = process_semi_auto_merge(semi_files)
+    if merged_semi:
+        with open(os.path.join(target_dir, "세미오토.html"), "w", encoding="utf-8") as f:
+            f.write(merged_semi)
+
+    # 2. templates/풀오토.html 생성
     full_files = sorted(glob.glob("data/full_auto/*.html"))
+    merged_full = process_full_auto_merge(full_files)
+    if merged_full:
+        with open(os.path.join(target_dir, "풀오토.html"), "w", encoding="utf-8") as f:
+            f.write(merged_full)
 
-    # 각각에 맞는 스크립트로 독립 병합 수행
-    merged_semi_auto = process_semi_auto_merge(semi_files)
-    merged_full_auto = process_full_auto_merge(full_files)
-
-    recruits_html = ""
+    # 3. templates/채용시트.html 복사
     if os.path.exists("data/recruits.html"):
         with open("data/recruits.html", "r", encoding="utf-8") as f:
-            recruits_html = f.read()
-
-    # index 템플릿 치환
-    with open("templates/index_template.html", "r", encoding="utf-8") as f:
-        template = f.read()
-
-    final_index = template.replace("<!-- SEMI_AUTO_PLACEHOLDER -->", merged_semi_auto)\
-                           .replace("<!-- FULL_AUTO_PLACEHOLDER -->", merged_full_auto)\
-                           .replace("<!-- RECRUITS_PLACEHOLDER -->", recruits_html)
-
-    os.makedirs("dist", exist_ok=True)
-    with open("dist/index.html", "w", encoding="utf-8") as f:
-        f.write(final_index)
+            with open(os.path.join(target_dir, "채용시트.html"), "w", encoding="utf-8") as f_out:
+                f_out.write(f.read())
 
 if __name__ == "__main__":
     build_site()

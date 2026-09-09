@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>공략 메인</title>
+  <style>
+/* 페이지 기본 설정 */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+/* 상단 탭 바 */
+.tab-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  border-bottom: 2px solid #ccc;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+}
+
+#tab-content-area {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+/* 메인 탭 제어 (하위 서브 탭 CSS와 충돌 방지를 위해 !important 사용) */
+.main-tab-panel {
+  display: none !important;
+  width: 100%;
+}
+
+.main-tab-panel.active {
+  display: block !important;
+}
+
+/* 상단 메인 탭 버튼 스타일 */
+.main-tab-btn {
+  all: unset;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f1f3f5;
+  color: #333;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.main-tab-btn.active {
+  background-color: #3182ce;
+  color: #ffffff;
+}
+  </style>
+</head>
+<body>
+
+  <div class="tab-bar">
+    <div class="main-tab-bar">
+      <button class="main-tab-btn active" onclick="switchMainTab(this, 'panel-semi-auto')">세미오토</button>
+      <button class="main-tab-btn" onclick="switchMainTab(this, 'panel-full-auto')">풀오토</button>
+      <button class="main-tab-btn" onclick="switchMainTab(this, 'panel-recruits')">채용시트</button>
+    </div>
+  </div>
+
+  <div id="tab-content-area">
+    <div id="panel-semi-auto" class="main-tab-panel active">
+      <!-- SEMI_AUTO_PLACEHOLDER -->
+    </div>
+    <div id="panel-full-auto" class="main-tab-panel">
+      <!-- FULL_AUTO_PLACEHOLDER -->
+    </div>
+    <div id="panel-recruits" class="main-tab-panel">
+      <!-- RECRUITS_PLACEHOLDER -->
+    </div>
+  </div>
+
+  <script>
+    function switchMainTab(buttonEl, targetPanelId) {
+      document.querySelectorAll('.main-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.main-tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      buttonEl.classList.add('active');
+      const targetPanel = document.getElementById(targetPanelId);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      }
+
+      if (targetPanelId === 'panel-full-auto' && typeof fitActiveTab === 'function') {
+        setTimeout(fitActiveTab, 50);
+      }
+    }
+  </script>
+</body>
+</html>
