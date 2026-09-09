@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SemiAutoSheet</title>
+  <!-- 파비콘 404 경고 방지 -->
   <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
   <style>
     .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -14,11 +15,11 @@
 </head>
 <body>
 
-  <!-- 상단 탭 -->
+  <!-- 상단 탭 (event 객체 전달 및 type="button" 명시) -->
   <div class="tab-bar">
-    <button type="button" class="main-tab-btn active" onclick="switchTab(this, 'semi_auto.html')">세미오토</button>
-    <button type="button" class="main-tab-btn" onclick="switchTab(this, 'full_auto.html')">풀오토</button>
-    <button type="button" class="main-tab-btn" onclick="switchTab(this, 'recruits.html')">채용시트</button>
+    <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
+    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
+    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
   </div>
 
   <!-- 콘텐츠 영역 -->
@@ -60,15 +61,19 @@
       }
     }
 
-    function switchTab(buttonEl, fileUrl) {
+    function switchTab(evt, buttonEl, fileUrl) {
+      // 페이지 새로고침/리다이렉트 완전 차단
+      if (evt) evt.preventDefault();
+      
       console.log('switchTab 클릭됨:', fileUrl);
       const buttons = document.querySelectorAll('.main-tab-btn');
       buttons.forEach(btn => btn.classList.remove('active'));
       buttonEl.classList.add('active');
+      
       loadPage(fileUrl);
     }
 
-    // DOM 완료 시 초기 실행
+    // DOM 완료 시 초기 로드
     window.addEventListener('DOMContentLoaded', () => {
       console.log('DOMContentLoaded 실행됨');
       loadPage('semi_auto.html');
