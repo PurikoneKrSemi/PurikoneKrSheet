@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프리코네 풀오토 입력기</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 30px 15px; 
+            max-width: 1080px; 
+            margin: 0 auto; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        h2 { 
+            margin-bottom: 20px; 
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sticky-container {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background-color: var(--bg-color);
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+            margin-bottom: 12px; 
+            border: 1px solid var(--border-color);
+        }
+
+        label { font-weight: 600; font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+        
+        input[type="text"], input[type="number"], select, textarea { 
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            font-size: 14px; 
+            text-align: center;
+            transition: all 0.2s;
+            outline: none;
+            background-color: #fafafa;
+            font-family: inherit;
+        }
+
+        textarea {
+            text-align: left;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+        
+        .party-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 8px; background: #fff; table-layout: fixed; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+        .party-table th, .party-table td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 6px; text-align: center; font-size: 13px; }
+        .party-table tr:last-child td, .party-table tr:last-child th { border-bottom: none; }
+        .party-table td:last-child, .party-table th:last-child { border-right: none; }
+        .party-table th { background-color: #f9fafb; font-weight: 600; color: var(--text-muted); width: 16.66%; }
+        
+        .char-img-box { 
+            width: 90px; 
+            height: 90px; 
+            margin: 0 auto; 
+            background: #f3f4f6; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            border: 2px dashed #d1d5db; 
+            border-radius: 8px;
+            position: relative; 
+            cursor: pointer; 
+            transition: all 0.2s;
+        }
+
+        .char-img-box:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+        }
+
+        .char-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .char-img-box span { position: absolute; color: var(--text-muted); font-size: 11px; pointer-events: none; text-align: center; font-weight: 500; }
+
+        .party-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .party-header label { margin-bottom: 0; font-size: 15px; color: #111827; }
+        
+        .btn-toggle-card { background: #f3f4f6; color: var(--text-muted); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-toggle-card:hover { background: #e5e7eb; }
+        
+        button { 
+            cursor: pointer; 
+            border: none; 
+            padding: 8px 12px; 
+            font-weight: 600; 
+            border-radius: 6px; 
+            transition: all 0.15s ease;
+            font-size: 13px;
+        }
+
+        button:active { transform: scale(0.97); }
+        
+        .btn-add { background-color: var(--primary-color); color: white; width: 100%; font-size: 15px; padding: 10px; margin-top: 12px; }
+        .btn-add:hover { background-color: var(--primary-hover); }
+        .btn-add.edit-mode { background-color: var(--warning-color); }
+        .btn-add.edit-mode:hover { background-color: #d97706; }
+
+        .btn-copy { background-color: var(--success-color); color: white; font-size: 14px; padding: 8px 16px; }
+        .btn-copy:hover { background-color: #059669; }
+
+        .btn-clear { background-color: var(--danger-color); color: white; font-size: 14px; padding: 8px 16px; }
+        .btn-clear:hover { background-color: #dc2626; }
+
+        .btn-import { background-color: #3b82f6; color: white; font-size: 13px; padding: 6px 12px; }
+        .btn-import:hover { background-color: #2563eb; }
+
+        .recent-container { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .tag-btn { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: 500; }
+        .tag-btn:hover { background: #c7d2fe; }
+        .btn-small-clear { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; font-size: 11px; border-radius: 4px; }
+
+        .batch-bar {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .batch-boss-box {
+            width: 42px;
+            height: 42px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .batch-boss-box img { width: 100%; height: 100%; object-fit: cover; }
+        .batch-boss-box span { font-size: 10px; color: var(--text-muted); text-align: center; }
+
+        .preview-area { margin-top: 20px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .preview-area h3 { font-size: 16px; color: #111827; margin: 0; }
+
+        /* 출력 테이블 스타일 */
+        .output-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; color: #000; background: #fff; table-layout: fixed; }
+        .output-table td, .output-table th { border: 1px solid #e5e7eb; padding: 6px; text-align: center; overflow: hidden; color: inherit; font-weight: normal; vertical-align: middle; }
+        .output-table th { background: #f9fafb; font-weight: bold; }
+        .output-table .th-label { background: #fff; font-weight: normal; }
+        .output-table .header-link { font-weight: normal; text-align: left; background: #fff; }
+        .output-table .header-link a { color: #0056b3; text-decoration: underline; }
+        
+        .output-table .img-td { padding: 0 !important; width: 12.5%; }
+        .output-table .img-td img { width: 100%; height: auto; display: block; object-fit: fill; }
+        
+        .output-table .operation-td { white-space: pre-wrap; text-align: left; }
+
+        .btn-row-edit { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; padding: 2px 6px; font-size: 11px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; }
+        .btn-row-edit:hover { background: #4f46e5; color: white; }
+
+        .btn-row-del { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+        .btn-row-del:hover { background: #ef4444; color: white; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 24px; border-radius: 12px; max-width: 640px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .boss-section-title { font-size: 13px; font-weight: bold; color: var(--text-muted); margin-top: 10px; margin-bottom: 6px; }
+        .boss-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; }
+        .boss-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fff; }
+        .boss-item:hover { border-color: var(--primary-color); background-color: #eef2ff; transform: translateY(-2px); }
+        .boss-item img { width: 100%; height: auto; display: block; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 0;">🎮 프리코네 타임라인 공략 작성기</h2>
+        <button class="btn-clear" onclick="resetAllData()">🔄 전체 초기화</button>
+        <button class="btn-import" onclick="openImportModal()">📂 생성된 HTML 불러오기</button>
+    </div>
+
+    <div class="sticky-container">
+        <!-- 0. 공통 공략 설정 -->
+        <div class="card">
+            <label style="font-size: 14px; color: #111827; margin-bottom: 8px;">공략 공통 설정</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <input type="text" id="guide-text" style="text-align: left;" placeholder="표시할 공략 제목 (예: メデューサ 44212 m1)" oninput="renderFinalPreview()">
+                <input type="text" id="guide-url" style="text-align: left;" placeholder="공략 원본 링크 URL (https://...)" oninput="renderFinalPreview()">
+            </div>
+        </div>
+
+        <!-- 1. 파티 정보 설정 -->
+        <div class="card" style="margin-bottom: 0;">
+            <div class="party-header" onclick="togglePartySection()">
+                <label style="cursor: pointer;">파티 및 캐릭터 정보 설정</label>
+                <button type="button" class="btn-toggle-card" id="toggle-party-btn">접기 ▲</button>
+            </div>
+            <div id="party-section-body">
+                <table class="party-table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="char-img-box" onclick="openBossModal('single')">
+                                    <span id="boss-label">보스 선택<br>(클릭)</span>
+                                    <img id="img-boss" src="" alt="" onerror="this.style.display='none'">
+                                </div>
+                            </td>
+                            <td><div class="char-img-box"><img id="img-c1" src="" alt="" onerror="handleCharImgError(1)"></div></td>
+                            <td><div class="char-img-box"><img id="img-c2" src="" alt="" onerror="handleCharImgError(2)"></div></td>
+                            <td><div class="char-img-box"><img id="img-c3" src="" alt="" onerror="handleCharImgError(3)"></div></td>
+                            <td><div class="char-img-box"><img id="img-c4" src="" alt="" onerror="handleCharImgError(4)"></div></td>
+                            <td><div class="char-img-box"><img id="img-c5" src="" alt="" onerror="handleCharImgError(5)"></div></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" id="dmg-input" placeholder="딜량 (예: 24600)"></td>
+                            <td><input type="text" id="c1" placeholder="1번 캐릭터" onfocus="activeCharIndex=1" oninput="updateCharInfo(1)"></td>
+                            <td><input type="text" id="c2" placeholder="2번 캐릭터" onfocus="activeCharIndex=2" oninput="updateCharInfo(2)"></td>
+                            <td><input type="text" id="c3" placeholder="3번 캐릭터" onfocus="activeCharIndex=3" oninput="updateCharInfo(3)"></td>
+                            <td><input type="text" id="c4" placeholder="4번 캐릭터" onfocus="activeCharIndex=4" oninput="updateCharInfo(4)"></td>
+                            <td><input type="text" id="c5" placeholder="5번 캐릭터" onfocus="activeCharIndex=5" oninput="updateCharInfo(5)"></td>
+                        </tr>
+                        <tr>
+                            <th>⭐</th>
+                            <td><input type="text" id="star1" value="5" oninput="updateCharInfo(1)"></td>
+                            <td><input type="text" id="star2" value="5" oninput="updateCharInfo(2)"></td>
+                            <td><input type="text" id="star3" value="5" oninput="updateCharInfo(3)"></td>
+                            <td><input type="text" id="star4" value="5" oninput="updateCharInfo(4)"></td>
+                            <td><input type="text" id="star5" value="5" oninput="updateCharInfo(5)"></td>
+                        </tr>
+                        <!-- CR 입력 행 추가 -->
+                        <tr>
+                            <th>CR</th>
+                            <td><input type="text" id="cr1" placeholder="0"></td>
+                            <td><input type="text" id="cr2" placeholder="0"></td>
+                            <td><input type="text" id="cr3" placeholder="0"></td>
+                            <td><input type="text" id="cr4" placeholder="0"></td>
+                            <td><input type="text" id="cr5" placeholder="0"></td>
+                        </tr>
+                        <tr>
+                            <th>조작</th>
+                            <td colspan="5">
+                                <textarea id="operation-input" placeholder="조작 방식 입력 (줄바꿈 가능 예:&#10;1:10 버프&#10;0:55 유이UB)"></textarea>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="recent-container">
+                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">최근 캐릭터:</span>
+                    <div id="recent-char-tags" style="display: flex; gap: 4px; flex-wrap: wrap;"></div>
+                    <button type="button" class="btn-small-clear" onclick="clearRecentChars()">태그 초기화</button>
+                </div>
+
+                <button type="button" class="btn-add" id="btn-add-party" onclick="addPartyToResult()">➕ 이 조합을 최종 결과에 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 완성된 HTML 최종 미리보기 구역 -->
+    <div class="preview-area">
+        <div class="preview-header">
+            <h3>최종 출력 미리보기</h3>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-copy" onclick="copyToClipboard()">HTML 복사</button>
+                <button class="btn-clear" onclick="clearAllParties()">전체 삭제</button>
+            </div>
+        </div>
+
+        <div class="batch-bar">
+            <span style="font-size: 13px; font-weight: 700; color: #111827;">⚡ 보스 이미지 일괄 적용:</span>
+            <div class="batch-boss-box" onclick="openBossModal('batch')">
+                <span id="batch-boss-label">보스<br>선택</span>
+                <img id="img-batch-boss" src="" alt="" style="display:none;">
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                <span>범위:</span>
+                <input type="number" id="batch-start" placeholder="시작" style="width: 55px;" min="1">
+                <span>~</span>
+                <input type="number" id="batch-end" placeholder="끝" style="width: 55px;" min="1">
+                <span>행</span>
+            </div>
+
+            <label style="display: inline-flex; align-items: center; gap: 4px; margin-bottom: 0; cursor: pointer; font-size: 13px; font-weight: 500;">
+                <input type="checkbox" id="batch-all-check" onchange="toggleBatchAll(this)"> 전체 행
+            </label>
+
+            <button type="button" style="background-color: var(--primary-color); color: white; padding: 6px 12px;" onclick="applyBatchBoss()">일괄 지정 적용</button>
+        </div>
+
+        <div id="final-html-container"></div>
+    </div>
+
+    <!-- 보스 이미지 선택 모달 창 -->
+    <div class="modal-overlay" id="boss-modal" onclick="closeBossModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="margin:0; font-size: 18px;">보스 선택</h3>
+                <button onclick="closeBossModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+
+            <div id="recent-boss-section" style="display:none;">
+                <div class="boss-section-title">최근 사용한 보스</div>
+                <div class="boss-grid" id="recent-boss-grid"></div>
+                <hr style="margin: 12px 0; border: none; border-top: 1px solid var(--border-color);">
+            </div>
+
+            <div class="boss-section-title">전체 보스 목록</div>
+            <div class="boss-grid" id="boss-grid-container"></div>
+        </div>
+    </div>
+
+    <!-- HTML 코드 불러오기 모달 창 -->
+    <div class="modal-overlay" id="import-modal" onclick="closeImportModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size: 18px;">생성된 HTML 코드 불러오기</h3>
+                <button onclick="closeImportModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">기존에 'HTML 복사'로 생성했던 전체 `&lt;table&gt;...&lt;/table&gt;` 코드를 아래에 붙여넣으세요.</p>
+            <textarea id="import-html-input" style="width:100%; height:200px; text-align:left; font-family:monospace; font-size:12px;" placeholder="<table class=&quot;output-table&quot;>...</table>"></textarea>
+            <button class="btn-import" style="width:100%; margin-top:12px; padding:10px;" onclick="parseAndImportHTML()">변환 및 불러오기</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedBossName = "";
+        let batchSelectedBossSrc = "";
+        let bossModalTarget = "single";
+        
+        let partyList = [];
+        let recentBosses = [];
+        let recentChars = [];
+        let activeCharIndex = 1;
+        let editingIndex = -1;
+
+        const GITHUB_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+
+        const bossList = [
+            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
+            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
+            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
+            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
+        ];
+
+        function initBossModal() {
+            const container = document.getElementById('boss-grid-container');
+            container.innerHTML = '';
+            bossList.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                container.appendChild(item);
+            });
+            renderRecentBosses();
+        }
+
+        function renderRecentBosses() {
+            const sec = document.getElementById('recent-boss-section');
+            const grid = document.getElementById('recent-boss-grid');
+            if (recentBosses.length === 0) {
+                sec.style.display = 'none';
+                return;
+            }
+            sec.style.display = 'block';
+            grid.innerHTML = '';
+            recentBosses.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                grid.appendChild(item);
+            });
+        }
+
+        function openBossModal(target = 'single') {
+            bossModalTarget = target;
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+
+        function closeBossModal(e) {
+            document.getElementById('boss-modal').style.display = 'none';
+        }
+
+        function openImportModal() {
+            document.getElementById('import-modal').style.display = 'flex';
+        }
+
+        function closeImportModal(e) {
+            document.getElementById('import-modal').style.display = 'none';
+        }
+
+        function selectBoss(bossName) {
+            const bossUrl = GITHUB_BOSS_IMAGE_BASE + encodeURIComponent(`${bossName}.png`);
+
+            if (bossModalTarget === 'single') {
+                selectedBossName = bossName;
+                const imgEl = document.getElementById('img-boss');
+                const lblEl = document.getElementById('boss-label');
+                imgEl.src = bossUrl;
+                imgEl.style.display = 'block';
+                lblEl.style.display = 'none';
+            } else if (bossModalTarget === 'batch') {
+                batchSelectedBossSrc = bossUrl;
+                const imgEl = document.getElementById('img-batch-boss');
+                const lblEl = document.getElementById('batch-boss-label');
+                imgEl.src = bossUrl;
+                imgEl.style.display = 'block';
+                lblEl.style.display = 'none';
+            }
+
+            recentBosses = [bossName, ...recentBosses.filter(b => b !== bossName)].slice(0, 6);
+            renderRecentBosses();
+            closeBossModal();
+        }
+
+        function toggleBatchAll(checkbox) {
+            const startInput = document.getElementById('batch-start');
+            const endInput = document.getElementById('batch-end');
+            if (checkbox.checked) {
+                startInput.value = 1;
+                endInput.value = partyList.length > 0 ? partyList.length : 1;
+                startInput.disabled = true;
+                endInput.disabled = true;
+            } else {
+                startInput.disabled = false;
+                endInput.disabled = false;
+            }
+        }
+
+        function applyBatchBoss() {
+            if (!batchSelectedBossSrc) {
+                alert('일괄 적용할 보스를 먼저 선택해주세요.');
+                return;
+            }
+
+            if (partyList.length === 0) {
+                alert('적용할 조합 데이터가 없습니다.');
+                return;
+            }
+
+            const isAll = document.getElementById('batch-all-check').checked;
+            let start = parseInt(document.getElementById('batch-start').value, 10);
+            let end = parseInt(document.getElementById('batch-end').value, 10);
+
+            if (isAll) {
+                start = 1;
+                end = partyList.length;
+            }
+
+            if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+                alert('올바른 범위(시작 행 및 끝 행)를 입력해주세요.');
+                return;
+            }
+
+            const maxLen = partyList.length;
+            const actualEnd = Math.min(end, maxLen);
+            let updatedCount = 0;
+
+            for (let i = start - 1; i < actualEnd; i++) {
+                partyList[i].bossImgSrc = batchSelectedBossSrc;
+                updatedCount++;
+            }
+
+            renderFinalPreview();
+            alert(`${start}번부터 ${actualEnd}번까지 총 ${updatedCount}개 행의 보스 이미지가 변경되었습니다!`);
+        }
+
+        function togglePartySection() {
+            const body = document.getElementById('party-section-body');
+            const btn = document.getElementById('toggle-party-btn');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                btn.innerText = '접기 ▲';
+            } else {
+                body.style.display = 'none';
+                btn.innerText = '펴기 ▼';
+            }
+        }
+
+        function updateCharInfo(index) {
+            const charName = document.getElementById(`c${index}`).value.trim();
+            const star = document.getElementById(`star${index}`).value.trim();
+            const imgEl = document.getElementById(`img-c${index}`);
+
+            if (charName && star) {
+                imgEl.dataset.fallbackTried = "false";
+                const fileName = `${charName}${star}.png`;
+                imgEl.src = GITHUB_IMAGE_BASE + encodeURIComponent(fileName);
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.src = '';
+                imgEl.style.display = 'none';
+            }
+        }
+
+        function handleCharImgError(index) {
+            const imgEl = document.getElementById(`img-c${index}`);
+            const charName = document.getElementById(`c${index}`).value.trim();
+            const star = document.getElementById(`star${index}`).value.trim();
+
+            if (!charName || imgEl.dataset.fallbackTried === "true") {
+                imgEl.style.display = 'none';
+                return;
+            }
+
+            imgEl.dataset.fallbackTried = "true";
+
+            let fallbackStar = "";
+            if (star === "6") {
+                fallbackStar = "5";
+            } else if (["3", "4", "5"].includes(star)) {
+                fallbackStar = "6";
+            }
+
+            if (fallbackStar) {
+                const fallbackFileName = `${charName}${fallbackStar}.png`;
+                imgEl.src = GITHUB_IMAGE_BASE + encodeURIComponent(fallbackFileName);
+            } else {
+                imgEl.style.display = 'none';
+            }
+        }
+
+        function handleTableImgError(img) {
+            if (img.dataset.fallbackTried === "true") {
+                img.style.display = 'none';
+                return;
+            }
+            img.dataset.fallbackTried = "true";
+            const src = decodeURIComponent(img.src);
+            const fileName = src.split('/').pop();
+            const match = fileName.match(/^(.+)(\d+)\.png$/);
+            
+            if (match) {
+                const name = match[1];
+                const star = match[2];
+                let fallbackStar = "";
+                if (star === "6") fallbackStar = "5";
+                else if (["3", "4", "5"].includes(star)) fallbackStar = "6";
+
+                if (fallbackStar) {
+                    img.src = GITHUB_IMAGE_BASE + encodeURIComponent(`${name}${fallbackStar}.png`);
+                    return;
+                }
+            }
+            img.style.display = 'none';
+        }
+
+        function addRecentChar(name) {
+            if (!name) return;
+            if (!recentChars.includes(name)) {
+                recentChars.push(name);
+                renderRecentCharTags();
+            }
+        }
+
+        function renderRecentCharTags() {
+            const container = document.getElementById('recent-char-tags');
+            container.innerHTML = recentChars.map(name => 
+                `<span class="tag-btn" onclick="applyCharName('${name}')">${name}</span>`
+            ).join('');
+        }
+
+        function applyCharName(name) {
+            const targetInput = document.getElementById(`c${activeCharIndex}`);
+            targetInput.value = name;
+            updateCharInfo(activeCharIndex);
+            
+            if (activeCharIndex < 5) {
+                activeCharIndex++;
+                document.getElementById(`c${activeCharIndex}`).focus();
+            }
+        }
+
+        function clearRecentChars() {
+            recentChars = [];
+            renderRecentCharTags();
+        }
+
+        function resetInputForm() {
+            document.getElementById('img-boss').src = '';
+            document.getElementById('img-boss').style.display = 'none';
+            document.getElementById('boss-label').style.display = 'block';
+            document.getElementById('dmg-input').value = '';
+            document.getElementById('operation-input').value = '';
+
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`c${i}`).value = '';
+                document.getElementById(`star${i}`).value = '5';
+                document.getElementById(`cr${i}`).value = '';
+                document.getElementById(`img-c${i}`).src = '';
+                document.getElementById(`img-c${i}`).style.display = 'none';
+            }
+
+            editingIndex = -1;
+            const btnAdd = document.getElementById('btn-add-party');
+            btnAdd.innerText = '➕ 이 조합을 최종 결과에 추가';
+            btnAdd.classList.remove('edit-mode');
+        }
+
+        function addPartyToResult() {
+            const bossImgSrc = document.getElementById('img-boss').src;
+            const dmg = document.getElementById('dmg-input').value.trim();
+            const operation = document.getElementById('operation-input').value.trim();
+
+            const chars = [];
+            for (let i = 1; i <= 5; i++) {
+                const charName = document.getElementById(`c${i}`).value.trim();
+                const imgEl = document.getElementById(`img-c${i}`);
+                chars.push({
+                    name: charName,
+                    star: document.getElementById(`star${i}`).value.trim(),
+                    cr: document.getElementById(`cr${i}`).value.trim(),
+                    imgSrc: imgEl.style.display !== 'none' ? imgEl.src : ''
+                });
+                if (charName) addRecentChar(charName);
+            }
+
+            const partyData = {
+                bossImgSrc: bossImgSrc,
+                dmg: dmg,
+                operation: operation,
+                chars: chars
+            };
+
+            if (editingIndex >= 0) {
+                partyList[editingIndex] = partyData;
+                editingIndex = -1;
+                const btnAdd = document.getElementById('btn-add-party');
+                btnAdd.innerText = '➕ 이 조합을 최종 결과에 추가';
+                btnAdd.classList.remove('edit-mode');
+            } else {
+                partyList.push(partyData);
+            }
+
+            renderFinalPreview();
+        }
+
+        function editParty(index) {
+            const item = partyList[index];
+            editingIndex = index;
+
+            const imgBoss = document.getElementById('img-boss');
+            const bossLabel = document.getElementById('boss-label');
+            if (item.bossImgSrc && !item.bossImgSrc.endsWith('undefined')) {
+                imgBoss.src = item.bossImgSrc;
+                imgBoss.style.display = 'block';
+                bossLabel.style.display = 'none';
+            } else {
+                imgBoss.src = '';
+                imgBoss.style.display = 'none';
+                bossLabel.style.display = 'block';
+            }
+
+            document.getElementById('dmg-input').value = item.dmg || '';
+            document.getElementById('operation-input').value = item.operation || '';
+
+            item.chars.forEach((c, idx) => {
+                const i = idx + 1;
+                document.getElementById(`c${i}`).value = c.name || '';
+                document.getElementById(`star${i}`).value = c.star || '5';
+                document.getElementById(`cr${i}`).value = c.cr || '';
+                updateCharInfo(i);
+            });
+
+            const btnAdd = document.getElementById('btn-add-party');
+            btnAdd.innerText = `💾 ${index + 1}번 조합 수정 완료`;
+            btnAdd.classList.add('edit-mode');
+
+            const body = document.getElementById('party-section-body');
+            if (body.style.display === 'none') togglePartySection();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function removeParty(index) {
+            if (editingIndex === index) resetInputForm();
+            partyList.splice(index, 1);
+            renderFinalPreview();
+        }
+
+        function clearAllParties() {
+            if (confirm('추가된 모든 조합을 삭제하시겠습니까?')) {
+                partyList = [];
+                resetInputForm();
+                renderFinalPreview();
+            }
+        }
+
+        function parseAndImportHTML() {
+            const rawHtml = document.getElementById('import-html-input').value.trim();
+            if (!rawHtml) {
+                alert('HTML 코드를 입력해주세요.');
+                return;
+            }
+
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(rawHtml, 'text/html');
+                const table = doc.querySelector('table');
+
+                if (!table) {
+                    alert('올바른 <table> 태그를 찾을 수 없습니다.');
+                    return;
+                }
+
+                const headerTh = table.querySelector('thead th.header-link');
+                if (headerTh) {
+                    const anchor = headerTh.querySelector('a');
+                    if (anchor) {
+                        document.getElementById('guide-text').value = anchor.innerText.trim();
+                        document.getElementById('guide-url').value = anchor.href || '';
+                    } else {
+                        document.getElementById('guide-text').value = headerTh.innerText.trim();
+                        document.getElementById('guide-url').value = '';
+                    }
+                }
+
+                const trs = Array.from(doc.querySelectorAll('tbody tr'));
+                const importedPartyList = [];
+
+                for (let i = 0; i < trs.length; i++) {
+                    const tr = trs[i];
+                    const tds = tr.querySelectorAll('td');
+
+                    if (tds.length >= 8) {
+                        const bossImg = tds[0].querySelector('img');
+                        const bossImgSrc = bossImg ? bossImg.src : '';
+
+                        const chars = [];
+                        for (let c = 1; c <= 5; c++) {
+                            const charImg = tds[c].querySelector('img');
+                            let name = '';
+                            let star = '5';
+                            let imgSrc = '';
+
+                            if (charImg && charImg.src) {
+                                imgSrc = charImg.src;
+                                const decodedUrl = decodeURIComponent(imgSrc);
+                                const fileName = decodedUrl.split('/').pop();
+                                const match = fileName.match(/^(.+)(\d+)\.png$/);
+                                if (match) {
+                                    name = match[1];
+                                    star = match[2];
+                                }
+                            }
+                            chars.push({ name: name, star: star, cr: '', imgSrc: imgSrc });
+                            if (name) addRecentChar(name);
+                        }
+
+                        const dmg = tds[6].innerText.trim();
+                        let opNode = tds[7].cloneNode(true);
+                        opNode.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+                        const operation = opNode.textContent.trim();
+
+                        // 바로 다음 행에 CR 정보가 연결되어 있는지 확인
+                        if (i + 1 < trs.length) {
+                            const nextTr = trs[i + 1];
+                            const nextTds = nextTr.querySelectorAll('td');
+                            const firstTdText = nextTds[0] ? nextTds[0].innerText.trim() : '';
+
+                            if (firstTdText === 'CR' && nextTds.length >= 6) {
+                                for (let c = 0; c < 5; c++) {
+                                    chars[c].cr = nextTds[c + 1].innerText.trim();
+                                }
+                                i++; // CR 행을 읽었으므로 다음 루프 건너뜀
+                            }
+                        }
+
+                        importedPartyList.push({
+                            bossImgSrc: bossImgSrc,
+                            dmg: dmg,
+                            operation: operation,
+                            chars: chars
+                        });
+                    }
+                }
+
+                if (importedPartyList.length === 0) {
+                    alert('불러올 수 있는 조합 데이터 행이 없습니다.');
+                    return;
+                }
+
+                partyList = importedPartyList;
+                resetInputForm();
+                renderFinalPreview();
+                closeImportModal();
+                alert(`${importedPartyList.length}개의 조합 데이터를 성공적으로 불러왔습니다!`);
+
+            } catch (e) {
+                console.error(e);
+                alert('HTML 코드를 분석하는 도중 오류가 발생했습니다. 올바른 코드인지 확인해주세요.');
+            }
+        }
+
+        function buildCleanHTML() {
+            const guideText = document.getElementById('guide-text').value.trim();
+            const guideUrl = document.getElementById('guide-url').value.trim();
+            const headerContent = guideUrl ? `<a href="${guideUrl}" target="_blank">${guideText}</a>` : guideText;
+
+            const rowsHtml = partyList.map(item => `
+        <tr>
+            <td class="img-td">${(item.bossImgSrc && !item.bossImgSrc.endsWith('undefined')) ? `<img src="${item.bossImgSrc}">` : ''}</td>
+            ${item.chars.map(c => `<td class="img-td">${(c.imgSrc && !c.imgSrc.endsWith('undefined') && c.name) ? `<img src="${c.imgSrc}" onerror="handleTableImgError(this)">` : ''}</td>`).join('')}
+            <td rowspan="2">${item.dmg}</td>
+            <td rowspan="2" class="operation-td">${item.operation}</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            ${item.chars.map(c => `<td>${c.cr || ''}</td>`).join('')}
+        </tr>`).join('');
+
+            return `
+<table class="output-table">
+    <colgroup>
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+        <col style="width: 12.5%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link">${headerContent}</th>
+            <th>딜량</th>
+            <th>조작</th>
+        </tr>
+    </thead>
+    <tbody>
+        ${rowsHtml}
+    </tbody>
+</table>`.trim();
+        }
+
+        // [추가] 1. 상태를 로컬스토리지에 저장하는 함수
+        function saveToLocalStorage() {
+            const state = {
+                guideText: document.getElementById('guide-text').value,
+                guideUrl: document.getElementById('guide-url').value,
+                partyList: partyList,
+                recentBosses: recentBosses,
+                recentChars: recentChars
+            };
+            localStorage.setItem('priconne_builder_data', JSON.stringify(state));
+        }
+
+        // [추가] 2. 로컬스토리지에서 데이터를 불러오는 함수
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('priconne_builder_data');
+            if (!saved) return;
+
+            try {
+                const state = JSON.parse(saved);
+                if (state.guideText !== undefined) document.getElementById('guide-text').value = state.guideText;
+                if (state.guideUrl !== undefined) document.getElementById('guide-url').value = state.guideUrl;
+                if (state.partyList) partyList = state.partyList;
+                if (state.recentBosses) recentBosses = state.recentBosses;
+                if (state.recentChars) recentChars = state.recentChars;
+
+                renderRecentBosses();
+                renderRecentCharTags();
+            } catch (e) {
+                console.error('로컬스토리지 데이터 로드 실패:', e);
+            }
+        }
+
+        function renderFinalPreview() {
+            const container = document.getElementById('final-html-container');
+            const guideText = document.getElementById('guide-text').value.trim();
+            const guideUrl = document.getElementById('guide-url').value.trim();
+            const headerContent = guideUrl ? `<a href="${guideUrl}" target="_blank">${guideText}</a>` : guideText;
+
+            const isAllChecked = document.getElementById('batch-all-check').checked;
+            if (isAllChecked) {
+                document.getElementById('batch-end').value = partyList.length > 0 ? partyList.length : 1;
+            }
+
+            const rowsHtml = partyList.map((item, idx) => `
+        <tr>
+            <td class="img-td">${(item.bossImgSrc && !item.bossImgSrc.endsWith('undefined')) ? `<img src="${item.bossImgSrc}">` : ''}</td>
+            ${item.chars.map(c => `<td class="img-td">${(c.imgSrc && !c.imgSrc.endsWith('undefined') && c.name) ? `<img src="${c.imgSrc}" onerror="handleTableImgError(this)">` : ''}</td>`).join('')}
+            <td rowspan="2">${item.dmg}</td>
+            <td rowspan="2" class="operation-td">${item.operation}</td>
+            <td rowspan="2" style="width: 45px; text-align: center;">
+                <button class="btn-row-edit" onclick="editParty(${idx})">수정</button>
+                <button class="btn-row-del" onclick="removeParty(${idx})">삭제</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            ${item.chars.map(c => `<td>${c.cr || ''}</td>`).join('')}
+        </tr>`).join('');
+
+            container.innerHTML = `
+<table class="output-table">
+    <colgroup>
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 4%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link">${headerContent}</th>
+            <th>딜량</th>
+            <th>조작</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        ${rowsHtml}
+    </tbody>
+</table>`;
+saveToLocalStorage();
+        }
+
+        // 스크립트 하단에 전체 초기화 함수 추가
+function resetAllData() {
+    if (confirm('공략 설정, 추가된 조합, 최근 사용 데이터 및 저장된 모든 데이터가 초기화됩니다.\n정말 초기화하시겠습니까?')) {
+        // 1. LocalStorage 삭제
+        localStorage.removeItem('priconne_builder_data');
+
+        // 2. 입력 폼 및 메인 변수 초기화
+        document.getElementById('guide-text').value = '';
+        document.getElementById('guide-url').value = '';
+        partyList = [];
+        recentBosses = [];
+        recentChars = [];
+
+        // 3. 입력창 및 프리뷰 UI 갱신
+        resetInputForm();
+        renderRecentBosses();
+        renderRecentCharTags();
+        renderFinalPreview();
+
+        alert('모든 데이터가 성공적으로 초기화되었습니다.');
+    }
+}
+
+        function copyToClipboard() {
+            if (partyList.length === 0) {
+                alert('복사할 조합 데이터가 없습니다. 먼저 조합을 추가해주세요.');
+                return;
+            }
+            const htmlCode = buildCleanHTML();
+            navigator.clipboard.writeText(htmlCode).then(() => {
+                alert('완성된 HTML 코드가 클립보드에 복사되었습니다!');
+            }).catch(err => {
+                alert('복사 중 오류가 발생했습니다.');
+            });
+        }
+        document.getElementById('guide-text').addEventListener('input', saveToLocalStorage);
+        document.getElementById('guide-url').addEventListener('input', saveToLocalStorage);
+        initBossModal();
+        loadFromLocalStorage(); // 저장된 데이터 먼저 로드
+        renderFinalPreview();
+    </script>
+</body>
+</html>
