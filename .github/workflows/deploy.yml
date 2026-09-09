@@ -41,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'  # 빌드 결과물이 저장된 dist 폴더를 지정
+          path: '.'  # 빌드 결과물이 저장된 dist 폴더를 지정
 
       - name: Deploy to GitHub Pages
         id: deployment
