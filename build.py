@@ -35,7 +35,7 @@ def process_semi_auto_merge(files):
         .timeline-control-panel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; width: 100%; }
         .timeline-control-panel input { width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
         
-        /* 적용 버튼 스타일 개선 */
+        /* 적용 버튼 스타일 */
         .timeline-apply-btn {
             padding: 5px 14px;
             background: #4f46e5;
@@ -50,11 +50,41 @@ def process_semi_auto_merge(files):
         .timeline-apply-btn:hover { background: #4338ca; }
         .timeline-apply-btn:active { transform: scale(0.97); }
 
-        .tab-scroll-container { width: 100%; margin: 0 auto; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; cursor: grab; user-select: none; text-align: center; -ms-overflow-style: none; scrollbar-width: none; }
+        /* 하단 탭 가로 스크롤 보장 */
+        .tab-scroll-container { 
+            width: 100%; 
+            max-width: 100%; 
+            margin: 0 auto; 
+            overflow-x: auto !important; 
+            white-space: nowrap; 
+            padding-bottom: 4px; 
+            cursor: grab; 
+            user-select: none; 
+            text-align: center; 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+            box-sizing: border-box;
+        }
         .tab-scroll-container::-webkit-scrollbar { display: none; }
         .tab-scroll-container.active { cursor: grabbing; }
-        .tab-nav { display: inline-flex; justify-content: center; gap: 6px; }
-        .tab-btn { flex: 0 0 auto; padding: 6px 14px; background: #e2e8f0; border: none; border-radius: 6px; color: #475569; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
+        .tab-nav { 
+            display: inline-flex; 
+            justify-content: center; 
+            gap: 6px; 
+            min-width: max-content;
+        }
+        .tab-btn { 
+            flex: 0 0 auto !important; 
+            padding: 6px 14px; 
+            background: #e2e8f0; 
+            border: none; 
+            border-radius: 6px; 
+            color: #475569; 
+            font-weight: 600; 
+            font-size: 0.8rem; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
         .tab-btn:hover { background: #cbd5e1; }
         .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
         tr.timeline-past { text-decoration: line-through !important; opacity: 0.45 !important; color: #888888 !important; }
@@ -198,11 +228,42 @@ def process_full_auto_merge(files):
         .tab-content td, .tab-content th { white-space: normal !important; word-break: break-all !important; overflow-wrap: break-word !important; max-width: 100% !important; box-sizing: border-box !important; }
         .tab-content img { max-width: 100% !important; height: auto !important; }
         .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 8px 16px; z-index: 9999; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
-        .tab-scroll-container { width: 100%; margin: 0 auto; overflow-x: auto; white-space: nowrap; padding: 2px 0; cursor: grab; user-select: none; text-align: center; -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 하단 탭 가로 스크롤 보장 */
+        .tab-scroll-container { 
+            width: 100%; 
+            max-width: 100%; 
+            margin: 0 auto; 
+            overflow-x: auto !important; 
+            white-space: nowrap; 
+            padding: 2px 0; 
+            cursor: grab; 
+            user-select: none; 
+            text-align: center; 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+            box-sizing: border-box;
+        }
         .tab-scroll-container::-webkit-scrollbar { display: none; }
         .tab-scroll-container.active { cursor: grabbing; }
-        .tab-nav { display: inline-flex; justify-content: center; gap: 6px; }
-        .tab-btn { flex: 0 0 auto; padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 6px; color: #475569; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
+        .tab-nav { 
+            display: inline-flex; 
+            justify-content: center; 
+            gap: 6px; 
+            min-width: max-content;
+        }
+        .tab-btn { 
+            flex: 0 0 auto !important; 
+            padding: 8px 16px; 
+            background: #e2e8f0; 
+            border: none; 
+            border-radius: 6px; 
+            color: #475569; 
+            font-weight: 600; 
+            font-size: 0.85rem; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
         .tab-btn:hover { background: #cbd5e1; }
         .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
     """
