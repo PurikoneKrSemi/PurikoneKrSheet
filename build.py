@@ -264,29 +264,29 @@ def process_full_auto_merge(files):
 
 
 def build_site():
-    # 1. 루트에 세미오토.html 생성
+    # 1. 루트에 semi_auto.html 생성
     semi_files = sorted(glob.glob("data/semi_auto/*.html"))
     merged_semi = process_semi_auto_merge(semi_files)
     if merged_semi:
-        with open("세미오토.html", "w", encoding="utf-8") as f:
+        with open("semi_auto.html", "w", encoding="utf-8") as f:
             f.write(merged_semi)
 
-    # 2. 루트에 풀오토.html 생성
+    # 2. 루트에 full_auto.html 생성
     full_files = sorted(glob.glob("data/full_auto/*.html"))
     merged_full = process_full_auto_merge(full_files)
     if merged_full:
-        with open("풀오토.html", "w", encoding="utf-8") as f:
+        with open("full_auto.html", "w", encoding="utf-8") as f:
             f.write(merged_full)
 
-    # 3. 루트에 채용시트.html 복사
+    # 3. 루트에 recruits.html 복사
     if os.path.exists("data/recruits.html"):
         with open("data/recruits.html", "r", encoding="utf-8") as f:
-            with open("채용시트.html", "w", encoding="utf-8") as f_out:
+            with open("recruits.html", "w", encoding="utf-8") as f_out:
                 f_out.write(f.read())
 
     # 4. templates/index_template.html을 루트의 index.html로 복사
     if os.path.exists("templates/index_template.html"):
         shutil.copy("templates/index_template.html", "index.html")
-        
+
 if __name__ == "__main__":
     build_site()
