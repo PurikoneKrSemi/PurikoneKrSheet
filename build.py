@@ -394,6 +394,6 @@ def build_site():
 
     if os.path.exists("templates/index_template.html"):
         shutil.copy("templates/index_template.html", "index.html")
-  
+   
 if __name__ == "__main__":
     build_site()
