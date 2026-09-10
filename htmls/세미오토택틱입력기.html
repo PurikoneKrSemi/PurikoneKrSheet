@@ -876,6 +876,139 @@
         function renderFinalPreview() {
             const container = document.getElementById('final-html-container');
             container.innerHTML = buildFinalHTML();
+            saveToLocalStorage();
+        }
+
+        // 현재 작성 중인 내용을 로컬스토리지에 저장하는 함수
+        function serializeTimelineRows() {
+            const rows = document.querySelectorAll('#timeline-table tbody tr');
+            return Array.from(rows).map(tr => {
+                const tds = tr.querySelectorAll('td');
+                const rowType = tr.dataset.rowType;
+                const data = {
+                    rowType: rowType,
+                    time: tds[0].dataset.time || '',
+                    action: tds[0].dataset.action || ''
+                };
+                if (rowType === 'normal') {
+                    data.autoVal = tds[2].textContent.trim();
+                    data.setStates = [0, 1, 2, 3, 4].map(i => tds[3 + i].textContent.trim());
+                }
+                return data;
+            });
+        }
+
+        function createTimelineRow(data) {
+            const tr = document.createElement('tr');
+            tr.dataset.rowType = data.rowType;
+            const fullContent = data.time ? `${data.time} ${data.action}` : data.action;
+
+            if (data.rowType === 'empty') {
+                tr.innerHTML = `
+                    <td class="text-left" data-time="" data-action="">(빈 행)</td>
+                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                    <td>
+                        <button style="background:#f59e0b; color:white; padding:4px 8px;" onclick="startEdit(this)">수정</button>
+                        <button style="background:#6b7280; color:white; padding:4px 8px;" onclick="removeRow(this)">삭제</button>
+                    </td>
+                `;
+            } else if (data.rowType === 'note') {
+                tr.innerHTML = `
+                    <td class="text-left" data-time="${data.time}" data-action="${data.action}">${fullContent}</td>
+                    <td>(설명행)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                    <td>
+                        <button style="background:#f59e0b; color:white; padding:4px 8px;" onclick="startEdit(this)">수정</button>
+                        <button style="background:#6b7280; color:white; padding:4px 8px;" onclick="removeRow(this)">삭제</button>
+                    </td>
+                `;
+            } else {
+                const setStates = data.setStates || ['O', 'O', 'O', 'O', 'O'];
+                tr.innerHTML = `
+                    <td class="text-left" data-time="${data.time}" data-action="${data.action}">${fullContent}</td>
+                    <td style="letter-spacing: 2px;"></td>
+                    <td>${data.autoVal || 'OFF'}</td>
+                    <td>${setStates[0]}</td>
+                    <td>${setStates[1]}</td>
+                    <td>${setStates[2]}</td>
+                    <td>${setStates[3]}</td>
+                    <td>${setStates[4]}</td>
+                    <td>
+                        <button style="background:#f59e0b; color:white; padding:4px 8px;" onclick="startEdit(this)">수정</button>
+                        <button style="background:#6b7280; color:white; padding:4px 8px;" onclick="removeRow(this)">삭제</button>
+                    </td>
+                `;
+            }
+            return tr;
+        }
+
+        function saveToLocalStorage() {
+            const chars = [];
+            for (let i = 1; i <= 5; i++) {
+                chars.push({
+                    name: document.getElementById(`c${i}`).value,
+                    star: document.getElementById(`star${i}`).value,
+                    rank: document.getElementById(`rank${i}`).value,
+                    cr: document.getElementById(`cr${i}`).value
+                });
+            }
+
+            const state = {
+                guideText: document.getElementById('guide-text').value,
+                guideUrl: document.getElementById('guide-url').value,
+                dmg: document.getElementById('dmg-input').value,
+                tp: document.getElementById('tp-input').value,
+                selectedBossName: selectedBossName,
+                bossImgSrc: document.getElementById('img-boss').src,
+                chars: chars,
+                timelineRows: serializeTimelineRows()
+            };
+            localStorage.setItem('priconne_timeline_builder_data', JSON.stringify(state));
+        }
+
+        // 로컬스토리지에서 저장된 작성 중이던 내용을 불러오는 함수
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('priconne_timeline_builder_data');
+            if (!saved) return;
+
+            try {
+                const state = JSON.parse(saved);
+
+                if (state.guideText !== undefined) document.getElementById('guide-text').value = state.guideText;
+                if (state.guideUrl !== undefined) document.getElementById('guide-url').value = state.guideUrl;
+                if (state.dmg !== undefined) document.getElementById('dmg-input').value = state.dmg;
+                if (state.tp !== undefined) document.getElementById('tp-input').value = state.tp;
+
+                if (state.selectedBossName !== undefined) selectedBossName = state.selectedBossName;
+                if (state.bossImgSrc) {
+                    const imgEl = document.getElementById('img-boss');
+                    const lblEl = document.getElementById('boss-label');
+                    imgEl.src = state.bossImgSrc;
+                    imgEl.style.display = 'block';
+                    lblEl.style.display = 'none';
+                }
+
+                if (state.chars) {
+                    state.chars.forEach((c, idx) => {
+                        const i = idx + 1;
+                        if (c.name !== undefined) document.getElementById(`c${i}`).value = c.name;
+                        if (c.star !== undefined) document.getElementById(`star${i}`).value = c.star;
+                        if (c.rank !== undefined) document.getElementById(`rank${i}`).value = c.rank;
+                        if (c.cr !== undefined) document.getElementById(`cr${i}`).value = c.cr;
+                        updateCharInfo(i);
+                    });
+                }
+
+                if (state.timelineRows && state.timelineRows.length > 0) {
+                    const tbody = document.querySelector('#timeline-table tbody');
+                    tbody.innerHTML = '';
+                    state.timelineRows.forEach(rowData => {
+                        tbody.appendChild(createTimelineRow(rowData));
+                    });
+                    recalculateChanges();
+                }
+            } catch (e) {
+                console.error('로컬스토리지 데이터 로드 실패:', e);
+            }
         }
 
         function copyToClipboard() {
@@ -895,7 +1028,17 @@
             }
         }
 
+        ['guide-text', 'guide-url', 'dmg-input', 'tp-input'].forEach(id => {
+            document.getElementById(id).addEventListener('input', saveToLocalStorage);
+        });
+        for (let i = 1; i <= 5; i++) {
+            ['rank', 'cr'].forEach(prefix => {
+                document.getElementById(`${prefix}${i}`).addEventListener('input', saveToLocalStorage);
+            });
+        }
+
         initBossModal();
+        loadFromLocalStorage(); // 저장된 데이터 먼저 로드
         renderFinalPreview();
     </script>
 </body>
