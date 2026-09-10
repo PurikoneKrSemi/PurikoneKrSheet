@@ -212,6 +212,30 @@
             background-color: rgba(239, 68, 68, 0.25) !important;
         }
 
+        /* 드래그 앤 드롭 스타일 */
+        .draggable-row {
+            cursor: grab;
+        }
+        .draggable-row:active {
+            cursor: grabbing;
+        }
+        .draggable-row.dragging {
+            opacity: 0.4;
+            background: #eef2ff !important;
+        }
+        .draggable-row td:not(.boss-selectable-cell) {
+            cursor: grab;
+        }
+        .draggable-row td:not(.boss-selectable-cell):active {
+            cursor: grabbing;
+        }
+        .output-table tr.drag-over-top {
+            border-top: 3px solid var(--primary-color) !important;
+        }
+        .output-table tr.drag-over-bottom {
+            border-bottom: 3px solid var(--primary-color) !important;
+        }
+
         .output-table .operation-td { white-space: pre-wrap; text-align: left; }
 
         .btn-row-edit { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; padding: 2px 6px; font-size: 11px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; }
@@ -271,7 +295,7 @@
                             <td>
                                 <div class="char-img-box" onclick="openBossModal('single')">
                                     <span id="boss-label">보스 선택<br>(클릭)</span>
-                                    <img id="img-boss" src="" alt="" onerror="this.style.display='none'">
+                                    <img id="img-boss" src="" alt="" style="display:none;" onerror="this.style.display='none'">
                                 </div>
                             </td>
                             <td><div class="char-img-box"><img id="img-c1" src="" alt="" onerror="handleCharImgError(1)"></div></td>
@@ -345,7 +369,7 @@
             <button type="button" style="background-color: #6b7280; color: white; padding: 6px 12px;" onclick="deselectAllBossCells()">선택 해제</button>
             <button type="button" style="background-color: var(--success-color); color: white; padding: 6px 12px;" onclick="applyBatchBossToSelected()">선택 행 일괄 적용</button>
 
-            <span style="font-size: 11px; color: var(--text-muted); margin-left: auto;">💡 아래 미리보기 테이블에서 보스 이미지 칸을 직접 **클릭**하거나 **마우스 드래그**하여 선택할 수 있습니다.</span>
+            <span style="font-size: 11px; color: var(--text-muted); margin-left: auto;">💡 보스 셀 외의 영역을 **드래그**하여 조합의 순서를 위아래로 바꿀 수 있습니다.</span>
         </div>
 
         <div id="final-html-container"></div>
@@ -397,6 +421,9 @@
         let isMouseDown = false;
         let dragSelectTargetState = true;
         let selectedRowIndexes = new Set();
+        
+        let dragAutoScrollY = null;
+        let dragAutoScrollRAF = null;
 
         const SECTION_DEFAULTS = ["전초퀘스트", "노말/하드", "베하/익스"];
         const GITHUB_OWNER = "PurikoneKrSemi";
@@ -424,6 +451,12 @@
 
                 const files = await response.json();
                 container.innerHTML = '';
+
+                const blankItem = document.createElement('div');
+                blankItem.className = 'boss-item';
+                blankItem.onclick = () => selectBoss("", "");
+                blankItem.innerHTML = `<div style="height: 60px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); font-weight: bold;">없음 (공백)</div>`;
+                container.appendChild(blankItem);
 
                 const imageFiles = files.filter(file => file.type === 'file' && /\.(png|jpe?g|webp)$/i.test(file.name));
 
@@ -469,28 +502,45 @@
         }
 
         function selectBoss(bossName, imgUrl) {
-            const bossUrl = imgUrl || `${GITHUB_ABYSS_BOSS_IMAGE_BASE}${bossName}.png`;
+            const isBlank = (bossName === "" && imgUrl === "");
+            const bossUrl = isBlank ? "" : (imgUrl || `${GITHUB_ABYSS_BOSS_IMAGE_BASE}${bossName}.png`);
 
             if (bossModalTarget === 'single') {
                 selectedBossName = bossName;
                 const imgEl = document.getElementById('img-boss');
                 const lblEl = document.getElementById('boss-label');
-                imgEl.src = bossUrl;
-                imgEl.style.display = 'block';
-                lblEl.style.display = 'none';
+                if (!isBlank) {
+                    imgEl.src = bossUrl;
+                    imgEl.dataset.actualSrc = bossUrl;
+                    imgEl.style.display = 'block';
+                    lblEl.style.display = 'none';
+                } else {
+                    imgEl.src = '';
+                    imgEl.dataset.actualSrc = '';
+                    imgEl.style.display = 'none';
+                    lblEl.style.display = 'block';
+                }
             } else if (bossModalTarget === 'batch') {
-                batchSelectedBossSrc = bossUrl;
+                batchSelectedBossSrc = isBlank ? "" : bossUrl;
                 const imgEl = document.getElementById('img-batch-boss');
                 const lblEl = document.getElementById('batch-boss-label');
-                imgEl.src = bossUrl;
-                imgEl.style.display = 'block';
-                lblEl.style.display = 'none';
+                if (!isBlank) {
+                    imgEl.src = bossUrl;
+                    imgEl.style.display = 'block';
+                    lblEl.style.display = 'none';
+                } else {
+                    imgEl.src = '';
+                    imgEl.style.display = 'none';
+                    lblEl.style.display = 'block';
+                }
             }
 
-            recentBosses = [
-                { name: bossName, url: bossUrl },
-                ...recentBosses.filter(b => (typeof b === 'object' ? b.name : b) !== bossName)
-            ].slice(0, 6);
+            if (!isBlank) {
+                recentBosses = [
+                    { name: bossName, url: bossUrl },
+                    ...recentBosses.filter(b => (typeof b === 'object' ? b.name : b) !== bossName)
+                ].slice(0, 6);
+            }
 
             renderRecentBosses();
             closeBossModal();
@@ -572,6 +622,152 @@
             selectedRowIndexes.clear();
             renderFinalPreview();
             alert(`선택한 ${updatedCount}개 행의 보스 이미지가 일괄 적용되었습니다.`);
+        }
+
+        // 행 순서 변경 (마우스 기반 커스텀 드래그)
+        // 네이티브 HTML5 draggable은 드래그 중 브라우저가 휠/스크롤 이벤트를 가로채서
+        // 스크롤이 막히는 문제가 있어, mousedown/mousemove/mouseup 조합으로 직접 구현한다.
+        // 이 방식은 일반 마우스 이벤트만 쓰기 때문에 휠 스크롤도 그대로 동작하고,
+        // 가장자리 자동 스크롤도 같이 지원한다.
+
+        let rowDragState = null; // { idx, startX, startY, moved, sourceTr, hoverTr, insertBefore, targetIdx }
+
+        const DRAG_SCROLL_EDGE = 90;      // 이 거리(px) 안으로 들어오면 자동 스크롤 시작
+        const DRAG_SCROLL_MAX_SPEED = 22; // 가장자리에 딱 붙었을 때 최대 스크롤 속도
+        const DRAG_START_THRESHOLD = 4;   // 이 거리(px) 이상 움직여야 드래그로 인식 (클릭과 구분)
+
+        function dragAutoScrollStep() {
+            if (dragAutoScrollY === null) {
+                dragAutoScrollRAF = null;
+                return;
+            }
+            const vh = window.innerHeight;
+            let speed = 0;
+
+            if (dragAutoScrollY < DRAG_SCROLL_EDGE) {
+                const ratio = (DRAG_SCROLL_EDGE - dragAutoScrollY) / DRAG_SCROLL_EDGE;
+                speed = -Math.ceil(ratio * DRAG_SCROLL_MAX_SPEED);
+            } else if (dragAutoScrollY > vh - DRAG_SCROLL_EDGE) {
+                const ratio = (dragAutoScrollY - (vh - DRAG_SCROLL_EDGE)) / DRAG_SCROLL_EDGE;
+                speed = Math.ceil(ratio * DRAG_SCROLL_MAX_SPEED);
+            }
+
+            if (speed !== 0) {
+                window.scrollBy(0, speed);
+            }
+
+            dragAutoScrollRAF = requestAnimationFrame(dragAutoScrollStep);
+        }
+
+        function startDragAutoScroll() {
+            if (dragAutoScrollRAF === null) {
+                dragAutoScrollRAF = requestAnimationFrame(dragAutoScrollStep);
+            }
+        }
+
+        function stopDragAutoScroll() {
+            dragAutoScrollY = null;
+            if (dragAutoScrollRAF !== null) {
+                cancelAnimationFrame(dragAutoScrollRAF);
+                dragAutoScrollRAF = null;
+            }
+        }
+
+        function handleRowMouseDown(e, idx) {
+            // 보스 이미지 선택(드래그 선택)이나 버튼 클릭은 별도 동작이므로 행 이동을 시작하지 않음
+            if (e.target.closest('.boss-selectable-cell') || e.target.closest('button')) return;
+            if (e.button !== 0) return; // 좌클릭만 처리
+
+            rowDragState = {
+                idx,
+                startX: e.clientX,
+                startY: e.clientY,
+                moved: false,
+                sourceTr: e.currentTarget,
+                hoverTr: null,
+                insertBefore: true,
+                targetIdx: null
+            };
+
+            document.addEventListener('mousemove', handleRowMouseMove);
+            document.addEventListener('mouseup', handleRowMouseUp);
+        }
+
+        function handleRowMouseMove(e) {
+            if (!rowDragState) return;
+
+            if (!rowDragState.moved) {
+                const dx = Math.abs(e.clientX - rowDragState.startX);
+                const dy = Math.abs(e.clientY - rowDragState.startY);
+                if (dx < DRAG_START_THRESHOLD && dy < DRAG_START_THRESHOLD) return;
+
+                rowDragState.moved = true;
+                document.querySelectorAll(`.output-table tr[data-idx="${rowDragState.idx}"]`).forEach(tr => {
+                    tr.classList.add('dragging');
+                });
+                document.body.style.cursor = 'grabbing';
+                dragAutoScrollY = e.clientY;
+                startDragAutoScroll();
+            }
+
+            e.preventDefault();
+            dragAutoScrollY = e.clientY;
+
+            document.querySelectorAll('.output-table tr').forEach(tr => {
+                tr.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            const elAtPoint = document.elementFromPoint(e.clientX, e.clientY);
+            const targetTr = elAtPoint ? elAtPoint.closest('tr.draggable-row') : null;
+
+            if (targetTr && targetTr.dataset.idx !== undefined && Number(targetTr.dataset.idx) !== rowDragState.idx) {
+                const rect = targetTr.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                const insertBefore = e.clientY < midpoint;
+
+                targetTr.classList.add(insertBefore ? 'drag-over-top' : 'drag-over-bottom');
+
+                rowDragState.hoverTr = targetTr;
+                rowDragState.insertBefore = insertBefore;
+                rowDragState.targetIdx = Number(targetTr.dataset.idx);
+            } else {
+                rowDragState.hoverTr = null;
+                rowDragState.targetIdx = null;
+            }
+        }
+
+        function handleRowMouseUp(e) {
+            if (!rowDragState) return;
+
+            document.removeEventListener('mousemove', handleRowMouseMove);
+            document.removeEventListener('mouseup', handleRowMouseUp);
+            stopDragAutoScroll();
+            document.body.style.cursor = '';
+
+            document.querySelectorAll('.output-table tr').forEach(tr => {
+                tr.classList.remove('drag-over-top', 'drag-over-bottom', 'dragging');
+            });
+
+            if (rowDragState.moved && rowDragState.targetIdx !== null && rowDragState.targetIdx !== rowDragState.idx) {
+                moveParty(rowDragState.idx, rowDragState.targetIdx, rowDragState.insertBefore);
+            }
+
+            rowDragState = null;
+        }
+
+        function moveParty(sourceIdx, targetIdx, insertBefore) {
+            const draggedItem = partyList.splice(sourceIdx, 1)[0];
+
+            let newIndex = targetIdx;
+            if (sourceIdx < targetIdx) {
+                newIndex = insertBefore ? targetIdx - 1 : targetIdx;
+            } else {
+                newIndex = insertBefore ? targetIdx : targetIdx + 1;
+            }
+
+            partyList.splice(newIndex, 0, draggedItem);
+            selectedRowIndexes.clear();
+            renderFinalPreview();
         }
 
         function togglePartySection() {
@@ -686,9 +882,14 @@
         }
 
         function resetInputForm() {
-            document.getElementById('img-boss').src = '';
-            document.getElementById('img-boss').style.display = 'none';
-            document.getElementById('boss-label').style.display = 'block';
+            const imgBoss = document.getElementById('img-boss');
+            const bossLabel = document.getElementById('boss-label');
+            imgBoss.src = '';
+            imgBoss.dataset.actualSrc = '';
+            imgBoss.style.display = 'none';
+            bossLabel.style.display = 'block';
+            selectedBossName = "";
+            
             document.getElementById('dmg-input').value = '';
             document.getElementById('operation-input').value = '';
 
@@ -707,7 +908,7 @@
         }
 
         function addPartyToResult() {
-            const bossImgSrc = document.getElementById('img-boss').src;
+            const bossImgSrc = selectedBossName ? (document.getElementById('img-boss').dataset.actualSrc || "") : "";
             const dmg = document.getElementById('dmg-input').value.trim();
             const operation = document.getElementById('operation-input').value.trim();
             const sectionIdx = parseInt(document.getElementById('section-select').value, 10);
@@ -810,8 +1011,6 @@
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(rawHtml, 'text/html');
-                const titles = [];
-                const urls = [];
 
                 const linkAnchor = doc.querySelector('.guide-link-row a');
                 if (linkAnchor) {
@@ -913,14 +1112,11 @@
         }
 
         function getHeaderContent(index) {
-            // 오직 섹션 헤더 입력값만 처리 (링크 URL 입력값과 완전히 분리)
             const rawText = document.getElementById('guide-text').value.trim();
-            const texts = rawText ? rawText.split('|').map(s => s.trim()) : [];
             return SECTION_DEFAULTS[index] || `섹션 ${index + 1}`;
         }
 
         function getLinkRowHTML(colspan = 8) {
-            // 문서 맨 위에 한 번만 들어가는 링크 행 (제목 텍스트 + URL 한 쌍)
             const url = document.getElementById('guide-url').value.trim();
             const title = document.getElementById('guide-text').value.trim();
             if (!url) return '';
@@ -1074,7 +1270,7 @@ ${tableInnerHtml}
                         const isSelected = selectedRowIndexes.has(idx);
 
                         tableInnerHtml += `
-        <tr>
+        <tr class="draggable-row" data-idx="${idx}" onmousedown="handleRowMouseDown(event, ${idx})">
             <td class="img-td boss-selectable-cell ${isSelected ? 'selected' : ''}" 
                 onmousedown="handleBossCellMouseDown(${idx}, this)" 
                 onmouseenter="handleBossCellMouseEnter(${idx}, this)">
@@ -1091,7 +1287,7 @@ ${tableInnerHtml}
 
                         if (showCR) {
                             tableInnerHtml += `
-        <tr>
+        <tr class="draggable-row" data-idx="${idx}" onmousedown="handleRowMouseDown(event, ${idx})">
             <td class="th-label">CR</td>
             ${item.chars.map(c => `<td>${c.cr || ''}</td>`).join('')}
         </tr>`;
