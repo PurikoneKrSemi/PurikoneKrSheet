@@ -381,6 +381,12 @@ def build_site():
         with open("full_auto.html", "w", encoding="utf-8") as f:
             f.write(merged_full)
 
+    abyss_files = sorted(glob.glob("data/abyss/*.html"))
+    merged_abyss = process_full_auto_merge(abyss_files)
+    if merged_abyss:
+        with open("abyss.html", "w", encoding="utf-8") as f:
+            f.write(merged_abyss)
+
     if os.path.exists("data/recruits.html"):
         with open("data/recruits.html", "r", encoding="utf-8") as f:
             with open("recruits.html", "w", encoding="utf-8") as f_out:
