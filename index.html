@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프리코네 클랜전 / 심연토벌전 시트</title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    /* 상단 탭 고정 (body flex 영향 받지 않도록 독립 포지셔닝) */
+    .tab-bar {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100vw !important;
+      height: 56px !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      padding: 0 16px !important;
+      background-color: #f8fafc !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    }
+    .main-tab-btn {
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #475569;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .main-tab-btn:hover {
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+    .main-tab-btn.active {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4f46e5;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    }
+
+    /* 상단 고정 바 높이만큼 본문 여백 확보 */
+    #content-container {
+      margin-top: 56px !important;
+      width: 100%;
+      min-height: calc(100vh - 56px);
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 고정 메인 탭 -->
+  <div class="tab-bar">
+    <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
+    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
+    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
+    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'abyss.html')">심연토벌전</button>
+  </div>
+
+  <div id="content-container"></div>
+
+  <script>
+    function switchTab(evt, buttonEl, fileUrl) {
+      if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
+      }
+      if (window.event) {
+        window.event.returnValue = false;
+      }
+
+      const buttons = document.querySelectorAll('.main-tab-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (buttonEl) buttonEl.classList.add('active');
+
+      loadPage(fileUrl);
+      return false;
+    }
+
+    async function loadPage(fileUrl) {
+      const container = document.getElementById('content-container');
+      if (!container) return;
+
+      try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        
+        const html = await response.text();
+        container.innerHTML = html;
+
+        const scripts = Array.from(container.querySelectorAll('script'));
+        scripts.forEach(oldScript => {
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      } catch (err) {
+        container.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">페이지를 불러올 수 없습니다: ' + err.message + '</div>';
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => loadPage('semi_auto.html'));
+    } else {
+      loadPage('semi_auto.html');
+    }
+  </script>
+</body>
+</html>
