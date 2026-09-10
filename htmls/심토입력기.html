@@ -457,7 +457,7 @@
                 blankItem.onclick = () => selectBoss("", "");
                 blankItem.innerHTML = `<div style="height: 60px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); font-weight: bold;">없음 (공백)</div>`;
                 container.appendChild(blankItem);
-
+ 
                 const imageFiles = files.filter(file => file.type === 'file' && /\.(png|jpe?g|webp)$/i.test(file.name));
 
                 if (imageFiles.length === 0) {
