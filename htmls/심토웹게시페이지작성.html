@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>풀오토 공략 페이지 제작</title>
+    <!-- Google Fonts: JetBrains Mono, Roboto Mono, Pretendard -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <style>
+        /* ==========================================
+           1. 기본 변수 및 리셋
+           ========================================== */
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --primary-color: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ==========================================
+           2. 레이아웃 컨테이너
+           ========================================== */
+        .container {
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        /* ==========================================
+           3. 테이블 카드 내부 대문 이미지 (.card 내부 배치)
+           ========================================== */
+        .card-header-banner {
+            width: 100%;
+            margin-bottom: 12px; /* 헤더 행과의 여백 */
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .card-header-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .card-header-banner .banner-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+
+        /* ==========================================
+           4. 테이블 카드 컨테이너 및 구분 공백
+           ========================================== */
+        .card {
+            width: auto;
+            max-width: 100%;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: block;
+            position: relative;
+        }
+
+        .card-body {
+            padding: 8px;
+        }
+
+        .boss-divider {
+            width: 100%;
+            height: 40px;
+            margin: 10px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .card-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .card-btn:hover {
+            opacity: 1;
+        }
+
+        .card-btn.add-space-btn {
+            background: #0284c7;
+        }
+
+        .card-btn.delete-btn {
+            background: #ef4444;
+        }
+
+        .divider-delete-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .divider-delete-btn:hover {
+            opacity: 1;
+        }
+
+        /* ==========================================
+           5. 반응형 테이블 및 스타일
+           ========================================== */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .output-table {
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+            font-size: 0.9rem;
+            text-align: center;
+            width: 868px !important;
+            table-layout: fixed !important;
+            margin: 0 auto;
+        }   
+
+        .output-table th, 
+        .output-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .output-table td:empty::before {
+            content: "\00a0";
+            display: inline-block;
+        }
+
+        .output-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .output-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* 딜량 칼럼 (7번째 열) */
+        .output-table tbody tr td:nth-child(7) {
+            font-family: 'Roboto Mono', monospace !important;
+            letter-spacing: 0.5px !important;
+            font-weight: 600;
+            padding: 6px 8px;
+            white-space: nowrap;
+        }
+
+        /* 조작법/비고 열 (8번째 열) */
+        .output-table tbody tr td.operation-td,
+        .output-table tbody tr td:last-child {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+            text-align: center;
+            font-size: 0.85rem;
+            white-space: pre-line !important;
+            word-break: break-all !important;
+            overflow-wrap: break-word !important;
+            padding: 6px 10px !important;
+        }
+
+        /* header-link 관련 설정 */
+        .header-link, 
+        .output-table td.header-link, 
+        .output-table th.header-link {
+            text-align: left !important;
+            padding: 8px 10px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+
+        .header-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .header-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* 이미지 열 */
+        .output-table td.img-td,
+        .output-table th.img-td,
+        td.img-td,
+        th.img-td {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+            height: 100px !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            vertical-align: top !important;
+            white-space: nowrap !important;
+        }
+
+        .output-table td.img-td img,
+        .output-table th.img-td img,
+        td.img-td img,
+        th.img-td img {
+            width: 100px !important;
+            height: 100px !important;
+            min-width: 100px !important;
+            min-height: 100px !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            object-fit: cover !important;
+        }
+
+        /* ==========================================
+           6. 선택 모달 (보스 / 대문)
+           ========================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .boss-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 12px;
+            margin-bottom: 6px;
+        }
+
+        .boss-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .boss-item, .header-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .boss-item:hover, .header-item:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+            transform: translateY(-2px);
+        }
+
+        .boss-item img, .header-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        /* ==========================================
+           7. 관리자 도구 패널
+           ========================================== */
+        #admin-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+        }
+
+        #admin-panel-root {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            z-index: 900;
+            width: min(420px, calc(100vw - 40px));
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            padding: 16px;
+        }
+
+        #admin-panel-root.open {
+            display: block;
+        }
+
+        #admin-panel-root h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        #admin-panel-root p.admin-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        #admin-paste-area {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-btn.header-select {
+            background-color: #8b5cf6;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.add {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .admin-btn.save {
+            background-color: #10b981;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.load {
+            background-color: #0284c7;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-status {
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .admin-status.success { color: #059669; }
+        .admin-status.error { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="main-content">
+        <div class="container" id="content-container">
+            <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
+        </div>
+    </main>
+
+    <!-- 관리자 도구 -->
+    <button id="admin-toggle-btn" onclick="toggleAdminPanel()" title="관리자 도구">🛠</button>
+    <div id="admin-panel-root">
+        <h4>공략 테이블 관리</h4>
+        <p class="admin-desc">추출된 &lt;table class="output-table"&gt; HTML 코드를 붙여넣어 카드로 변환합니다.</p>
+
+        <input type="file" id="html-file-input" accept=".html,.htm" style="display: none;" onchange="handleFileSelect(event)">
+        <div class="admin-btn-row">
+            <button class="admin-btn load" onclick="document.getElementById('html-file-input').click()">📁 기존 HTML 파일 불러오기</button>
+        </div>
+
+        <div class="admin-btn-row">
+            <button class="admin-btn header-select" onclick="openHeaderModal()">🖼️ 대문 이미지 선택</button>
+        </div>
+
+        <textarea id="admin-paste-area" placeholder="여기에 <table class=&quot;output-table&quot;>...</table> HTML 코드를 붙여넣으세요"></textarea>
+        
+        <div class="admin-btn-row">
+            <button class="admin-btn add" onclick="addGuideTable()">테이블 추가</button>
+        </div>
+        <div class="admin-btn-row">
+            <button class="admin-btn save" onclick="downloadPage()">페이지 파일로 저장</button>
+        </div>
+        <div id="admin-status" class="admin-status"></div>
+    </div>
+
+    <!-- 보스 선택 모달 -->
+    <div class="modal-overlay" id="boss-modal" onclick="closeBossModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size: 18px;">보스 선택</h3>
+                <button onclick="closeBossModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            <div class="boss-section-title">보스 아이콘 목록</div>
+            <div class="boss-grid" id="boss-grid-container"></div>
+        </div>
+    </div>
+
+    <!-- 대문 이미지 선택 모달 -->
+    <div class="modal-overlay" id="header-modal" onclick="closeHeaderModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size: 18px;">대문 이미지 선택</h3>
+                <button onclick="closeHeaderModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            <div class="header-grid" id="header-grid-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
+
+        const bossList = [
+            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
+            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
+            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
+            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
+        ];
+
+        const headerList = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+        ];
+
+        let targetBossImgElem = null;
+
+        function initModals() {
+            // 보스 선택 모달 초기화
+            const bossContainer = document.getElementById('boss-grid-container');
+            bossContainer.innerHTML = '';
+            bossList.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => {
+                    if (targetBossImgElem) {
+                        targetBossImgElem.src = `${GITHUB_BOSS_IMAGE_BASE}${boss}.png`;
+                    }
+                    closeBossModal();
+                };
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                bossContainer.appendChild(item);
+            });
+
+            // 대문 이미지 모달 초기화
+            const headerContainer = document.getElementById('header-grid-container');
+            headerContainer.innerHTML = '';
+            headerList.forEach(header => {
+                const item = document.createElement('div');
+                item.className = 'header-item';
+                item.onclick = () => selectHeaderImage(header);
+                item.innerHTML = `<img src="${GITHUB_HEADER_IMAGE_BASE}${header}.png" alt="대문 ${header}">`;
+                headerContainer.appendChild(item);
+            });
+        }
+
+        function openHeaderModal() {
+            document.getElementById('header-modal').style.display = 'flex';
+        }
+
+        function closeHeaderModal(e) {
+            if (!e || e.target.id === 'header-modal' || e.type === 'click') {
+                document.getElementById('header-modal').style.display = 'none';
+            }
+        }
+
+        function selectHeaderImage(headerName) {
+            const firstCardBody = document.querySelector('.card .card-body');
+            if (!firstCardBody) {
+                showStatus("대문을 추가할 카드(테이블)가 먼저 등록되어 있어야 합니다.", "error");
+                closeHeaderModal();
+                return;
+            }
+
+            let bannerWrapper = firstCardBody.querySelector('.card-header-banner');
+            if (!bannerWrapper) {
+                bannerWrapper = document.createElement('div');
+                bannerWrapper.className = 'card-header-banner';
+                bannerWrapper.innerHTML = `
+                    <div class="banner-tools">
+                        <button class="card-btn delete-btn" onclick="removeHeaderBanner(this)">✕ 대문 삭제</button>
+                    </div>
+                    <img class="header-banner-img" src="" alt="대문 이미지">
+                `;
+                firstCardBody.insertBefore(bannerWrapper, firstCardBody.firstChild);
+            }
+
+            const bannerImg = bannerWrapper.querySelector('.header-banner-img');
+            bannerImg.src = `${GITHUB_HEADER_IMAGE_BASE}${headerName}.png`;
+            bannerWrapper.style.display = 'block';
+
+            closeHeaderModal();
+            showStatus("첫 번째 카드에 대문 이미지가 추가되었습니다.", "success");
+        }
+
+        function removeHeaderBanner(btn) {
+            const banner = btn.closest('.card-header-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+
+        function openBossModal() {
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+
+        function closeBossModal(e) {
+            if (!e || e.target.id === 'boss-modal' || e.type === 'click') {
+                document.getElementById('boss-modal').style.display = 'none';
+            }
+        }
+
+        function toggleAdminPanel() {
+            document.getElementById('admin-panel-root').classList.toggle('open');
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(e.target.result, 'text/html');
+                const loadedContainer = doc.getElementById('content-container');
+
+                if (loadedContainer) {
+                    document.getElementById('content-container').innerHTML = loadedContainer.innerHTML;
+                    showStatus("파일을 성공적으로 불러왔습니다.", "success");
+                    attachBossClickEvents();
+                } else {
+                    showStatus("올바른 구조의 HTML 파일이 아닙니다.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function addGuideTable() {
+            const pasteArea = document.getElementById('admin-paste-area');
+            const htmlText = pasteArea.value.trim();
+
+            if (!htmlText) {
+                showStatus("HTML 코드를 입력해 주세요.", "error");
+                return;
+            }
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlText;
+            const table = tempDiv.querySelector('table');
+
+            if (!table) {
+                showStatus("유효한 <table> 태그를 찾을 수 없습니다.", "error");
+                return;
+            }
+
+            const existingColgroup = table.querySelector('colgroup');
+            if (existingColgroup) existingColgroup.remove();
+
+            const colgroup = document.createElement('colgroup');
+            
+            for (let i = 0; i < 6; i++) {
+                const col = document.createElement('col');
+                col.style.width = '100px';
+                colgroup.appendChild(col);
+            }
+            
+            const colDamage = document.createElement('col');
+            colDamage.style.width = '100px';
+            colgroup.appendChild(colDamage);
+
+            const colOp = document.createElement('col');
+            colOp.style.width = '300px';
+            colgroup.appendChild(colOp);
+
+            table.insertBefore(colgroup, table.firstChild);
+
+            const headerLink = table.querySelector('.header-link');
+            if (headerLink) headerLink.setAttribute('colspan', '6');
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-tools">
+                    <button class="card-btn add-space-btn" onclick="addDividerAfter(this)">+ 여백 추가</button>
+                    <button class="card-btn delete-btn" onclick="deleteCard(this)">✕ 삭제</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        ${table.outerHTML}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('content-container').appendChild(card);
+            pasteArea.value = '';
+            showStatus("테이블 카드가 추가되었습니다.", "success");
+            attachBossClickEvents();
+        }
+
+        function attachBossClickEvents() {
+            document.querySelectorAll('.output-table tbody tr').forEach(row => {
+                const firstTd = row.querySelector('td.img-td');
+                if (firstTd && !firstTd.classList.contains('boss-bound')) {
+                    firstTd.classList.add('boss-bound');
+                    firstTd.style.cursor = 'pointer';
+                    firstTd.title = '클릭하여 보스 이미지 변경';
+                    firstTd.addEventListener('click', () => {
+                        let img = firstTd.querySelector('img');
+                        if (!img) {
+                            img = document.createElement('img');
+                            firstTd.appendChild(img);
+                        }
+                        targetBossImgElem = img;
+                        openBossModal();
+                    });
+                }
+            });
+        }
+
+        function addDividerAfter(btn) {
+            const card = btn.closest('.card');
+            const divider = document.createElement('div');
+            divider.className = 'boss-divider';
+            divider.innerHTML = `<button class="divider-delete-btn" onclick="this.parentElement.remove()">여백 삭제 ✕</button>`;
+            card.after(divider);
+        }
+
+        function deleteCard(btn) {
+            if (confirm("이 테이블 카드를 삭제하시겠습니까?")) {
+                btn.closest('.card').remove();
+            }
+        }
+
+        function downloadPage() {
+            const cloneDoc = document.documentElement.cloneNode(true);
+
+            const elementsToRemove = [
+                '#admin-toggle-btn',
+                '#admin-panel-root',
+                '#boss-modal',
+                '#header-modal',
+                '#html-file-input',
+                '.banner-tools',
+                '.card-tools',
+                '.divider-delete-btn'
+            ];
+
+            elementsToRemove.forEach(selector => {
+                cloneDoc.querySelectorAll(selector).forEach(el => el.remove());
+            });
+
+            cloneDoc.querySelectorAll('.boss-bound').forEach(el => {
+                el.classList.remove('boss-bound');
+                el.removeAttribute('style');
+                el.removeAttribute('title');
+            });
+
+            cloneDoc.querySelectorAll('script').forEach(sc => sc.remove());
+
+            const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'full_auto_guide.html';
+            link.click();
+
+            showStatus("웹 게시용 파일 저장이 완료되었습니다.", "success");
+        }
+
+        function showStatus(msg, type) {
+            const statusElem = document.getElementById('admin-status');
+            statusElem.textContent = msg;
+            statusElem.className = 'admin-status ' + type;
+            setTimeout(() => {
+                statusElem.textContent = '';
+                statusElem.className = 'admin-status';
+            }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initModals();
+            attachBossClickEvents();
+        });
+    </script>
+</body>
+</html>
