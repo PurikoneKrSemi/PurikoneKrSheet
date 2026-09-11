@@ -477,17 +477,19 @@
         .admin-status.error { color: #dc2626; }
     
         html, body { overflow-x: hidden !important; margin: 0; padding: 0; width: 100% !important; }
-        body { padding-bottom: 80px !important; display: flex; flex-direction: column; align-items: center; }
-        #content-container { width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column; align-items: center; box-sizing: border-box !important; }
+        body { padding-bottom: 16px !important; display: flex; flex-direction: column; align-items: center; }
+        #page-content { width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column; align-items: center; box-sizing: border-box !important; }
         .tab-content { display: none; transform-origin: top center; margin: 0 auto; max-width: 100% !important; box-sizing: border-box !important; }
         .tab-content.active { display: flex; flex-direction: column; align-items: center; }
         .tab-content table { max-width: 100% !important; box-sizing: border-box !important; table-layout: fixed !important; }
         .tab-content tr { max-width: 100% !important; }
         .tab-content td, .tab-content th { white-space: normal !important; word-break: break-all !important; overflow-wrap: break-word !important; max-width: 100% !important; box-sizing: border-box !important; }
         .tab-content img { max-width: 100% !important; height: auto !important; }
-        .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 8px 16px; z-index: 9999; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+
+        /* 하위탭: 상단 고정(2단바) */
+        .top-tab-panel { width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 16px; box-sizing: border-box; }
         
-        /* 하단 탭 가로 스크롤 및 스크롤바 강제 표시 */
+        /* 상단 하위탭 가로 스크롤 및 스크롤바 강제 표시 */
         .tab-scroll-container { 
             width: 100% !important; 
             max-width: 100% !important; 
@@ -529,13 +531,14 @@
             padding: 8px 16px !important; 
             background: #e2e8f0; 
             border: none; 
-            border-radius: 6px; 
+            border-radius: 999px; 
             color: #475569; 
             font-weight: 600; 
             font-size: 0.85rem; 
             cursor: pointer; 
             transition: background 0.2s; 
         }
+        .tab-btn { -webkit-user-drag: none; user-select: none; }
         .tab-btn:hover { background: #cbd5e1; }
         .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
     </style>
@@ -543,7 +546,11 @@
 <body>
 <!-- 메인 콘텐츠 영역 -->
 <main class="main-content">
-<div class="container" id="content-container"><div class="tab-content active" id="tab-page-1">
+<div class="container" id="page-content">
+<div class="top-tab-panel">
+<div class="tab-scroll-container"><div class="tab-nav"><button class="tab-btn active" onclick="openTab(event, 'tab-page-1')">26년09월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-2')">26년10월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-3')">26년11월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-4')">26년12월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-5')">27년01월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-6')">27년02월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-7')">27년03월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-8')">27년04월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-9')">27년05월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-10')">27년06월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-11')">27년07월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-12')">27년08월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-13')">27년09월</button></div></div>
+</div>
+<div class="tab-content active" id="tab-page-1">
 <!-- 최상단 대문 이미지 배너 -->
 <div class="card">
 <div class="card-body"><div class="card-header-banner" style="display: block;">
@@ -5588,11 +5595,7 @@ XOOOX 29300</td>
 </table>
 </div>
 </div>
-</div></div>
-<div class="bottom-fixed-panel">
-<div class="tab-scroll-container"><div class="tab-nav"><button class="tab-btn active" onclick="openTab(event, 'tab-page-1')">26년09월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-2')">26년10월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-3')">26년11월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-4')">26년12월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-5')">27년01월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-6')">27년02월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-7')">27년03월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-8')">27년04월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-9')">27년05월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-10')">27년06월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-11')">27년07월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-12')">27년08월</button><button class="tab-btn" onclick="openTab(event, 'tab-page-13')">27년09월</button></div></div>
-</div>
-</div>
+</div></div></div>
 </main>
 <!-- 관리자 도구 -->
 <!-- 보스 선택 모달 -->
@@ -5627,7 +5630,7 @@ XOOOX 29300</td>
             if (!slider) return;
             let isDown = false, startX, scrollLeft, dragDistance = 0;
             slider.addEventListener('mousedown', (e) => {
-                isDown = true; window.isTabDragging = false; dragDistance = 0;
+                e.preventDefault(); isDown = true; window.isTabDragging = false; dragDistance = 0;
                 slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
             });
             slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });

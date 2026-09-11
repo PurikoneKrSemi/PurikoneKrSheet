@@ -22,17 +22,21 @@
       left: 0 !important;
       right: 0 !important;
       width: 100vw !important;
-      height: 56px !important;
       z-index: 999999 !important;
       display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 8px !important;
-      padding: 0 16px !important;
+      flex-direction: column !important;
       background-color: #f8fafc !important;
       border-bottom: 1px solid #e2e8f0 !important;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
     }
+    .tab-bar-main {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      padding: 10px 16px !important;
+    }
+    #subtab-slot:empty { display: none; }
     .main-tab-btn {
       padding: 8px 18px;
       font-size: 0.95rem;
@@ -55,9 +59,9 @@
       box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
     }
 
-    /* 상단 고정 바 높이만큼 본문 여백 확보 */
+    /* 상단 고정 바 높이만큼 본문 여백 확보 (실제 높이는 JS가 동적으로 설정) */
     #content-container {
-      margin-top: 56px !important;
+      margin-top: 56px;
       width: 100%;
       min-height: calc(100vh - 56px);
       box-sizing: border-box;
@@ -66,12 +70,15 @@
 </head>
 <body>
 
-  <!-- 상단 고정 메인 탭 -->
+  <!-- 상단 고정 메인 탭 + 하위탭 슬롯 -->
   <div class="tab-bar">
-    <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
-    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
-    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
-    <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'abyss.html')">심연토벌전</button>
+    <div class="tab-bar-main">
+      <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
+      <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
+      <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
+      <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'abyss.html')">심연토벌전</button>
+    </div>
+    <div id="subtab-slot"></div>
   </div>
 
   <div id="content-container"></div>
@@ -95,6 +102,7 @@
 
     async function loadPage(fileUrl) {
       const container = document.getElementById('content-container');
+      const subtabSlot = document.getElementById('subtab-slot');
       if (!container) return;
 
       try {
@@ -111,10 +119,28 @@
           newScript.appendChild(document.createTextNode(oldScript.innerHTML));
           oldScript.parentNode.replaceChild(newScript, oldScript);
         });
+
+        if (subtabSlot) {
+          subtabSlot.innerHTML = '';
+          const subtabPanel = container.querySelector('.top-tab-panel');
+          if (subtabPanel) subtabSlot.appendChild(subtabPanel);
+        }
       } catch (err) {
         container.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">페이지를 불러올 수 없습니다: ' + err.message + '</div>';
+        if (subtabSlot) subtabSlot.innerHTML = '';
       }
+      updateContentOffset();
     }
+
+    function updateContentOffset() {
+      const tabBar = document.querySelector('.tab-bar');
+      const container = document.getElementById('content-container');
+      if (!tabBar || !container) return;
+      const h = tabBar.offsetHeight;
+      container.style.marginTop = h + 'px';
+      container.style.minHeight = 'calc(100vh - ' + h + 'px)';
+    }
+    window.addEventListener('resize', updateContentOffset);
 
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => loadPage('semi_auto.html'));

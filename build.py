@@ -26,13 +26,15 @@ def process_semi_auto_merge(files):
             base_soup.head.append(style_tag)
     
     style_tag.string = (style_tag.string or "") + """
-        body { padding-bottom: 120px !important; display: flex; flex-direction: column; align-items: center; }
-        #content-container { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+        body { padding-bottom: 16px !important; display: flex; flex-direction: column; align-items: center; }
+        #page-content { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
         .tab-content { display: none; width: 100%; margin: 0 auto; }
         .tab-content.active { display: flex; flex-direction: column; align-items: center; }
         .tab-content table { margin-left: auto; margin-right: auto; }
-        .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 10px 16px; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
-        .timeline-control-panel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; width: 100%; }
+
+        /* 하위탭 + 이월 시간 설정: 상단 고정(2단바)에 한 덩어리로 붙임 */
+        .top-tab-panel { width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 16px 6px; box-sizing: border-box; }
+        .timeline-control-panel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; width: 100%; margin-top: 6px; padding-top: 6px; border-top: 1px solid #f1f5f9; }
         .timeline-control-panel input { width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
         
         /* 적용 버튼 스타일 */
@@ -50,14 +52,14 @@ def process_semi_auto_merge(files):
         .timeline-apply-btn:hover { background: #4338ca; }
         .timeline-apply-btn:active { transform: scale(0.97); }
 
-        /* 하단 탭 가로 스크롤 및 스크롤바 강제 표시 */
+        /* 상단 하위탭 가로 스크롤 및 스크롤바 강제 표시 */
         .tab-scroll-container { 
             width: 100% !important; 
             max-width: 100% !important; 
             margin: 0 auto !important; 
             overflow-x: auto !important; 
             white-space: nowrap !important; 
-            padding-bottom: 8px !important; 
+            padding-bottom: 4px !important; 
             cursor: grab; 
             user-select: none; 
             text-align: center; 
@@ -89,16 +91,17 @@ def process_semi_auto_merge(files):
         }
         .tab-btn { 
             flex: 0 0 auto !important; 
-            padding: 6px 14px !important; 
+            padding: 8px 16px !important; 
             background: #e2e8f0; 
             border: none; 
-            border-radius: 6px; 
+            border-radius: 999px; 
             color: #475569; 
             font-weight: 600; 
-            font-size: 0.8rem; 
+            font-size: 0.85rem; 
             cursor: pointer; 
             transition: background 0.2s; 
         }
+        .tab-btn { -webkit-user-drag: none; user-select: none; }
         .tab-btn:hover { background: #cbd5e1; }
         .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
         tr.timeline-past { text-decoration: line-through !important; opacity: 0.45 !important; color: #888888 !important; }
@@ -119,7 +122,7 @@ def process_semi_auto_merge(files):
             if (!slider) return;
             let isDown = false, startX, scrollLeft, dragDistance = 0;
             slider.addEventListener('mousedown', (e) => {
-                isDown = true; window.isTabDragging = false; dragDistance = 0;
+                e.preventDefault(); isDown = true; window.isTabDragging = false; dragDistance = 0;
                 slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
             });
             slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
@@ -190,21 +193,22 @@ def process_semi_auto_merge(files):
         btns += f'<button class="tab-btn {is_active}" onclick="openTab(event, \'{tab_id}\')">{tab_name}</button>'
         contents += f'<div id="{tab_id}" class="tab-content {is_active}">{html}</div>'
 
-    panel_html = f'''
-        <div class="bottom-fixed-panel">
+    top_nav_html = f'''
+        <div class="top-tab-panel">
+            <div class="tab-scroll-container"><div class="tab-nav">{btns}</div></div>
             <div class="timeline-control-panel">
                 <strong>⏱️ 이월 시간 설정:</strong>
                 <input type="number" id="user-timeline-input" value="90" min="20" max="90"> 초
                 <button type="button" class="timeline-apply-btn" onclick="applyCustomTimeline()">적용</button>
             </div>
-            <div class="tab-scroll-container"><div class="tab-nav">{btns}</div></div>
         </div>
     '''
-    
+
     container = base_soup.find(id="content-container")
     if container:
+        container["id"] = "page-content"
         container.string = ""
-        container.append(BeautifulSoup(contents + panel_html, 'html.parser'))
+        container.append(BeautifulSoup(top_nav_html + contents, 'html.parser'))
 
     return str(base_soup)
 
@@ -233,17 +237,19 @@ def process_full_auto_merge(files):
 
     style_tag.string = (style_tag.string or "") + """
         html, body { overflow-x: hidden !important; margin: 0; padding: 0; width: 100% !important; }
-        body { padding-bottom: 80px !important; display: flex; flex-direction: column; align-items: center; }
-        #content-container { width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column; align-items: center; box-sizing: border-box !important; }
+        body { padding-bottom: 16px !important; display: flex; flex-direction: column; align-items: center; }
+        #page-content { width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column; align-items: center; box-sizing: border-box !important; }
         .tab-content { display: none; transform-origin: top center; margin: 0 auto; max-width: 100% !important; box-sizing: border-box !important; }
         .tab-content.active { display: flex; flex-direction: column; align-items: center; }
         .tab-content table { max-width: 100% !important; box-sizing: border-box !important; table-layout: fixed !important; }
         .tab-content tr { max-width: 100% !important; }
         .tab-content td, .tab-content th { white-space: normal !important; word-break: break-all !important; overflow-wrap: break-word !important; max-width: 100% !important; box-sizing: border-box !important; }
         .tab-content img { max-width: 100% !important; height: auto !important; }
-        .bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #ffffff; border-top: 1px solid #cbd5e1; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1); padding: 8px 16px; z-index: 9999; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+
+        /* 하위탭: 상단 고정(2단바) */
+        .top-tab-panel { width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 16px; box-sizing: border-box; }
         
-        /* 하단 탭 가로 스크롤 및 스크롤바 강제 표시 */
+        /* 상단 하위탭 가로 스크롤 및 스크롤바 강제 표시 */
         .tab-scroll-container { 
             width: 100% !important; 
             max-width: 100% !important; 
@@ -285,13 +291,14 @@ def process_full_auto_merge(files):
             padding: 8px 16px !important; 
             background: #e2e8f0; 
             border: none; 
-            border-radius: 6px; 
+            border-radius: 999px; 
             color: #475569; 
             font-weight: 600; 
             font-size: 0.85rem; 
             cursor: pointer; 
             transition: background 0.2s; 
         }
+        .tab-btn { -webkit-user-drag: none; user-select: none; }
         .tab-btn:hover { background: #cbd5e1; }
         .tab-btn.active { background: var(--primary-color, #4f46e5); color: #fff; }
     """
@@ -326,7 +333,7 @@ def process_full_auto_merge(files):
             if (!slider) return;
             let isDown = false, startX, scrollLeft, dragDistance = 0;
             slider.addEventListener('mousedown', (e) => {
-                isDown = true; window.isTabDragging = false; dragDistance = 0;
+                e.preventDefault(); isDown = true; window.isTabDragging = false; dragDistance = 0;
                 slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
             });
             slider.addEventListener('mouseleave', () => { isDown = false; slider.classList.remove('active'); });
@@ -354,16 +361,17 @@ def process_full_auto_merge(files):
         btns += f'<button class="tab-btn {is_active}" onclick="openTab(event, \'{tab_id}\')">{tab_name}</button>'
         contents += f'<div id="{tab_id}" class="tab-content {is_active}">{html}</div>'
 
-    panel_html = f'''
-        <div class="bottom-fixed-panel">
+    top_nav_html = f'''
+        <div class="top-tab-panel">
             <div class="tab-scroll-container"><div class="tab-nav">{btns}</div></div>
         </div>
     '''
-    
+
     container = base_soup.find(id="content-container")
     if container:
+        container["id"] = "page-content"
         container.string = ""
-        container.append(BeautifulSoup(contents + panel_html, 'html.parser'))
+        container.append(BeautifulSoup(top_nav_html + contents, 'html.parser'))
 
     return str(base_soup)
 
