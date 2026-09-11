@@ -33,30 +33,29 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 8px !important;
+      gap: 4px !important;
       padding: 10px 16px !important;
     }
     #subtab-slot:empty { display: none; }
     .main-tab-btn {
       padding: 8px 18px;
       font-size: 0.95rem;
-      font-weight: 600;
-      color: #475569;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
+      font-weight: 500;
+      color: #64748b;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 10px 10px 0 0;
       cursor: pointer;
       transition: all 0.2s ease;
     }
     .main-tab-btn:hover {
-      background: #f1f5f9;
-      color: #1e293b;
+      background: #cbd5e1;
+      color: #334155;
     }
     .main-tab-btn.active {
       background: #4f46e5;
       color: #ffffff;
-      border-color: #4f46e5;
-      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+      font-weight: 600;
     }
 
     /* 상단 고정 바 높이만큼 본문 여백 확보 (실제 높이는 JS가 동적으로 설정) */
