@@ -152,7 +152,13 @@
         slider.classList.remove('dragging');
       };
 
-      slider.addEventListener('mousedown', (e) => { e.preventDefault(); start(e.pageX); });
+      slider.addEventListener('mousedown', (e) => {
+        // input/textarea/select는 드래그 대상이 아니라 직접 타이핑/클릭해야 하는 요소이므로
+        // 기본 동작(포커스, 커서 배치)을 막지 않고 그냥 통과시킴
+        if (e.target.closest('input, textarea, select')) return;
+        e.preventDefault();
+        start(e.pageX);
+      });
       window.addEventListener('mousemove', (e) => { if (isDown) { e.preventDefault(); move(e.pageX); } });
       window.addEventListener('mouseup', end);
 
@@ -224,6 +230,7 @@
         
         const html = await response.text();
         container.innerHTML = html;
+        updateContentOffset();
 
         const scripts = Array.from(container.querySelectorAll('script'));
         scripts.forEach(oldScript => {
@@ -255,6 +262,7 @@
       const h = tabBar.offsetHeight;
       container.style.marginTop = h + 'px';
       container.style.minHeight = 'calc(100vh - ' + h + 'px)';
+      document.documentElement.style.setProperty('--tab-bar-height', h + 'px');
     }
     window.addEventListener('resize', updateContentOffset);
 
