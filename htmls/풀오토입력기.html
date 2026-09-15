@@ -416,34 +416,128 @@
         let dragAutoScrollY = null;
         let dragAutoScrollRAF = null;
 
+        const GITHUB_OWNER = "PurikoneKrSemi";
+        const GITHUB_REPO = "SemiAutoSheet";
+        const GITHUB_PATH = "images/Boss";
+
         const GITHUB_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
-        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_BOSS_IMAGE_BASE = `https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/${GITHUB_PATH}/`;
 
         window.addEventListener('mouseup', () => {
             isMouseDown = false;
         });
 
-        const bossList = [
-            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
-            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
-            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
-            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
-            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
-        ];
-
-        function initBossModal() {
+        async function initBossModal() {
             const container = document.getElementById('boss-grid-container');
-            container.innerHTML = '';
-            bossList.forEach(boss => {
-                const item = document.createElement('div');
-                item.className = 'boss-item';
-                item.onclick = () => selectBoss(boss);
-                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
-                container.appendChild(item);
-            });
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 10px;">보스 목록을 불러오는 중...</div>';
+
+            try {
+                const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API 호출 실패 (Status: ${response.status})`);
+                }
+
+                const files = await response.json();
+                container.innerHTML = '';
+
+                const blankItem = document.createElement('div');
+                blankItem.className = 'boss-item';
+                blankItem.onclick = () => selectBoss("", "");
+                blankItem.innerHTML = `<div style="height: 60px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); font-weight: bold;">없음 (공백)</div>`;
+                container.appendChild(blankItem);
+ 
+                const imageFiles = files.filter(file => file.type === 'file' && /\.(png|jpe?g|webp)$/i.test(file.name));
+
+                if (imageFiles.length === 0) {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">이미지 파일이 없습니다.</div>';
+                    return;
+                }
+
+                imageFiles.forEach(file => {
+                    const bossName = file.name.replace(/\.[^/.]+$/, "");
+                    const rawImgUrl = file.download_url;
+
+                    const item = document.createElement('div');
+                    item.className = 'boss-item';
+                    item.onclick = () => selectBoss(bossName, rawImgUrl);
+                    item.innerHTML = `<img src="${rawImgUrl}" alt="${bossName}">`;
+                    container.appendChild(item);
+                });
+
+                renderRecentBosses();
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 10px;">보스 이미지 목록을 불러오지 못했습니다.</div>';
+            }
+        }
+        
+        function openBossModal(target = 'single') {
+            bossModalTarget = target;
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+        
+        function closeBossModal(e) {
+            document.getElementById('boss-modal').style.display = 'none';
+        }
+        
+
+        
+        function selectBoss(bossName, imgUrl) {
+            const isBlank = (bossName === "" && imgUrl === "");
+            const bossUrl = isBlank ? "" : (imgUrl || `${GITHUB_BOSS_IMAGE_BASE}${bossName}.png`);
+
+            if (bossModalTarget === 'single') {
+                selectedBossName = bossName;
+                const imgEl = document.getElementById('img-boss');
+                const lblEl = document.getElementById('boss-label');
+                if (!isBlank) {
+                    imgEl.src = bossUrl;
+                    imgEl.dataset.actualSrc = bossUrl;
+                    imgEl.style.display = 'block';
+                    lblEl.style.display = 'none';
+                } else {
+                    imgEl.src = '';
+                    imgEl.dataset.actualSrc = '';
+                    imgEl.style.display = 'none';
+                    lblEl.style.display = 'block';
+                }
+            } else if (bossModalTarget === 'batch') {
+                batchSelectedBossSrc = isBlank ? "" : bossUrl;
+                const imgEl = document.getElementById('img-batch-boss');
+                const lblEl = document.getElementById('batch-boss-label');
+                if (!isBlank) {
+                    imgEl.src = bossUrl;
+                    imgEl.style.display = 'block';
+                    lblEl.style.display = 'none';
+                } else {
+                    imgEl.src = '';
+                    imgEl.style.display = 'none';
+                    lblEl.style.display = 'block';
+                }
+            }
+
+            if (!isBlank) {
+                recentBosses = [
+                    { name: bossName, url: bossUrl },
+                    ...recentBosses.filter(b => (typeof b === 'object' ? b.name : b) !== bossName)
+                ].slice(0, 6);
+            }
+
             renderRecentBosses();
+            closeBossModal();
         }
 
+
+        function openImportModal() {
+            document.getElementById('import-modal').style.display = 'flex';
+        }
+        
+        function closeImportModal(e) {
+            document.getElementById('import-modal').style.display = 'none';
+        }
         function renderRecentBosses() {
             const sec = document.getElementById('recent-boss-section');
             const grid = document.getElementById('recent-boss-grid');
@@ -461,48 +555,7 @@
                 grid.appendChild(item);
             });
         }
-
-        function openBossModal(target = 'single') {
-            bossModalTarget = target;
-            document.getElementById('boss-modal').style.display = 'flex';
-        }
-
-        function closeBossModal(e) {
-            document.getElementById('boss-modal').style.display = 'none';
-        }
-
-        function openImportModal() {
-            document.getElementById('import-modal').style.display = 'flex';
-        }
-
-        function closeImportModal(e) {
-            document.getElementById('import-modal').style.display = 'none';
-        }
-
-        function selectBoss(bossName) {
-            const bossUrl = GITHUB_BOSS_IMAGE_BASE + encodeURIComponent(`${bossName}.png`);
-
-            if (bossModalTarget === 'single') {
-                selectedBossName = bossName;
-                const imgEl = document.getElementById('img-boss');
-                const lblEl = document.getElementById('boss-label');
-                imgEl.src = bossUrl;
-                imgEl.style.display = 'block';
-                lblEl.style.display = 'none';
-            } else if (bossModalTarget === 'batch') {
-                batchSelectedBossSrc = bossUrl;
-                const imgEl = document.getElementById('img-batch-boss');
-                const lblEl = document.getElementById('batch-boss-label');
-                imgEl.src = bossUrl;
-                imgEl.style.display = 'block';
-                lblEl.style.display = 'none';
-            }
-
-            recentBosses = [bossName, ...recentBosses.filter(b => b !== bossName)].slice(0, 6);
-            renderRecentBosses();
-            closeBossModal();
-        }
-
+        
         function handleBossCellMouseDown(index, cellEl) {
             isMouseDown = true;
             dragSelectTargetState = !selectedRowIndexes.has(index);

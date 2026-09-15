@@ -41,9 +41,6 @@
         }
 
         .sticky-container {
-            position: sticky;
-            top: 10px;
-            z-index: 100;
             background-color: var(--bg-color);
             padding-top: 5px;
             padding-bottom: 5px;
@@ -171,7 +168,7 @@
         .auto-changed-ON { background-color: #e0f2fe; color: #0369a1; }
         .auto-changed-OFF { background-color: #ffe4e6; color: #be123c; }
 
-        .preview-area { margin-top: 20px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .preview-area { margin-top: 25px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         .preview-area h3 { font-size: 16px; margin-bottom: 12px; color: #111827; }
 
         /* 출력 테이블 스타일 - 볼드 제거 */
@@ -204,7 +201,10 @@
 </head>
 <body>
 
+    <div style="display: flex; justify-content: space-between; align-items: center;">
     <h2>🎮 프리코네 타임라인 공략 작성기</h2>
+    <button id="reset-btn" onclick="resetAllData()">전체 초기화</button>
+    </div>
 
     <div class="sticky-container">
         <!-- 1. 파티 정보 설정 -->
@@ -218,7 +218,7 @@
                     <tbody>
                         <tr>
                             <td colspan="6">
-                                <input type="text" id="guide-text" style="text-align: left;" placeholder="표시할 공략 제목 (예: メデューサ 44212 m1)" oninput="renderFinalPreview()">
+                                <input type="text" id="guide-text" style="text-align: left;" placeholder="표시할 공략 제목" oninput="renderFinalPreview()">
                             </td>
                         </tr>
                         <tr>
@@ -289,7 +289,7 @@
                 </div>
                 <div style="flex: 1;">
                     <label>행동 설명 (입력 시 OX 자동 반영)</label>
-                    <input type="text" id="action-input" placeholder="예: 윈카나 → 바세피 SET 또는 ※ 0:52에 석화 풀린 경우" oninput="autoParseText()" style="text-align: left;">
+                    <input type="text" id="action-input" placeholder="예: 윈카나 → 바세피 SET" oninput="autoParseText()" style="text-align: left;">
                 </div>
             </div>
 
@@ -308,8 +308,8 @@
                 <label>키워드 입력:</label>
                 <div class="btn-group">
                     <button class="btn-kw" onclick="addText('→')">→</button>
-                    <button class="btn-kw" onclick="addText('셋')">셋</button>
-                    <button class="btn-kw" onclick="addText('오프')">오프</button>
+                    <button class="btn-kw" onclick="addText('SET')">SET</button>
+                    <button class="btn-kw" onclick="addText('OFF')">OFF</button>
                     <button class="btn-kw" onclick="addText('오토 ON')">오토 ON</button>
                     <button class="btn-kw" onclick="addText('오토 OFF')">오토 OFF</button>
                     <button class="btn-kw" onclick="addText('※')">※</button>
@@ -375,7 +375,7 @@
         </table>
     </div>
 
-    <!-- 4. 완성된 HTML 최종 미리보기 구역 -->
+    <!-- 4. 완성된 HTML 최종 미리보기 구역 (스크롤 내렸을 때 최하단 표시) -->
     <div class="preview-area">
         <h3>최종 출력 미리보기 (완성 형태)</h3>
         <div id="final-html-container"></div>
@@ -397,29 +397,60 @@
         let editingRow = null;
         let selectedBossName = "";
 
+        const GITHUB_OWNER = "PurikoneKrSemi";
+        const GITHUB_REPO = "SemiAutoSheet";
+        const GITHUB_PATH = "images/Boss";
+
         const GITHUB_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
-        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_BOSS_IMAGE_BASE = `https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/${GITHUB_PATH}/`;
 
-        const bossList = [
-            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
-            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
-            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
-            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
-            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
-        ];
-
-        function initBossModal() {
+        async function initBossModal() {
             const container = document.getElementById('boss-grid-container');
-            container.innerHTML = '';
-            bossList.forEach(boss => {
-                const item = document.createElement('div');
-                item.className = 'boss-item';
-                item.onclick = () => selectBoss(boss);
-                item.innerHTML = `
-                    <img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">
-                `;
-                container.appendChild(item);
-            });
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 10px;">보스 목록을 불러오는 중...</div>';
+
+            try {
+                const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API 호출 실패 (Status: ${response.status})`);
+                }
+
+                const files = await response.json();
+                container.innerHTML = '';
+
+                // 공백 옵션 (이미지 미선택)
+                const blankItem = document.createElement('div');
+                blankItem.className = 'boss-item';
+                blankItem.onclick = () => selectBoss("", "");
+                blankItem.innerHTML = `<div style="height: 60px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); font-weight: bold;">없음 (공백)</div>`;
+                container.appendChild(blankItem);
+
+                const imageFiles = files.filter(file => file.type === 'file' && /\.(png|jpe?g|webp)$/i.test(file.name));
+
+                if (imageFiles.length === 0) {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">이미지 파일이 없습니다.</div>';
+                    return;
+                }
+
+                imageFiles.forEach(file => {
+                    const bossName = file.name.replace(/\.[^/.]+$/, "");
+                    const rawImgUrl = file.download_url;
+
+                    const item = document.createElement('div');
+                    item.className = 'boss-item';
+                    item.onclick = () => selectBoss(bossName, rawImgUrl);
+                    item.innerHTML = `
+                        <img src="${rawImgUrl}" alt="${bossName}">
+                        <span>${bossName}</span>
+                    `;
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 10px;">보스 이미지 목록을 불러오지 못했습니다.</div>';
+            }
         }
 
         function openBossModal() {
@@ -430,14 +461,21 @@
             document.getElementById('boss-modal').style.display = 'none';
         }
 
-        function selectBoss(bossName) {
+        function selectBoss(bossName, imgUrl) {
+            const isBlank = (!bossName && !imgUrl);
             selectedBossName = bossName;
             const imgEl = document.getElementById('img-boss');
             const lblEl = document.getElementById('boss-label');
 
-            imgEl.src = GITHUB_BOSS_IMAGE_BASE + encodeURIComponent(`${bossName}.png`);
-            imgEl.style.display = 'block';
-            lblEl.style.display = 'none';
+            if (!isBlank) {
+                imgEl.src = imgUrl || `${GITHUB_BOSS_IMAGE_BASE}${bossName}.png`;
+                imgEl.style.display = 'block';
+                lblEl.style.display = 'none';
+            } else {
+                imgEl.src = '';
+                imgEl.style.display = 'none';
+                lblEl.style.display = 'block';
+            }
 
             closeBossModal();
             renderFinalPreview();
@@ -1036,7 +1074,18 @@
                 document.getElementById(`${prefix}${i}`).addEventListener('input', saveToLocalStorage);
             });
         }
+        function resetAllData() {
+        if (confirm("모든 타임라인 데이터가 삭제됩니다. 정말 초기화하시겠습니까?")) {
+            // 1. 저장된 데이터 삭제 (localStorage 사용 시)
+            localStorage.clear();
 
+            // 2. 폼 필드 및 UI 요소 초기화 (프로젝트 구조에 맞게 수정)
+            // document.getElementById('timeline-form').reset();
+            
+            // 3. 페이지 새로고침 또는 상태 재설정
+            location.reload();
+        }
+        }
         initBossModal();
         loadFromLocalStorage(); // 저장된 데이터 먼저 로드
         renderFinalPreview();
