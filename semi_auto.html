@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 
-<html data-hwp-extension="rhwp" data-hwp-extension-version="0.8.6" lang="ko"><head>
+<html lang="ko"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>데이터 리포트</title>
 <link href="style.css" rel="stylesheet"/>
-<!-- Google Fonts: JetBrains Mono & Roboto Mono 로드 -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Roboto+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
 <style>
-        /* ==========================================
-           1. 기본 변수 및 리셋
-           ========================================== */
         :root {
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
@@ -39,9 +35,6 @@
             min-height: 100vh;
         }
 
-        /* ==========================================
-           2. 레이아웃 컨테이너
-           ========================================== */
         .container {
             max-width: 100%;
             margin: 0 auto;
@@ -57,19 +50,16 @@
             width: 100%;
         }
 
-        /* ==========================================
-           3. 본문 내 대문 이미지 (Main Banner - 카드 너비 맞춤)
-           ========================================== */
         .header-banner {
             width: 100%;
-            max-width: 648px; /* Card 전체 가로 너비(630px table + 16px padding + border)와 동일하게 설정 */
+            max-width: 648px;
             position: relative;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: var(--shadow-md);
             margin-bottom: 20px;
-            display: none; /* 이미지가 설정되면 block으로 전환 */
+            display: none;
             overflow: hidden;
         }
 
@@ -86,9 +76,6 @@
             z-index: 10;
         }
 
-        /* ==========================================
-           4. 테이블 카드 컨테이너 및 구분 공백
-           ========================================== */
         .card {
             width: 100%;
             max-width: 648px;
@@ -100,6 +87,12 @@
             overflow: hidden;
             display: block;
             position: relative;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        .card.dragging, .boss-divider.dragging {
+            opacity: 0.3;
+            border: 2px dashed var(--primary-color) !important;
         }
 
         .card-body {
@@ -109,12 +102,16 @@
         .boss-divider {
             width: 100%;
             max-width: 648px;
-            height: 40px;
+            height: 80px;
             margin: 10px 0;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            background-color: transparent;
+            border: 0px dashed var(--border-color);
+            border-radius: 6px;
         }
 
         .card-tools {
@@ -140,6 +137,17 @@
 
         .card-btn:hover {
             opacity: 1;
+        }
+
+        .card-btn.drag-handle {
+            cursor: grab;
+            background: #475569;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .card-btn.drag-handle:active {
+            cursor: grabbing;
         }
 
         .card-btn.add-space-btn {
@@ -170,9 +178,6 @@
             opacity: 1;
         }
 
-        /* ==========================================
-           5. 반응형 테이블 및 스타일
-           ========================================== */
         .table-responsive {
             width: auto;
             overflow-x: auto;
@@ -218,6 +223,7 @@
             letter-spacing: normal !important;
         }
 
+        /* 6번째 행부터 OX문 폰트(Roboto Mono) 적용하도록 수정 */
         .output-table tbody tr:nth-child(n+6) td:nth-last-child(2):not([colspan]) {
             font-family: 'Roboto Mono', monospace !important;
             letter-spacing: 2px !important;
@@ -301,30 +307,6 @@
             text-align: left !important;
         }
 
-        .change-x {
-            color: #ef4444;
-            font-weight: normal;
-        }
-
-        .auto-td {
-            background-color: #ffffff;
-            color: var(--text-primary);
-            font-weight: normal;
-        }
-
-        .auto-changed-on, .bg-auto-on {
-            background-color: #e0f2fe !important;
-            color: #0284c7 !important;
-        }
-
-        .auto-changed-off, .bg-auto-off {
-            background-color: #ffe4e6 !important;
-            color: #e11d48 !important;
-        }
-
-        /* ==========================================
-           6. 선택 모달 (보스 / 대문 통합)
-           ========================================== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -403,10 +385,6 @@
             background-color: #f5f3ff;
         }
 
-
-        /* ==========================================
-           8. 관리자 도구 패널
-           ========================================== */
         #admin-toggle-btn {
             position: fixed;
             right: 20px;
@@ -509,6 +487,12 @@
 
         .admin-btn.load {
             background-color: #0284c7;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.reset {
+            background-color: #ef4444;
             color: #fff;
             width: 100%;
         }
@@ -653,7 +637,6 @@
     </style>
 </head>
 <body>
-<!-- 메인 콘텐츠 영역 -->
 <main class="main-content">
 <div class="container" id="page-content">
 <div class="subtab-header-panel">
@@ -675,11 +658,91 @@
 </div>
 </div>
 <div class="tab-content active" id="tab-page-1">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/9.png"/>
 </div>
 <section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+<colgroup>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="header-link" colspan="6"><a href="https://www.youtube.com/watch?v=eY91uPGdH3Y" target="_blank">4段階マダムエレクトラ　目押し2 3.27億〜</a></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="img-td"><img alt="1.2" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/1.2.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%BA%AC%EB%A3%A85.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%98%B8%EB%A7%88%EB%A0%885.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%EB%A0%885.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
+</tr>
+<tr>
+<td>32700</td>
+<td>프캬루</td><td>호마레</td><td>에로체</td><td>수마레</td><td>바이올렛</td>
+</tr>
+<tr>
+<td class="th-label">⭐</td>
+<td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+</tr>
+<tr>
+<td class="th-label">RANK</td>
+<td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">TP 4.3</td>
+<td>Set</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:30 XXOOO 오토X</td>
+<td>XXOOO</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:09~08 프캬루 에이드 캔슬</td>
+<td>XXOOO</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:04 바이올렛 → 호마레 SET 오토 ON</td>
+<td>X<span class="change-x">O</span>OOO</td>
+<td class="bg-auto-on">ON</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:03 프캬루 → 프캬루 SET 호마레 OFF</td>
+<td><span class="change-x">O</span><span class="change-x">X</span>OOO</td>
+<td class="">ON</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:40 바이올렛 → 호마레 SET 바이올렛 OFF 오토 OFF</td>
+<td>O<span class="change-x">O</span>OO<span class="change-x">X</span></td>
+<td class="bg-auto-off">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:37 프캬루 → 프캬루 OFF</td>
+<td><span class="change-x">X</span>OOOX</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:29 프캬루 에이드 캔슬 → 프캬루 바이올렛 SET 오토 ON</td>
+<td><span class="change-x">O</span>OOO<span class="change-x">O</span></td>
+<td class="bg-auto-on">ON</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:16 수마레 → 수마레 바이올렛 OFF</td>
+<td>OOO<span class="change-x">X</span><span class="change-x">X</span></td>
+<td class="">ON</td>
+</tr>
+</tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
 <colgroup>
 <col style="width: 16.66%;"/>
 <col style="width: 16.66%;"/>
@@ -772,87 +835,6 @@
 <tr>
 <td class="text-left" colspan="4">0:02 비카라 → 알리스 SET</td>
 <td>XO<span class="change-x">O</span>OO</td>
-<td class="">ON</td>
-</tr>
-</tbody>
-</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
-<colgroup>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-</colgroup>
-<thead>
-<tr>
-<th class="header-link" colspan="6"><a href="https://www.youtube.com/watch?v=eY91uPGdH3Y" target="_blank">4段階マダムエレクトラ　目押し2 3.27億〜</a></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="img-td"><img alt="1.2" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/1.2.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%BA%AC%EB%A3%A85.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%98%B8%EB%A7%88%EB%A0%885.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%EB%A0%885.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
-</tr>
-<tr>
-<td>32700</td>
-<td>프캬루</td><td>호마레</td><td>에로체</td><td>수마레</td><td>바이올렛</td>
-</tr>
-<tr>
-<td class="th-label">⭐</td>
-<td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
-</tr>
-<tr>
-<td class="th-label">RANK</td>
-<td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">TP 4.3</td>
-<td>Set</td>
-<td>Auto</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:30 XXOOO 오토X</td>
-<td>XXOOO</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:09~08 프캬루 에이드 캔슬</td>
-<td>XXOOO</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:04 바이올렛 → 호마레 SET 오토 ON</td>
-<td>X<span class="change-x">O</span>OOO</td>
-<td class="bg-auto-on">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:03 프캬루 → 프캬루 SET 호마레 OFF</td>
-<td><span class="change-x">O</span><span class="change-x">X</span>OOO</td>
-<td class="">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:40 바이올렛 → 호마레 SET 바이올렛 OFF 오토 OFF</td>
-<td>O<span class="change-x">O</span>OO<span class="change-x">X</span></td>
-<td class="bg-auto-off">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:37 프캬루 → 프캬루 OFF</td>
-<td><span class="change-x">X</span>OOOX</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:29 프캬루 에이드 캔슬 → 프캬루 바이올렛 SET 오토 ON</td>
-<td><span class="change-x">O</span>OOO<span class="change-x">O</span></td>
-<td class="bg-auto-on">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:16 수마레 → 수마레 바이올렛 OFF</td>
-<td>OOO<span class="change-x">X</span><span class="change-x">X</span></td>
 <td class="">ON</td>
 </tr>
 </tbody>
@@ -1867,6 +1849,82 @@
 </colgroup>
 <thead>
 <tr>
+<th class="header-link" colspan="6"><a href="https://www.youtube.com/watch?v=b3ERjXkPZOc" target="_blank">【プリコネR】4段階目トライロッカー　物理（水）2億6800万【8月クランバトル】</a></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="img-td"><img alt="4.1" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/4.1.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%9C%A0%EB%8B%885.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%AF%B8%EB%AF%B85.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%8E%98%EC%BD%946.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A3%A8%EC%B9%B45.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%A6%88%EB%A3%A85.png"/></td>
+</tr>
+<tr>
+<td>26800</td>
+<td>윈유니</td><td>수미미</td><td>수페코</td><td>수루카</td><td>수즈루</td>
+</tr>
+<tr>
+<td class="th-label">⭐</td>
+<td>5</td><td>5</td><td>6</td><td>5</td><td>5</td>
+</tr>
+<tr>
+<td class="th-label">RANK</td>
+<td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">TP 3.4</td>
+<td>Set</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:30 OOOOO 오토X</td>
+<td>OOOOO</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:19 수페코 → 수페코 OFF</td>
+<td>OO<span class="change-x">X</span>OO</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">1:06 윈유니 → 수페코 SET</td>
+<td>OO<span class="change-x">O</span>OO</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:52 수페코 → 수루카 수페코 OFF</td>
+<td>OO<span class="change-x">X</span><span class="change-x">X</span>O</td>
+<td class="">OFF</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:48 윈유니 → 수페코 SET 오토 ON</td>
+<td>OO<span class="change-x">O</span>XO</td>
+<td class="bg-auto-on">ON</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:44 수루카 → 수루카 SET</td>
+<td>OOO<span class="change-x">O</span>O</td>
+<td class="">ON</td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">0:27 수루카 → 수루카 OFF</td>
+<td>OOO<span class="change-x">X</span>O</td>
+<td class="">ON</td>
+</tr>
+</tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+<colgroup>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+<col style="width: 16.66%;"/>
+</colgroup>
+<thead>
+<tr>
 <th class="header-link" colspan="6"><a href="https://www.youtube.com/watch?v=TP5Dsa8K2e4" target="_blank">【プリコネR】4段階目トライロッカー　魔法（水）2億5600万【8月クランバトル】</a></th>
 </tr>
 </thead>
@@ -1954,82 +2012,6 @@
 <tr>
 <td class="text-left" colspan="4">소네 → 수니논 SET</td>
 <td>OO<span class="change-x">O</span>OO</td>
-<td class="">ON</td>
-</tr>
-</tbody>
-</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
-<colgroup>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-<col style="width: 16.66%;"/>
-</colgroup>
-<thead>
-<tr>
-<th class="header-link" colspan="6"><a href="https://www.youtube.com/watch?v=b3ERjXkPZOc" target="_blank">【プリコネR】4段階目トライロッカー　物理（水）2億6800万【8月クランバトル】</a></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="img-td"><img alt="4.1" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/4.1.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%9C%A0%EB%8B%885.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%AF%B8%EB%AF%B85.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%8E%98%EC%BD%946.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A3%A8%EC%B9%B45.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%A6%88%EB%A3%A85.png"/></td>
-</tr>
-<tr>
-<td>26800</td>
-<td>윈유니</td><td>수미미</td><td>수페코</td><td>수루카</td><td>수즈루</td>
-</tr>
-<tr>
-<td class="th-label">⭐</td>
-<td>5</td><td>5</td><td>6</td><td>5</td><td>5</td>
-</tr>
-<tr>
-<td class="th-label">RANK</td>
-<td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">TP 3.4</td>
-<td>Set</td>
-<td>Auto</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:30 OOOOO 오토X</td>
-<td>OOOOO</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:19 수페코 → 수페코 OFF</td>
-<td>OO<span class="change-x">X</span>OO</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">1:06 윈유니 → 수페코 SET</td>
-<td>OO<span class="change-x">O</span>OO</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:52 수페코 → 수루카 수페코 OFF</td>
-<td>OO<span class="change-x">X</span><span class="change-x">X</span>O</td>
-<td class="">OFF</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:48 윈유니 → 수페코 SET 오토 ON</td>
-<td>OO<span class="change-x">O</span>XO</td>
-<td class="bg-auto-on">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:44 수루카 → 수루카 SET</td>
-<td>OOO<span class="change-x">O</span>O</td>
-<td class="">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4">0:27 수루카 → 수루카 OFF</td>
-<td>OOO<span class="change-x">X</span>O</td>
 <td class="">ON</td>
 </tr>
 </tbody>
@@ -2199,7 +2181,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-2">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/10.png"/>
 </div>
@@ -3543,7 +3524,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-3">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/11.png"/>
 </div>
@@ -4982,7 +4962,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-4">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/12.png"/>
 </div>
@@ -6324,7 +6303,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-5">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/1.png"/>
 </div>
@@ -7597,7 +7575,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-6">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/2.png"/>
 </div>
@@ -8824,7 +8801,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-7">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/3.png"/>
 </div>
@@ -10455,7 +10431,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-8">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/4.png"/>
 </div>
@@ -12684,7 +12659,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-9">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/5.png"/>
 </div>
@@ -14104,7 +14078,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-10">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/6.png"/>
 </div>
@@ -15806,7 +15779,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-11">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/7.png"/>
 </div>
@@ -17570,7 +17542,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-12">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/8.png"/>
 </div>
@@ -19352,7 +19323,6 @@
 </tr>
 </tbody>
 </table></div></div></section></div><div class="tab-content" id="tab-page-13">
-<!-- 본문 영역 최상단 대문 이미지 배너 (Card 너비 맞춤) -->
 <div class="header-banner" id="main-header-banner" style="display: block;">
 <img alt="대문 이미지" id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/9.png"/>
 </div>
@@ -21593,10 +21563,8 @@
 </tbody>
 </table></div></div></section></div></div>
 </main>
-<!-- 관리자 도구 -->
-<!-- 보스 선택 모달 레이어 -->
-<!-- 대문 이미지 선택 모달 레이어 -->
 <script>
+        const STORAGE_KEY = 'auto_save_page_data';
         const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
         const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
 
@@ -21615,8 +21583,126 @@
         let recentBosses = [];
         let targetBossTd = null;
 
+        function saveToLocalStorage() {
+            const container = document.getElementById('content-container');
+            if (container) {
+                localStorage.setItem(STORAGE_KEY, container.innerHTML);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                loadPageFromFile(savedData);
+                return true;
+            }
+            return false;
+        }
+
+        function clearLocalStorage() {
+            if (confirm('자동 저장된 데이터를 삭제하고 초기화하시겠습니까?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // PointerEvent 기반 드래그 앤 드롭
+        let activeDragElement = null;
+        let autoScrollInterval = null;
+        let currentClientY = 0;
+
+        function bindDraggable(element, handle) {
+            handle.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+
+                activeDragElement = element;
+                element.classList.add('dragging');
+                handle.setPointerCapture(e.pointerId);
+
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp, { once: true });
+                window.addEventListener('pointercancel', onPointerUp, { once: true });
+
+                startAutoScrollLoop();
+            });
+        }
+
+        function onPointerMove(e) {
+            if (!activeDragElement) return;
+            currentClientY = e.clientY;
+
+            const container = document.getElementById('content-container');
+            const siblings = [...container.querySelectorAll('.card:not(.dragging), .boss-divider:not(.dragging)')];
+            
+            const nextSibling = siblings.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = e.clientY - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+
+            if (nextSibling) {
+                container.insertBefore(activeDragElement, nextSibling);
+            } else {
+                container.appendChild(activeDragElement);
+            }
+        }
+
+        function onPointerUp(e) {
+            if (!activeDragElement) return;
+
+            activeDragElement.classList.remove('dragging');
+            activeDragElement = null;
+
+            window.removeEventListener('pointermove', onPointerMove);
+            stopAutoScrollLoop();
+            saveToLocalStorage();
+        }
+
+        function startAutoScrollLoop() {
+            if (autoScrollInterval) return;
+
+            autoScrollInterval = setInterval(() => {
+                if (!activeDragElement) return;
+
+                const threshold = 120;
+                const scrollSpeed = 15;
+
+                if (currentClientY > 0 && currentClientY < threshold) {
+                    window.scrollBy(0, -scrollSpeed);
+                } else if (currentClientY > 0 && (window.innerHeight - currentClientY) < threshold) {
+                    window.scrollBy(0, scrollSpeed);
+                }
+            }, 16);
+        }
+
+        function stopAutoScrollLoop() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initModals();
+            
+            const loaded = loadFromLocalStorage();
+            if (!loaded) {
+                const tables = document.querySelectorAll('.output-table');
+                tables.forEach(table => attachBossClickToTable(table));
+            }
+
+            const targetContainer = document.getElementById('content-container');
+            const observer = new MutationObserver(() => {
+                saveToLocalStorage();
+            });
+            observer.observe(targetContainer, { childList: true, subtree: true, characterData: true });
+        });
+
         function initModals() {
-            // 보스 선택 모달 초기화
             const bossContainer = document.getElementById('boss-grid-container');
             bossContainer.innerHTML = '';
             bossList.forEach(boss => {
@@ -21627,7 +21713,6 @@
                 bossContainer.appendChild(item);
             });
 
-            // 대문 이미지 모달 초기화
             const headerContainer = document.getElementById('header-grid-container');
             headerContainer.innerHTML = '';
             headerList.forEach(header => {
@@ -21661,7 +21746,6 @@
             });
         }
 
-        // --- 보스 모달 함수 ---
         function openBossModal(element) {
             targetBossTd = element;
             renderRecentBosses();
@@ -21687,9 +21771,9 @@
             }
 
             closeBossModal();
+            saveToLocalStorage();
         }
 
-        // --- 대문 이미지 모달 및 관리 함수 ---
         function openHeaderModal() {
             document.getElementById('header-modal').style.display = 'flex';
         }
@@ -21706,6 +21790,7 @@
             bannerWrapper.style.display = 'block';
 
             closeHeaderModal();
+            saveToLocalStorage();
         }
 
         function removeHeaderBanner() {
@@ -21713,6 +21798,7 @@
             const bannerImg = document.getElementById('header-banner-img');
             bannerImg.src = '';
             bannerWrapper.style.display = 'none';
+            saveToLocalStorage();
         }
 
         function attachBossClickToTable(table) {
@@ -21728,15 +21814,6 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            initModals();
-            const tables = document.querySelectorAll('.output-table');
-            tables.forEach(table => attachBossClickToTable(table));
-        });
-
-        // ==========================================
-        // 관리자 도구 기능
-        // ==========================================
         function toggleAdminPanel() {
             document.getElementById('admin-panel-root').classList.toggle('open');
         }
@@ -21756,6 +21833,10 @@
             const tools = document.createElement('div');
             tools.className = 'card-tools';
 
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'card-btn drag-handle';
+            dragHandle.textContent = '≡ 이동';
+
             const spaceBtn = document.createElement('button');
             spaceBtn.className = 'card-btn add-space-btn';
             spaceBtn.textContent = '+ 구분선';
@@ -21766,8 +21847,12 @@
             const delBtn = document.createElement('button');
             delBtn.className = 'card-btn delete-btn';
             delBtn.textContent = '✕ 삭제';
-            delBtn.onclick = function() { section.remove(); };
+            delBtn.onclick = function() { 
+                section.remove(); 
+                saveToLocalStorage();
+            };
 
+            tools.appendChild(dragHandle);
             tools.appendChild(spaceBtn);
             tools.appendChild(delBtn);
             section.appendChild(tools);
@@ -21779,6 +21864,8 @@
             body.appendChild(responsive);
             section.appendChild(body);
             
+            bindDraggable(section, dragHandle);
+
             document.getElementById('content-container').appendChild(section);
             return responsive;
         }
@@ -21787,13 +21874,27 @@
             const divider = document.createElement('div');
             divider.className = 'boss-divider';
 
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'card-btn drag-handle';
+            dragHandle.style.position = 'absolute';
+            dragHandle.style.left = '10px';
+            dragHandle.textContent = '≡ 이동';
+
             const delBtn = document.createElement('button');
             delBtn.className = 'divider-delete-btn';
             delBtn.textContent = '구분선 삭제 ✕';
-            delBtn.onclick = function() { divider.remove(); };
+            delBtn.onclick = function() { 
+                divider.remove(); 
+                saveToLocalStorage();
+            };
+
+            divider.appendChild(dragHandle);
             divider.appendChild(delBtn);
 
+            bindDraggable(divider, dragHandle);
+
             targetCard.after(divider);
+            saveToLocalStorage();
         }
 
         function addGuideTable() {
@@ -21835,9 +21936,9 @@
             textarea.value = '';
             statusEl.textContent = `테이블 ${addedCount}개를 추가했습니다.`;
             statusEl.className = 'admin-status success';
+            saveToLocalStorage();
         }
 
-        // --- HTML 파일 불러오기 및 데이터 재복원 기능 ---
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -21845,7 +21946,6 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 loadPageFromFile(e.target.result);
-                // 파일 선택 초기화 (동일 파일 재선택 허용)
                 event.target.value = '';
             };
             reader.readAsText(file);
@@ -21856,14 +21956,9 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
 
-            const newContent = doc.querySelector('#content-container');
-            if (!newContent) {
-                statusEl.textContent = '올바른 페이지 파일 구조가 아닙니다.';
-                statusEl.className = 'admin-status error';
-                return;
-            }
+            const newContent = doc.querySelector('#content-container') || doc.body;
+            if (!newContent) return;
 
-            // 1. 대문 배너 복원
             const fileHeaderBanner = newContent.querySelector('#main-header-banner img');
             const currentBanner = document.getElementById('main-header-banner');
             const currentBannerImg = document.getElementById('header-banner-img');
@@ -21876,24 +21971,31 @@
                 currentBanner.style.display = 'none';
             }
 
-            // 2. 기존 카드/구분선 삭제 후 불러온 요소로 교체
             const currentContainer = document.getElementById('content-container');
             currentContainer.querySelectorAll('.card, .boss-divider').forEach(el => el.remove());
 
-            // 3. 요소 복구 및 편집 도구/이벤트 재연결
             const loadedNodes = newContent.children;
             let loadedCardsCount = 0;
 
             Array.from(loadedNodes).forEach(node => {
-                if (node.id === 'main-header-banner') return; // 배너는 위에서 처리함
+                if (node.id === 'main-header-banner') return;
 
                 const importedNode = document.importNode(node, true);
 
-                // 카드 복원 시 상단 관리 도구 버튼 재배치
                 if (importedNode.classList.contains('card')) {
                     loadedCardsCount++;
-                    const tools = document.createElement('div');
-                    tools.className = 'card-tools';
+                    
+                    let tools = importedNode.querySelector('.card-tools');
+                    if (!tools) {
+                        tools = document.createElement('div');
+                        tools.className = 'card-tools';
+                        importedNode.insertBefore(tools, importedNode.firstChild);
+                    }
+                    tools.innerHTML = '';
+
+                    const dragHandle = document.createElement('span');
+                    dragHandle.className = 'card-btn drag-handle';
+                    dragHandle.textContent = '≡ 이동';
 
                     const spaceBtn = document.createElement('button');
                     spaceBtn.className = 'card-btn add-space-btn';
@@ -21903,31 +22005,52 @@
                     const delBtn = document.createElement('button');
                     delBtn.className = 'card-btn delete-btn';
                     delBtn.textContent = '✕ 삭제';
-                    delBtn.onclick = function() { importedNode.remove(); };
+                    delBtn.onclick = function() { 
+                        importedNode.remove(); 
+                        saveToLocalStorage();
+                    };
 
+                    tools.appendChild(dragHandle);
                     tools.appendChild(spaceBtn);
                     tools.appendChild(delBtn);
-                    importedNode.insertBefore(tools, importedNode.firstChild);
 
-                    // 테이블 내 보스 이벤트 재연결
+                    bindDraggable(importedNode, dragHandle);
+
                     const table = importedNode.querySelector('.output-table');
                     if (table) attachBossClickToTable(table);
                 }
 
-                // 구분선 복원 시 삭제 버튼 재배치
                 if (importedNode.classList.contains('boss-divider')) {
+                    importedNode.innerHTML = '';
+
+                    const dragHandle = document.createElement('span');
+                    dragHandle.className = 'card-btn drag-handle';
+                    dragHandle.style.position = 'absolute';
+                    dragHandle.style.left = '10px';
+                    dragHandle.textContent = '≡ 이동';
+
                     const delBtn = document.createElement('button');
                     delBtn.className = 'divider-delete-btn';
                     delBtn.textContent = '구분선 삭제 ✕';
-                    delBtn.onclick = function() { importedNode.remove(); };
+                    delBtn.onclick = function() { 
+                        importedNode.remove(); 
+                        saveToLocalStorage();
+                    };
+
+                    importedNode.appendChild(dragHandle);
                     importedNode.appendChild(delBtn);
+
+                    bindDraggable(importedNode, dragHandle);
                 }
 
                 currentContainer.appendChild(importedNode);
             });
 
-            statusEl.textContent = `파일을 성공적으로 불러왔습니다. (${loadedCardsCount}개 카드 복원)`;
-            statusEl.className = 'admin-status success';
+            if (statusEl) {
+                statusEl.textContent = `데이터를 로드했습니다. (${loadedCardsCount}개 카드 복원)`;
+                statusEl.className = 'admin-status success';
+            }
+            saveToLocalStorage();
         }
 
         function downloadPage() {
@@ -21935,7 +22058,6 @@
             const parser = new DOMParser();
             const cloneDoc = parser.parseFromString(rawHtml, 'text/html');
 
-            // 1. 관리자 요소 제거
             const panel = cloneDoc.querySelector('#admin-panel-root');
             if (panel) panel.remove();
             const toggleBtn = cloneDoc.querySelector('#admin-toggle-btn');
@@ -21945,10 +22067,12 @@
             const headerModal = cloneDoc.querySelector('#header-modal');
             if (headerModal) headerModal.remove();
 
-            // 2. 대문 툴바, 카드 툴바 및 구분선 삭제 버튼 제거
-            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn').forEach(btn => btn.remove());
+            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn, .drag-handle').forEach(btn => btn.remove());
 
-            // 3. 보스 이미지 클릭 이벤트 무력화
+            cloneDoc.querySelectorAll('.card, .boss-divider').forEach(el => {
+                el.removeAttribute('draggable');
+            });
+
             cloneDoc.querySelectorAll('.output-table').forEach(table => {
                 const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
                 if (firstImgTd) {
@@ -21973,45 +22097,7 @@
             URL.revokeObjectURL(url);
         }
     </script>
-<!-- Code injected by live-server -->
 <script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
-<whale-quicksearch style="visibility: visible;" translate="no"></whale-quicksearch><script>
         const BASE_SECONDS = 90;
         
         function toggleCustomDropdown(e) {
