@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프리코네 공략 작업 도구 모음</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f8fafc;
+  }
+  body { display: flex; flex-direction: column; }
+
+  .toolbar {
+    flex-shrink: 0;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 10px 16px 0 16px;
+  }
+  .row {
+    display: flex;
+    gap: 6px;
+    padding-bottom: 8px;
+  }
+  .row + .row { padding-top: 2px; }
+
+  .type-btn, .stage-btn {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+    background: #eef1f5;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .type-btn:hover, .stage-btn:hover { background: #e2e8f0; color: #334155; }
+  .type-btn.active, .stage-btn.active {
+    background: #4f46e5;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .current-file {
+    margin-left: auto;
+    align-self: center;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    padding-bottom: 8px;
+    white-space: nowrap;
+  }
+
+  .frame-wrap {
+    flex: 1 1 auto;
+    position: relative;
+    background: #ffffff;
+  }
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .frame-error {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px;
+    text-align: center;
+    color: #475569;
+    font-size: 0.9rem;
+  }
+  .frame-error.show { display: flex; }
+  .frame-error code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div class="row" id="typeRow"></div>
+    <div class="row">
+      <div id="stageRow" style="display:flex; gap:6px;"></div>
+      <div class="current-file" id="currentFile"></div>
+    </div>
+  </div>
+
+  <div class="frame-wrap">
+    <iframe id="toolFrame" title="작업 도구"></iframe>
+    <div class="frame-error" id="frameError">
+      <div>⚠️ 파일을 불러오지 못했어요.</div>
+      <div>이 파일(<code>작업도구모음.html</code>)이 나머지 6개 파일과 <b>같은 폴더</b>에 있는지 확인해주세요.</div>
+    </div>
+  </div>
+
+<script>
+  // 종류별 · 단계별 파일 매핑 (파일명은 절대 건드리지 않고 그대로 iframe으로 불러옴)
+  const FILES = {
+    semi:  { label: '세미오토',   input: '세미오토택틱입력기.html',   publish: '세미오토웹게시페이지작성.html' },
+    full:  { label: '풀오토',     input: '풀오토입력기.html',         publish: '풀오토웹게시페이지작성.html' },
+    abyss: { label: '심연토벌전', input: '심토입력기.html',           publish: '심토웹게시페이지작성.html' },
+  };
+  const TYPE_ORDER = ['semi', 'full', 'abyss'];
+  const STAGES = [
+    { key: 'input',   label: '① 입력기' },
+    { key: 'publish', label: '② 웹게시 페이지 작성' },
+  ];
+
+  const typeRow = document.getElementById('typeRow');
+  const stageRow = document.getElementById('stageRow');
+  const frame = document.getElementById('toolFrame');
+  const frameError = document.getElementById('frameError');
+  const currentFileLabel = document.getElementById('currentFile');
+
+  let state = {
+    type: localStorage.getItem('lastType') || 'semi',
+    stage: localStorage.getItem('lastStage') || 'input',
+  };
+
+  function render() {
+    // 상위: 종류
+    typeRow.innerHTML = '';
+    TYPE_ORDER.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'type-btn' + (state.type === key ? ' active' : '');
+      btn.textContent = FILES[key].label;
+      btn.onclick = () => { state.type = key; save(); render(); };
+      typeRow.appendChild(btn);
+    });
+
+    // 하위: 단계
+    stageRow.innerHTML = '';
+    STAGES.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'stage-btn' + (state.stage === s.key ? ' active' : '');
+      btn.textContent = s.label;
+      btn.onclick = () => { state.stage = s.key; save(); render(); };
+      stageRow.appendChild(btn);
+    });
+
+    // iframe 로드 (같은 파일이면 다시 로드하지 않음 — 입력 중이던 내용 보존)
+    const fileName = FILES[state.type][state.stage];
+    if (frame.dataset.current !== fileName) {
+      frameError.classList.remove('show');
+      frame.src = fileName;
+      frame.dataset.current = fileName;
+      frame.onerror = () => frameError.classList.add('show');
+    }
+    currentFileLabel.textContent = fileName;
+  }
+
+  function save() {
+    localStorage.setItem('lastType', state.type);
+    localStorage.setItem('lastStage', state.stage);
+  }
+
+  // 같은 폴더에 없어서 로드 실패한 경우를 대비한 안전장치
+  frame.addEventListener('error', () => frameError.classList.add('show'));
+
+  render();
+</script>
+
+</body>
+</html>

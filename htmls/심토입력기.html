@@ -282,7 +282,7 @@
             <div id="party-section-body">
                 <div style="margin-top: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
                     <label style="margin-bottom: 0; min-width: 80px;">추가할 섹션:</label>
-                    <select id="section-select" style="width: auto; flex: 1;">
+                    <select id="section-select" style="width: auto; flex: 1;" onchange="saveToLocalStorage()">
                         <option value="0">1. 전초퀘스트</option>
                         <option value="1">2. 노말/하드</option>
                         <option value="2">3. 베하/익스</option>
@@ -305,7 +305,7 @@
                             <td><div class="char-img-box"><img id="img-c5" src="" alt="" onerror="handleCharImgError(5)"></div></td>
                         </tr>
                         <tr>
-                            <td><input type="text" id="dmg-input" placeholder="딜량 (예: 24600)"></td>
+                            <td><input type="text" id="dmg-input" placeholder="딜량 (예: 24600)" oninput="saveToLocalStorage()"></td>
                             <td><input type="text" id="c1" placeholder="1번 캐릭터" onfocus="activeCharIndex=1" oninput="updateCharInfo(1)"></td>
                             <td><input type="text" id="c2" placeholder="2번 캐릭터" onfocus="activeCharIndex=2" oninput="updateCharInfo(2)"></td>
                             <td><input type="text" id="c3" placeholder="3번 캐릭터" onfocus="activeCharIndex=3" oninput="updateCharInfo(3)"></td>
@@ -322,16 +322,16 @@
                         </tr>
                         <tr>
                             <th>CR</th>
-                            <td><input type="text" id="cr1" placeholder="0"></td>
-                            <td><input type="text" id="cr2" placeholder="0"></td>
-                            <td><input type="text" id="cr3" placeholder="0"></td>
-                            <td><input type="text" id="cr4" placeholder="0"></td>
-                            <td><input type="text" id="cr5" placeholder="0"></td>
+                            <td><input type="text" id="cr1" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr2" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr3" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr4" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr5" placeholder="0" oninput="saveToLocalStorage()"></td>
                         </tr>
                         <tr>
                             <th>조작</th>
                             <td colspan="5">
-                                <textarea id="operation-input" placeholder="조작 방식 입력 (줄바꿈 가능 예:&#10;1:10 버프&#10;0:55 유이UB)"></textarea>
+                                <textarea id="operation-input" placeholder="조작 방식 입력 (줄바꿈 가능 예:&#10;1:10 버프&#10;0:55 유이UB)" oninput="saveToLocalStorage()"></textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -520,6 +520,7 @@
                     imgEl.style.display = 'none';
                     lblEl.style.display = 'block';
                 }
+                saveToLocalStorage();
             } else if (bossModalTarget === 'batch') {
                 batchSelectedBossSrc = isBlank ? "" : bossUrl;
                 const imgEl = document.getElementById('img-batch-boss');
@@ -796,6 +797,7 @@
                 imgEl.src = '';
                 imgEl.style.display = 'none';
             }
+            saveToLocalStorage();
         }
 
         function handleCharImgError(index) {
@@ -905,6 +907,7 @@
             const btnAdd = document.getElementById('btn-add-party');
             btnAdd.innerText = '➕ 이 조합을 최종 결과에 추가';
             btnAdd.classList.remove('edit-mode');
+            saveToLocalStorage();
         }
 
         function addPartyToResult() {
@@ -979,6 +982,7 @@
             const btnAdd = document.getElementById('btn-add-party');
             btnAdd.innerText = `💾 ${index + 1}번 조합 수정 완료`;
             btnAdd.classList.add('edit-mode');
+            saveToLocalStorage();
 
             const body = document.getElementById('party-section-body');
             if (body.style.display === 'none') togglePartySection();
@@ -1204,18 +1208,38 @@ ${tableInnerHtml}
         }
 
         function saveToLocalStorage() {
+            const currentChars = [];
+            for (let i = 1; i <= 5; i++) {
+                currentChars.push({
+                    name: document.getElementById(`c${i}`).value,
+                    star: document.getElementById(`star${i}`).value,
+                    cr: document.getElementById(`cr${i}`).value
+                });
+            }
+
+            const sectionSelectEl = document.getElementById('section-select');
+
             const state = {
                 guideText: document.getElementById('guide-text').value,
                 guideUrl: document.getElementById('guide-url').value,
                 partyList: partyList,
                 recentBosses: recentBosses,
-                recentChars: recentChars
+                recentChars: recentChars,
+                // 아직 '최종 결과에 추가'하지 않은, 지금 작성 중인 파티/캐릭터 입력 폼
+                currentSectionIndex: sectionSelectEl ? sectionSelectEl.value : undefined,
+                currentSelectedBossName: selectedBossName,
+                currentBossImgSrc: document.getElementById('img-boss').dataset.actualSrc || '',
+                currentBossImgVisible: document.getElementById('img-boss').style.display !== 'none',
+                currentDmg: document.getElementById('dmg-input').value,
+                currentOperation: document.getElementById('operation-input').value,
+                currentChars: currentChars,
+                editingIndex: editingIndex
             };
-            localStorage.setItem('priconne_builder_data', JSON.stringify(state));
+            localStorage.setItem('priconne_abyss_builder_data', JSON.stringify(state));
         }
 
         function loadFromLocalStorage() {
-            const saved = localStorage.getItem('priconne_builder_data');
+            const saved = localStorage.getItem('priconne_abyss_builder_data');
             if (!saved) return;
 
             try {
@@ -1225,6 +1249,38 @@ ${tableInnerHtml}
                 if (state.partyList) partyList = state.partyList;
                 if (state.recentBosses) recentBosses = state.recentBosses;
                 if (state.recentChars) recentChars = state.recentChars;
+
+                // 작성 중이던 파티/캐릭터 입력 폼 복원
+                const sectionSelectEl = document.getElementById('section-select');
+                if (sectionSelectEl && state.currentSectionIndex !== undefined) {
+                    sectionSelectEl.value = state.currentSectionIndex;
+                }
+                if (state.currentSelectedBossName) selectedBossName = state.currentSelectedBossName;
+                if (state.currentBossImgSrc) {
+                    const imgBoss = document.getElementById('img-boss');
+                    const bossLabel = document.getElementById('boss-label');
+                    imgBoss.src = state.currentBossImgSrc;
+                    imgBoss.dataset.actualSrc = state.currentBossImgSrc;
+                    imgBoss.style.display = state.currentBossImgVisible ? 'block' : 'none';
+                    bossLabel.style.display = state.currentBossImgVisible ? 'none' : 'block';
+                }
+                if (state.currentDmg !== undefined) document.getElementById('dmg-input').value = state.currentDmg;
+                if (state.currentOperation !== undefined) document.getElementById('operation-input').value = state.currentOperation;
+                if (state.currentChars) {
+                    state.currentChars.forEach((c, idx) => {
+                        const i = idx + 1;
+                        document.getElementById(`c${i}`).value = c.name || '';
+                        document.getElementById(`star${i}`).value = c.star || '5';
+                        document.getElementById(`cr${i}`).value = c.cr || '';
+                        updateCharInfo(i);
+                    });
+                }
+                if (typeof state.editingIndex === 'number' && state.editingIndex >= 0) {
+                    editingIndex = state.editingIndex;
+                    const btnAdd = document.getElementById('btn-add-party');
+                    btnAdd.innerText = `💾 ${editingIndex + 1}번 조합 수정 완료`;
+                    btnAdd.classList.add('edit-mode');
+                }
 
                 renderRecentBosses();
                 renderRecentCharTags();
@@ -1322,7 +1378,7 @@ ${tableInnerHtml}
 
         function resetAllData() {
             if (confirm('공략 설정, 추가된 조합, 최근 사용 데이터 및 저장된 모든 데이터가 초기화됩니다.\n정말 초기화하시겠습니까?')) {
-                localStorage.removeItem('priconne_builder_data');
+                localStorage.removeItem('priconne_abyss_builder_data');
 
                 document.getElementById('guide-text').value = '';
                 document.getElementById('guide-url').value = '';

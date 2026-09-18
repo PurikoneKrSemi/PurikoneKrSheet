@@ -295,7 +295,7 @@
                             <td><div class="char-img-box"><img id="img-c5" src="" alt="" onerror="handleCharImgError(5)"></div></td>
                         </tr>
                         <tr>
-                            <td><input type="text" id="dmg-input" placeholder="딜량 (예: 24600)"></td>
+                            <td><input type="text" id="dmg-input" placeholder="딜량 (예: 24600)" oninput="saveToLocalStorage()"></td>
                             <td><input type="text" id="c1" placeholder="1번 캐릭터" onfocus="activeCharIndex=1" oninput="updateCharInfo(1)"></td>
                             <td><input type="text" id="c2" placeholder="2번 캐릭터" onfocus="activeCharIndex=2" oninput="updateCharInfo(2)"></td>
                             <td><input type="text" id="c3" placeholder="3번 캐릭터" onfocus="activeCharIndex=3" oninput="updateCharInfo(3)"></td>
@@ -313,16 +313,16 @@
                         <!-- CR 입력 행 추가 -->
                         <tr>
                             <th>CR</th>
-                            <td><input type="text" id="cr1" placeholder="0"></td>
-                            <td><input type="text" id="cr2" placeholder="0"></td>
-                            <td><input type="text" id="cr3" placeholder="0"></td>
-                            <td><input type="text" id="cr4" placeholder="0"></td>
-                            <td><input type="text" id="cr5" placeholder="0"></td>
+                            <td><input type="text" id="cr1" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr2" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr3" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr4" placeholder="0" oninput="saveToLocalStorage()"></td>
+                            <td><input type="text" id="cr5" placeholder="0" oninput="saveToLocalStorage()"></td>
                         </tr>
                         <tr>
                             <th>조작</th>
                             <td colspan="5">
-                                <textarea id="operation-input" placeholder="조작 방식 입력 (줄바꿈 가능 예:&#10;1:10 버프&#10;0:55 유이UB)"></textarea>
+                                <textarea id="operation-input" placeholder="조작 방식 입력 (줄바꿈 가능 예:&#10;1:10 버프&#10;0:55 유이UB)" oninput="saveToLocalStorage()"></textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -504,6 +504,7 @@
                     imgEl.style.display = 'none';
                     lblEl.style.display = 'block';
                 }
+                saveToLocalStorage();
             } else if (bossModalTarget === 'batch') {
                 batchSelectedBossSrc = isBlank ? "" : bossUrl;
                 const imgEl = document.getElementById('img-batch-boss');
@@ -784,6 +785,7 @@
                 imgEl.src = '';
                 imgEl.style.display = 'none';
             }
+            saveToLocalStorage();
         }
 
         function handleCharImgError(index) {
@@ -888,6 +890,7 @@
             const btnAdd = document.getElementById('btn-add-party');
             btnAdd.innerText = '➕ 이 조합을 최종 결과에 추가';
             btnAdd.classList.remove('edit-mode');
+            saveToLocalStorage();
         }
 
         function addPartyToResult() {
@@ -958,6 +961,7 @@
             const btnAdd = document.getElementById('btn-add-party');
             btnAdd.innerText = `💾 ${index + 1}번 조합 수정 완료`;
             btnAdd.classList.add('edit-mode');
+            saveToLocalStorage();
 
             const body = document.getElementById('party-section-body');
             if (body.style.display === 'none') togglePartySection();
@@ -1130,19 +1134,35 @@
 
         // [추가] 1. 상태를 로컬스토리지에 저장하는 함수
         function saveToLocalStorage() {
+            const currentChars = [];
+            for (let i = 1; i <= 5; i++) {
+                currentChars.push({
+                    name: document.getElementById(`c${i}`).value,
+                    star: document.getElementById(`star${i}`).value,
+                    cr: document.getElementById(`cr${i}`).value
+                });
+            }
+
             const state = {
                 guideText: document.getElementById('guide-text').value,
                 guideUrl: document.getElementById('guide-url').value,
                 partyList: partyList,
                 recentBosses: recentBosses,
-                recentChars: recentChars
+                recentChars: recentChars,
+                // 아직 '최종 결과에 추가'하지 않은, 지금 작성 중인 파티/캐릭터 입력 폼
+                currentBossImgSrc: document.getElementById('img-boss').src,
+                currentBossImgVisible: document.getElementById('img-boss').style.display !== 'none',
+                currentDmg: document.getElementById('dmg-input').value,
+                currentOperation: document.getElementById('operation-input').value,
+                currentChars: currentChars,
+                editingIndex: editingIndex
             };
-            localStorage.setItem('priconne_builder_data', JSON.stringify(state));
+            localStorage.setItem('priconne_full_auto_builder_data', JSON.stringify(state));
         }
 
         // [추가] 2. 로컬스토리지에서 데이터를 불러오는 함수
         function loadFromLocalStorage() {
-            const saved = localStorage.getItem('priconne_builder_data');
+            const saved = localStorage.getItem('priconne_full_auto_builder_data');
             if (!saved) return;
 
             try {
@@ -1152,6 +1172,32 @@
                 if (state.partyList) partyList = state.partyList;
                 if (state.recentBosses) recentBosses = state.recentBosses;
                 if (state.recentChars) recentChars = state.recentChars;
+
+                // 작성 중이던 파티/캐릭터 입력 폼 복원
+                if (state.currentBossImgSrc) {
+                    const imgBoss = document.getElementById('img-boss');
+                    const bossLabel = document.getElementById('boss-label');
+                    imgBoss.src = state.currentBossImgSrc;
+                    imgBoss.style.display = state.currentBossImgVisible ? 'block' : 'none';
+                    bossLabel.style.display = state.currentBossImgVisible ? 'none' : 'block';
+                }
+                if (state.currentDmg !== undefined) document.getElementById('dmg-input').value = state.currentDmg;
+                if (state.currentOperation !== undefined) document.getElementById('operation-input').value = state.currentOperation;
+                if (state.currentChars) {
+                    state.currentChars.forEach((c, idx) => {
+                        const i = idx + 1;
+                        document.getElementById(`c${i}`).value = c.name || '';
+                        document.getElementById(`star${i}`).value = c.star || '5';
+                        document.getElementById(`cr${i}`).value = c.cr || '';
+                        updateCharInfo(i);
+                    });
+                }
+                if (typeof state.editingIndex === 'number' && state.editingIndex >= 0) {
+                    editingIndex = state.editingIndex;
+                    const btnAdd = document.getElementById('btn-add-party');
+                    btnAdd.innerText = `💾 ${editingIndex + 1}번 조합 수정 완료`;
+                    btnAdd.classList.add('edit-mode');
+                }
 
                 renderRecentBosses();
                 renderRecentCharTags();
@@ -1218,7 +1264,7 @@ saveToLocalStorage();
 function resetAllData() {
     if (confirm('공략 설정, 추가된 조합, 최근 사용 데이터 및 저장된 모든 데이터가 초기화됩니다.\n정말 초기화하시겠습니까?')) {
         // 1. LocalStorage 삭제
-        localStorage.removeItem('priconne_builder_data');
+        localStorage.removeItem('priconne_full_auto_builder_data');
 
         // 2. 입력 폼 및 메인 변수 초기화
         document.getElementById('guide-text').value = '';
