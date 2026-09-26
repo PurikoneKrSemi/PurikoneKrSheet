@@ -321,7 +321,12 @@
                             <td><input type="text" id="star5" value="5" oninput="updateCharInfo(5)"></td>
                         </tr>
                         <tr>
-                            <th>CR</th>
+                            <th>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                    <span>CR</span>
+                                    <button type="button" id="spBtn" onmousedown="addSP(event)" style="font-size: 10px; padding: 2px 4px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; border-radius: 4px;">SP추가</button>
+                                </div>
+                            </th>
                             <td><input type="text" id="cr1" placeholder="0" oninput="saveToLocalStorage()"></td>
                             <td><input type="text" id="cr2" placeholder="0" oninput="saveToLocalStorage()"></td>
                             <td><input type="text" id="cr3" placeholder="0" oninput="saveToLocalStorage()"></td>
@@ -1414,6 +1419,20 @@ ${tableInnerHtml}
         initBossModal();
         loadFromLocalStorage();
         renderFinalPreview();
+    </script>
+    <script>
+        function addSP(e) {
+  // 클릭 순간 버튼으로 포커스가 넘어가는 것 방지 (중요!)
+  if (e) e.preventDefault();
+
+  const focused = document.activeElement;
+
+  if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
+    focused.value += 'SP';
+  } else if (focused && focused.isContentEditable) {
+    focused.innerText += 'SP';
+  }
+}
     </script>
 </body>
 </html>

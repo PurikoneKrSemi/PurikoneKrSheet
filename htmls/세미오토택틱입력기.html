@@ -264,7 +264,12 @@
                             <td><input type="text" id="rank5" value="42"></td>
                         </tr>
                         <tr>
-                            <th>CR</th>
+                            <th>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                    <span>CR</span>
+                                    <button type="button" id="spBtn" onmousedown="addSP(event)" style="font-size: 10px; padding: 2px 4px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; border-radius: 4px;">SP추가</button>
+                                </div>
+                            </th>
                             <td><input type="text" id="cr1" value="15"></td>
                             <td><input type="text" id="cr2" value="15"></td>
                             <td><input type="text" id="cr3" value="15"></td>
@@ -283,13 +288,20 @@
         <!-- 2. 입력 및 클릭 패널 -->
         <div class="card" style="margin-bottom: 0;">
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <div style="width: 120px;">
+                <div style="width: 100px;">
                     <label>시간</label>
                     <input type="text" id="time-input" placeholder="118 (-> 1:18)" style="text-align: left;">
                 </div>
+                <div style="width: 130px;">
+                    <label>시작 (→ 왼쪽)</label>
+                    <input type="text" id="start-char-input" placeholder="예: 서로체" style="text-align: left;">
+                </div>
                 <div style="flex: 1;">
-                    <label>행동 설명 (입력 시 OX 자동 반영)</label>
-                    <input type="text" id="action-input" placeholder="예: 윈카나 → 바세피 SET" oninput="autoParseText()" style="text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label id="action-input-label">행동 설명 (→ 오른쪽, 입력 시 OX 자동 반영)</label>
+                        <button type="button" id="reverse-mode-btn" class="btn-toggle-card" onclick="toggleReverseInputMode()">↔ 반대로 입력</button>
+                    </div>
+                    <input type="text" id="action-input" placeholder="예: 알조미 알네카 SET 알리스 OFF 오토 OFF" oninput="handleActionInput()" style="text-align: left;">
                 </div>
             </div>
 
@@ -314,6 +326,8 @@
                     <button class="btn-kw" onclick="addText('오토 OFF')">오토 OFF</button>
                     <button class="btn-kw" onclick="addText('※')">※</button>
                     <button class="btn-kw" onclick="addText('보스')">보스</button>
+                    <button class="btn-kw" onclick="addText('O')">O</button>
+                    <button class="btn-kw" onclick="addText('X')">X</button>
                 </div>
             </div>
 
@@ -352,6 +366,7 @@
             <label style="font-size: 15px; color: #111827; margin-bottom: 0;">작성 중 타임라인 목록</label>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-copy" onclick="copyToClipboard()">HTML 복사</button>
+                <button style="background:#2563eb; color:white;" onclick="openHTMLImportModal()">완성 HTML 붙여넣기</button>
                 <button style="background:#ef4444; color:white;" onclick="clearAll()">전체 삭제</button>
             </div>
         </div>
@@ -381,6 +396,28 @@
         <div id="final-html-container"></div>
     </div>
 
+    <!-- 완성 HTML 붙여넣기 모달 -->
+    <div class="modal-overlay" id="html-import-modal" onclick="closeHTMLImportModal(event)">
+        <div class="modal-content" style="width:min(900px, 92vw);" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size:18px;">완성 HTML 붙여넣기</h3>
+                <button onclick="closeHTMLImportModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
+            </div>
+            <p style="margin:0 0 8px; color:var(--text-muted); font-size:13px;">
+                완성된 웹페이지의 HTML을 그대로 붙여넣으세요. 여러 공략이 들어 있어도 <code>.output-table</code>을 찾아 원하는 공략을 선택할 수 있습니다.
+            </p>
+            <textarea id="html-import-textarea" rows="14" style="width:100%; box-sizing:border-box; resize:vertical; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border-color); border-radius:6px;" placeholder="완성된 HTML 코드를 여기에 붙여넣으세요."></textarea>
+            <div id="html-import-selection" style="display:none; margin-top:10px;">
+                <label style="display:block; margin-bottom:6px;">불러올 공략 선택</label>
+                <select id="html-import-table-select" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;"></select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+                <button type="button" style="background:#6b7280; color:white;" onclick="closeHTMLImportModal()">취소</button>
+                <button type="button" style="background:#2563eb; color:white;" onclick="importPastedHTML()">HTML 분석 및 불러오기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 보스 이미지 선택 모달 창 -->
     <div class="modal-overlay" id="boss-modal" onclick="closeBossModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -396,6 +433,7 @@
     <script>
         let editingRow = null;
         let selectedBossName = "";
+        let reverseInputMode = false;
 
         const GITHUB_OWNER = "PurikoneKrSemi";
         const GITHUB_REPO = "SemiAutoSheet";
@@ -512,14 +550,53 @@
             renderFinalPreview();
         }
 
-        function addText(text) {
-            const input = document.getElementById('action-input');
-            if (input.value.length > 0 && !input.value.endsWith(' ')) {
-                input.value += ' ';
+        // 마지막으로 포커스했던 입력칸을 기억한다.
+        // 키워드/캐릭터 버튼을 누르면 버튼으로 포커스가 이동할 수 있기 때문에,
+        // 실제로 내용을 입력하던 칸을 기억해 두었다가 그곳에 삽입한다.
+        let lastTextInputId = 'action-input';
+
+        document.addEventListener('focusin', (event) => {
+            const id = event.target?.id;
+            if (id === 'time-input' || id === 'start-char-input' || id === 'action-input') {
+                lastTextInputId = id;
             }
-            input.value += text + ' ';
+        });
+
+        function addText(text) {
+            // 시작 칸을 마지막으로 사용했다면 시작 칸에,
+            // 그 외에는 마지막으로 포커스했던 입력칸에 넣는다.
+            let targetId = lastTextInputId || 'action-input';
+
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const before = input.value.slice(0, start);
+            const after = input.value.slice(end);
+
+            // 단어/키워드 사이가 붙지 않도록 필요한 경우 공백을 자동으로 넣는다.
+            const isOX = ['O', 'X'].includes(text);
+
+            const needsSpaceBefore =
+                before.length > 0 &&
+                !/\s$/.test(before) &&
+                !['→', '※'].includes(text) &&
+                !isOX;
+
+            const insertText =
+                (needsSpaceBefore ? ' ' : '') +
+                text +
+                (isOX ? '' : ' ');
+            input.value = before + insertText + after;
+
+            const cursorPos = before.length + insertText.length;
             input.focus();
-            autoParseText();
+            input.setSelectionRange(cursorPos, cursorPos);
+
+            if (targetId === 'action-input') {
+                handleActionInput();
+            }
         }
 
         function toggleSet(index, forceVal = null) {
@@ -528,6 +605,127 @@
             btn.innerText = targetVal;
             if (targetVal === 'X') btn.classList.add('is-x');
             else btn.classList.remove('is-x');
+        }
+
+        function getCurrentSetStates() {
+            return [0, 1, 2, 3, 4].map(i =>
+                document.getElementById(`st-${i}`).innerText
+            );
+        }
+
+        function setCurrentSetStates(states) {
+            states.forEach((state, index) => toggleSet(index, state));
+        }
+
+        function getPreviousTimelineState() {
+            const rows = document.querySelectorAll('#timeline-table tbody tr');
+
+            // 현재 타임라인의 가장 마지막 정상 행을 기준으로
+            // SET 상태와 Auto 상태를 함께 가져온다.
+            for (let i = rows.length - 1; i >= 0; i--) {
+                const tr = rows[i];
+                if (tr.dataset.rowType !== 'normal') continue;
+
+                const tds = tr.querySelectorAll('td');
+                return {
+                    setStates: [0, 1, 2, 3, 4].map(index =>
+                        tds[3 + index].textContent.trim().toUpperCase()
+                    ),
+                    autoVal: (tds[2]?.textContent.trim().toUpperCase() || 'OFF')
+                };
+            }
+
+            // 정상 행이 아직 없다면 최초 상태는 전원 SET + Auto OFF로 간주한다.
+            return {
+                setStates: ['O', 'O', 'O', 'O', 'O'],
+                autoVal: 'OFF'
+            };
+        }
+
+        // 기존 함수명도 다른 코드에서 사용할 수 있으므로 유지한다.
+        function getPreviousTimelineSetStates() {
+            return getPreviousTimelineState().setStates;
+        }
+
+        function buildReverseAction(prevStates, currentStates) {
+            const chars = [1, 2, 3, 4, 5].map(i =>
+                document.getElementById(`c${i}`).value.trim() || `${i}번`
+            );
+
+            const setNames = [];
+            const offNames = [];
+
+            currentStates.forEach((state, index) => {
+                if (state === prevStates[index]) return;
+
+                if (state === 'O') {
+                    setNames.push(chars[index]);
+                } else {
+                    offNames.push(chars[index]);
+                }
+            });
+
+            const parts = [];
+            if (setNames.length) parts.push(`${setNames.join(' ')} SET`);
+            if (offNames.length) parts.push(`${offNames.join(' ')} OFF`);
+
+            return parts.join(' ');
+        }
+
+        function toggleReverseInputMode() {
+            reverseInputMode = !reverseInputMode;
+
+            const label = document.getElementById('action-input-label');
+            const input = document.getElementById('action-input');
+            const btn = document.getElementById('reverse-mode-btn');
+
+            if (reverseInputMode) {
+                label.innerText = 'SET 상태 (O/X 5글자, 필요하면 오토 ON/OFF도 입력)';
+                input.placeholder = '예: OOOXX 또는 OOOXX 오토 ON';
+                input.removeAttribute('maxLength');
+                input.style.fontFamily = 'monospace';
+                input.style.letterSpacing = '4px';
+                btn.innerText = '↔ 행동 설명 입력';
+                btn.style.background = '#dbeafe';
+                btn.style.color = '#1d4ed8';
+            } else {
+                label.innerText = '행동 설명 (→ 오른쪽, 입력 시 OX 자동 반영)';
+                input.placeholder = '예: 알조미 알네카 SET 알리스 OFF 오토 OFF';
+                input.removeAttribute('maxLength');
+                input.style.fontFamily = '';
+                input.style.letterSpacing = '';
+                btn.innerText = '↔ 반대로 입력';
+                btn.style.background = '';
+                btn.style.color = '';
+            }
+
+            input.value = '';
+            input.focus();
+        }
+
+        function handleActionInput() {
+            if (reverseInputMode) {
+                autoParseReverseSet();
+            } else {
+                autoParseText();
+            }
+        }
+
+        function autoParseReverseSet() {
+            const input = document.getElementById('action-input');
+            const text = input.value;
+
+            // 입력 중 O/X 5글자를 발견하면 아래 SET 버튼을 즉시 갱신한다.
+            const setMatch = text.toUpperCase().match(/[OX]{5}/);
+            if (setMatch) {
+                setCurrentSetStates(setMatch[0].split(''));
+            }
+
+            // 'OOOXX 오토 ON'처럼 SET 상태와 Auto를 한 칸에 함께 입력할 수 있다.
+            const autoMatch = text.match(/오토\s*(ON|OFF)/i);
+            if (autoMatch) {
+                document.getElementById('auto-input').value = autoMatch[1].toUpperCase();
+            }
         }
 
         function formatTimeInput(rawTime) {
@@ -577,10 +775,30 @@
             }
         }
 
+        function getCombinedAction() {
+            const start = document.getElementById('start-char-input').value.trim();
+            const desc = document.getElementById('action-input').value.trim();
+            if (start && desc) return `${start} → ${desc}`;
+            if (start && !desc) return start;
+            return desc;
+        }
+
+        function splitActionIntoFields(storedAction) {
+            const text = storedAction || '';
+            const arrowIdx = text.indexOf('→');
+            if (arrowIdx !== -1) {
+                document.getElementById('start-char-input').value = text.slice(0, arrowIdx).trim();
+                document.getElementById('action-input').value = text.slice(arrowIdx + 1).trim();
+            } else {
+                document.getElementById('start-char-input').value = '';
+                document.getElementById('action-input').value = text;
+            }
+        }
+
         function addEmptyRow() {
             const rawTime = document.getElementById('time-input').value;
             const time = formatTimeInput(rawTime);
-            const action = document.getElementById('action-input').value.trim();
+            const action = getCombinedAction();
             const fullContent = time ? `${time} ${action}` : action;
 
             const tbody = document.querySelector('#timeline-table tbody');
@@ -612,22 +830,67 @@
             recalculateChanges();
 
             document.getElementById('time-input').value = '';
+            document.getElementById('start-char-input').value = '';
             document.getElementById('action-input').value = '';
         }
 
         function addRow() {
             const rawTime = document.getElementById('time-input').value;
             const time = formatTimeInput(rawTime);
-            const action = document.getElementById('action-input').value.trim();
             const autoVal = document.getElementById('auto-input').value;
 
-            if (!action) {
+            let action;
+            let currentSet;
+
+            if (reverseInputMode) {
+                const reverseText = document.getElementById('action-input').value;
+                const setMatch = reverseText.toUpperCase().match(/[OX]{5}/);
+                const setInput = setMatch ? setMatch[0] : '';
+
+                if (!/^[OX]{5}$/.test(setInput)) {
+                    alert('반대로 입력할 때는 SET 상태 O/X 5글자를 입력해주세요.\n필요하면 뒤에 오토 ON 또는 오토 OFF를 함께 입력할 수 있습니다.\n예: OOOXX 오토 ON');
+                    return;
+                }
+
+                currentSet = setInput.split('');
+                setCurrentSetStates(currentSet);
+
+                const prevState = getPreviousTimelineState();
+                const generatedAction = buildReverseAction(
+                    prevState.setStates,
+                    currentSet
+                );
+
+                // SET 상태와 마찬가지로 Auto도 이전 정상 행과 비교한다.
+                // 바뀌었을 때만 "오토 ON/OFF"를 행동 설명에 추가한다.
+                const autoAction =
+                    autoVal !== prevState.autoVal
+                        ? `오토 ${autoVal}`
+                        : '';
+
+                const generatedParts = [];
+                if (generatedAction) generatedParts.push(generatedAction);
+                if (autoAction) generatedParts.push(autoAction);
+
+                action = generatedParts.join(' ');
+
+                const start = document.getElementById('start-char-input').value.trim();
+                if (start && action) {
+                    action = `${start} → ${action}`;
+                } else if (start) {
+                    action = start;
+                }
+            } else {
+                action = getCombinedAction();
+                currentSet = getCurrentSetStates();
+            }
+
+            if (!action && !reverseInputMode) {
                 alert('행동 내용을 입력해주세요.');
                 return;
             }
 
             const fullContent = time ? `${time} ${action}` : action;
-            const currentSet = [0,1,2,3,4].map(i => document.getElementById(`st-${i}`).innerText);
 
             const tbody = document.querySelector('#timeline-table tbody');
             const tr = document.createElement('tr');
@@ -652,8 +915,10 @@
             recalculateChanges();
 
             document.getElementById('time-input').value = '';
+            document.getElementById('start-char-input').value = '';
             document.getElementById('action-input').value = '';
         }
+
 
         function startEdit(btn) {
             editingRow = btn.closest('tr');
@@ -661,10 +926,11 @@
 
             if (editingRow.dataset.rowType === "empty") {
                 document.getElementById('time-input').value = '';
+                document.getElementById('start-char-input').value = '';
                 document.getElementById('action-input').value = '';
             } else {
                 document.getElementById('time-input').value = tds[0].dataset.time || '';
-                document.getElementById('action-input').value = tds[0].dataset.action || '';
+                splitActionIntoFields(tds[0].dataset.action || '');
                 
                 if (editingRow.dataset.rowType === "normal") {
                     document.getElementById('auto-input').value = tds[2].innerText.trim() || 'OFF';
@@ -688,7 +954,7 @@
 
             const rawTime = document.getElementById('time-input').value;
             const time = formatTimeInput(rawTime);
-            const action = document.getElementById('action-input').value.trim();
+            const action = getCombinedAction();
             const autoVal = document.getElementById('auto-input').value;
             const tds = editingRow.querySelectorAll('td');
 
@@ -728,6 +994,7 @@
         function cancelEdit() {
             editingRow = null;
             document.getElementById('time-input').value = '';
+            document.getElementById('start-char-input').value = '';
             document.getElementById('action-input').value = '';
             document.getElementById('add-btn').style.display = 'inline-block';
             document.getElementById('empty-btn').style.display = 'inline-block';
@@ -1049,6 +1316,344 @@
             }
         }
 
+        // 완성된 HTML을 텍스트로 붙여넣어 불러온다.
+        let pastedHTMLTables = [];
+
+        function openHTMLImportModal() {
+            document.getElementById('html-import-modal').style.display = 'flex';
+            document.getElementById('html-import-textarea').focus();
+        }
+
+        function closeHTMLImportModal(e) {
+            if (e && e.target !== document.getElementById('html-import-modal')) return;
+            document.getElementById('html-import-modal').style.display = 'none';
+        }
+
+        function importPastedHTML() {
+            const htmlText = document.getElementById('html-import-textarea').value.trim();
+            if (!htmlText) {
+                alert('완성 HTML 코드를 붙여넣어 주세요.');
+                return;
+            }
+
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                pastedHTMLTables = Array.from(doc.querySelectorAll('table.output-table'));
+
+                if (pastedHTMLTables.length === 0) {
+                    alert('class="output-table"인 공략 테이블을 찾지 못했습니다.\n\n웹페이지의 <table class="output-table"> 부분을 포함해서 붙여넣어 주세요.');
+                    return;
+                }
+
+                const selectWrap = document.getElementById('html-import-selection');
+                const select = document.getElementById('html-import-table-select');
+                select.innerHTML = '';
+
+                pastedHTMLTables.forEach((table, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const link = table.querySelector('thead .header-link a');
+                    const title = (link?.textContent || table.querySelector('thead')?.textContent || `공략 ${index + 1}`).trim().replace(/\s+/g, ' ');
+                    option.textContent = `${index + 1}. ${title.slice(0, 150)}`;
+                    select.appendChild(option);
+                });
+
+                if (pastedHTMLTables.length > 1) {
+                    selectWrap.style.display = 'block';
+                    const selectedIndex = Number(select.value);
+                    // 이미 선택 목록이 표시된 상태에서 버튼을 다시 누르면
+                    // 현재 선택된 공략만 입력기로 가져온다.
+                    if (select.dataset.ready === '1') {
+                        importCompletedHTML(htmlText, pastedHTMLTables[selectedIndex]);
+                        closeHTMLImportModal();
+                        select.dataset.ready = '0';
+                        return;
+                    }
+                    select.dataset.ready = '1';
+                    alert(`${pastedHTMLTables.length}개의 공략을 찾았습니다.\n\n불러올 공략을 선택한 뒤 "HTML 분석 및 불러오기"를 다시 눌러주세요.`);
+                    return;
+                }
+
+                importCompletedHTML(htmlText, pastedHTMLTables[0]);
+                closeHTMLImportModal();
+            } catch (error) {
+                console.error('HTML 분석 실패:', error);
+                alert('HTML을 분석하는 중 오류가 발생했습니다.\n\n' + error.message);
+            }
+        }
+
+        function importCompletedHTML(htmlText, selectedTable = null) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const table = selectedTable || doc.querySelector('.output-table');
+
+            if (!table) {
+                throw new Error('class="output-table"인 출력 테이블을 찾지 못했습니다.');
+            }
+
+            if (!confirm('현재 입력기에서 작성 중인 내용이 새 HTML 내용으로 교체됩니다.\n계속하시겠습니까?')) {
+                return;
+            }
+
+            // 현재 편집 상태 초기화
+            cancelEdit();
+
+            const tbody = table.querySelector('tbody');
+            if (!tbody) {
+                throw new Error('출력 테이블의 <tbody>를 찾지 못했습니다.');
+            }
+
+            const bodyRows = Array.from(tbody.children).filter(el => el.tagName === 'TR');
+
+            // 1) 공략 제목/URL
+            const headerLink = table.querySelector('thead .header-link a');
+            const headerCell = table.querySelector('thead .header-link');
+
+            if (headerLink) {
+                document.getElementById('guide-text').value = headerLink.textContent.trim();
+                document.getElementById('guide-url').value = headerLink.getAttribute('href') || '';
+            } else if (headerCell) {
+                document.getElementById('guide-text').value = headerCell.textContent.trim();
+                document.getElementById('guide-url').value = '';
+            }
+
+            // 2) 상단 정보: 이미지 / 딜량 / 캐릭터 / 별 / 랭크 / CR / TP
+            if (bodyRows.length < 2) {
+                throw new Error('출력 테이블의 캐릭터 정보 영역을 찾지 못했습니다.');
+            }
+
+            const imageRow = bodyRows[0];
+            const infoRow = bodyRows[1];
+
+            const imageCells = Array.from(imageRow.children);
+            const infoCells = Array.from(infoRow.children);
+
+            // 보스 이미지
+            const bossImg = imageCells[0]?.querySelector('img');
+            const bossImgEl = document.getElementById('img-boss');
+            const bossLabelEl = document.getElementById('boss-label');
+
+            if (bossImg && bossImg.getAttribute('src')) {
+                bossImgEl.src = bossImg.getAttribute('src');
+                bossImgEl.style.display = 'block';
+                bossLabelEl.style.display = 'none';
+                selectedBossName = '';
+            } else {
+                bossImgEl.src = '';
+                bossImgEl.style.display = 'none';
+                bossLabelEl.style.display = 'block';
+                selectedBossName = '';
+            }
+
+            // 딜량
+            if (infoCells[0]) {
+                document.getElementById('dmg-input').value = infoCells[0].textContent.trim();
+            }
+
+            // 캐릭터 이름 + 이미지
+            for (let i = 1; i <= 5; i++) {
+                const nameCell = infoCells[i];
+                const name = nameCell ? nameCell.textContent.trim() : '';
+                document.getElementById(`c${i}`).value = name;
+
+                const importedImg = imageCells[i]?.querySelector('img');
+                const imgSrc = importedImg ? (importedImg.getAttribute('src') || '') : '';
+
+                // 별/랭크/CR은 아래 행에서 채운다.
+                updateCharInfo(i);
+
+                // 완성 HTML에 들어 있던 실제 이미지 주소를 우선 보존한다.
+                // 캐릭터 이름/별에 따라 자동 생성되는 주소와 다를 수도 있기 때문이다.
+                const charImgEl = document.getElementById(`img-c${i}`);
+                if (imgSrc) {
+                    charImgEl.src = imgSrc;
+                    charImgEl.style.display = 'block';
+                } else {
+                    charImgEl.src = '';
+                    charImgEl.style.display = 'none';
+                }
+            }
+
+            // 3) ⭐ / RANK / CR 행은 라벨을 찾아 유연하게 복원한다.
+            for (let rowIndex = 2; rowIndex < Math.min(bodyRows.length, 7); rowIndex++) {
+                const row = bodyRows[rowIndex];
+                const cells = Array.from(row.children);
+                if (!cells.length) continue;
+
+                const label = cells[0].textContent.trim().toUpperCase();
+
+                if (label === '⭐' || label === '★') {
+                    for (let i = 1; i <= 5; i++) {
+                        document.getElementById(`star${i}`).value =
+                            cells[i]?.textContent.trim() || '';
+                    }
+                } else if (label === 'RANK') {
+                    for (let i = 1; i <= 5; i++) {
+                        document.getElementById(`rank${i}`).value =
+                            cells[i]?.textContent.trim() || '';
+                    }
+                } else if (label === 'CR') {
+                    for (let i = 1; i <= 5; i++) {
+                        document.getElementById(`cr${i}`).value =
+                            cells[i]?.textContent.trim() || '';
+                    }
+                }
+            }
+
+            // 별/이름에 의해 자동 생성되는 이미지가 다시 덮어쓰지 않도록
+            // 이미지 주소는 마지막에 한 번 더 원본 값으로 복원한다.
+            for (let i = 1; i <= 5; i++) {
+                updateCharInfo(i);
+                const importedImg = imageCells[i]?.querySelector('img');
+                const imgSrc = importedImg ? (importedImg.getAttribute('src') || '') : '';
+                const charImgEl = document.getElementById(`img-c${i}`);
+                if (imgSrc) {
+                    charImgEl.src = imgSrc;
+                    charImgEl.style.display = 'block';
+                } else {
+                    charImgEl.src = '';
+                    charImgEl.style.display = 'none';
+                }
+            }
+
+            // 4) TP 행 찾기
+            let tpFound = '';
+            for (const row of bodyRows) {
+                const cells = Array.from(row.children);
+                if (cells.length >= 2 &&
+                    cells[0].getAttribute('colspan') === '4' &&
+                    cells[1].textContent.trim().toUpperCase() === 'SET' &&
+                    cells[2]?.textContent.trim().toUpperCase() === 'AUTO') {
+                    tpFound = cells[0].textContent.trim();
+                    break;
+                }
+            }
+
+            if (tpFound) {
+                tpFound = tpFound.replace(/^TP\s*/i, '').trim();
+            }
+            document.getElementById('tp-input').value = tpFound;
+
+            // 5) 타임라인 복원
+            const timelineBody = document.querySelector('#timeline-table tbody');
+            timelineBody.innerHTML = '';
+
+            let timelineStarted = false;
+
+            // 상단 메타 행 개수에 의존하지 않고,
+            // "Set / Auto" 헤더 다음부터 실제 타임라인으로 인식한다.
+            for (const row of bodyRows) {
+                const cells = Array.from(row.children);
+                if (!cells.length) continue;
+
+                const isHeaderRow =
+                    cells.length >= 3 &&
+                    cells[0].getAttribute('colspan') === '4' &&
+                    cells[1].textContent.trim().toUpperCase() === 'SET' &&
+                    cells[2].textContent.trim().toUpperCase() === 'AUTO';
+
+                if (isHeaderRow) {
+                    timelineStarted = true;
+                    continue;
+                }
+
+                if (!timelineStarted) continue;
+
+                // 설명행: colspan="6"
+                if (cells.length === 1 && cells[0].getAttribute('colspan') === '6') {
+                    const noteText = cells[0].textContent.trim();
+                    const noteData = {
+                        rowType: 'note',
+                        time: '',
+                        action: noteText
+                    };
+
+                    const timeMatch = noteText.match(/^(\d{1,2}:\d{2})\s+([\s\S]*)$/);
+                    if (timeMatch) {
+                        noteData.time = timeMatch[1];
+                        noteData.action = timeMatch[2].trim();
+                    }
+
+                    timelineBody.appendChild(createTimelineRow(noteData));
+                    continue;
+                }
+
+                // 빈 행: colspan 4 + 빈 Set + 빈 Auto
+                if (
+                    cells.length >= 3 &&
+                    cells[0].getAttribute('colspan') === '4' &&
+                    !cells[0].textContent.trim() &&
+                    !cells[1].textContent.trim() &&
+                    !cells[2].textContent.trim()
+                ) {
+                    timelineBody.appendChild(createTimelineRow({
+                        rowType: 'empty',
+                        time: '',
+                        action: ''
+                    }));
+                    continue;
+                }
+
+                // 정상 행: 내용 / SET / Auto
+                if (
+                    cells.length >= 3 &&
+                    cells[0].getAttribute('colspan') === '4'
+                ) {
+                    const rawText = cells[0].textContent.replace(/\r/g, '').trim();
+                    const setText = cells[1].textContent.trim().toUpperCase();
+                    const autoText = cells[2].textContent.trim().toUpperCase();
+
+                    if (!/^[OX]{5}$/.test(setText)) {
+                        continue;
+                    }
+
+                    let time = '';
+                    let action = rawText;
+
+                    const timeMatch = rawText.match(/^(\d{1,2}:\d{2})\s+([\s\S]*)$/);
+                    if (timeMatch) {
+                        time = timeMatch[1];
+                        action = timeMatch[2].trim();
+                    }
+
+                    timelineBody.appendChild(createTimelineRow({
+                        rowType: 'normal',
+                        time: time,
+                        action: action,
+                        autoVal: autoText === 'ON' ? 'ON' : 'OFF',
+                        setStates: setText.split('')
+                    }));
+                }
+            }
+
+            // 현재 입력 상태도 첫 행의 상태에 맞춰준다.
+            const normalRows = timelineBody.querySelectorAll('tr[data-row-type="normal"]');
+            if (normalRows.length) {
+                const lastRow = normalRows[normalRows.length - 1];
+                const lastTds = lastRow.querySelectorAll('td');
+                document.getElementById('auto-input').value =
+                    lastTds[2].textContent.trim() || 'OFF';
+
+                for (let i = 0; i < 5; i++) {
+                    toggleSet(i, lastTds[3 + i].textContent.trim().toUpperCase());
+                }
+            } else {
+                document.getElementById('auto-input').value = 'OFF';
+                setCurrentSetStates(['O', 'O', 'O', 'O', 'O']);
+            }
+
+            document.getElementById('time-input').value = '';
+            document.getElementById('start-char-input').value = '';
+            document.getElementById('action-input').value = '';
+
+            recalculateChanges();
+            renderFinalPreview();
+            saveToLocalStorage();
+
+            alert(`${normalRows.length}개의 타임라인 행을 불러왔습니다.`);
+        }
+
         function copyToClipboard() {
             const htmlCode = buildFinalHTML();
             navigator.clipboard.writeText(htmlCode).then(() => {
@@ -1090,5 +1695,19 @@
         loadFromLocalStorage(); // 저장된 데이터 먼저 로드
         renderFinalPreview();
     </script>
+    <script>
+        function addSP(e) {
+  // 클릭 순간 버튼으로 포커스가 넘어가는 것 방지 (중요!)
+  if (e) e.preventDefault();
+
+  const focused = document.activeElement;
+
+  if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
+    focused.value += 'SP';
+  } else if (focused && focused.isContentEditable) {
+    focused.innerText += 'SP';
+  }
+}
+        </script>
 </body>
 </html>
