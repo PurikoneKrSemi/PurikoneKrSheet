@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 합성 도구</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .file-setup-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #475569;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-setup-box label {
+            font-weight: bold;
+            color: #334155;
+        }
+
+        .img-preview-box {
+            width: 100%;
+            height: 260px;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+        }
+
+        .img-preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .img-preview-box .placeholder {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: #3b82f6;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 4px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+
+        .role-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 4px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .role-item img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            margin-bottom: 4px;
+        }
+
+        .role-item.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        .btn-submit {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-submit:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎨 이미지 합성 도구</h2>
+
+    <!-- 배경 이미지만 선택 (GitHub 원격 리소스 사용) -->
+    <div class="file-setup-box">
+        <label>배경 캐릭터 이미지 선택:</label>
+        <input type="file" id="units-input" multiple accept="image/*">
+    </div>
+
+    <!-- 1. 이미지 미리보기 -->
+    <div class="img-preview-box">
+        <img id="unit-preview" src="" alt="" style="display: none;">
+        <span id="preview-placeholder" class="placeholder">배경 이미지를 선택해주세요</span>
+    </div>
+
+    <!-- 2. 이름 입력 및 6성 체크 -->
+    <div class="form-group">
+        <input type="text" id="name-input" placeholder="캐릭터 이름 입력">
+    </div>
+
+    <label class="checkbox-group">
+        <input type="checkbox" id="six-star-check">
+        <span>6성 캐릭터</span>
+    </label>
+
+    <!-- 3. 속성 선택 -->
+    <div class="form-group">
+        <label>속성 선택:</label>
+        <select id="attr-select">
+            <option value="0">명</option>
+            <option value="1">암</option>
+            <option value="2">풍</option>
+            <option value="3">수</option>
+            <option value="4">화</option>
+        </select>
+    </div>
+
+    <!-- 4. 역할 선택 -->
+    <div class="form-group">
+        <label>역할 선택:</label>
+        <div class="role-grid" id="role-grid">
+            <!-- JS 동적 생성 -->
+        </div>
+    </div>
+
+    <!-- 5. 실행 버튼 -->
+    <button class="btn-submit" id="btn-save" onclick="processImage()" disabled>합성 및 저장</button>
+    <div class="status-text" id="status-text">진행 상태: 0 / 0</div>
+</div>
+
+<script>
+    // 🌐 GitHub 저장소 기본 URL 경로
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/초상화';
+
+    const roleMap = {
+        "버퍼": "0", "디버퍼": "1", "부스터": "2", "브레이커": "3",
+        "어태커": "4", "재머": "5", "탱커": "6", "힐러": "7"
+    };
+
+    const attrMap = {
+        "명": "0", "암": "1", "풍": "2", "수": "3", "화": "4"
+    };
+
+    let unitFiles = [];
+    let currentIdx = 0;
+    let selectedRole = null;
+
+    // 역할 선택 그리드 및 GitHub 아이콘 로드
+    const roleGrid = document.getElementById('role-grid');
+    Object.keys(roleMap).forEach(roleName => {
+        const item = document.createElement('div');
+        item.className = 'role-item';
+        item.dataset.role = roleName;
+        
+        // GitHub의 ars/새 폴더/{역할명}.png 불러오기
+        const iconUrl = `${GITHUB_BASE}/ars/새%20폴더/${encodeURIComponent(roleName)}.png`;
+        
+        item.innerHTML = `
+            <img src="${iconUrl}" alt="${roleName}" onerror="this.style.display='none'">
+            <span>${roleName}</span>
+        `;
+        
+        item.onclick = () => {
+            document.querySelectorAll('.role-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedRole = roleName;
+        };
+        roleGrid.appendChild(item);
+    });
+
+    // 배경 파일 선택 시
+    document.getElementById('units-input').addEventListener('change', (e) => {
+        unitFiles = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+        currentIdx = 0;
+        if (unitFiles.length > 0) {
+            updateImage();
+            document.getElementById('btn-save').disabled = false;
+        }
+    });
+
+    function updateImage() {
+        if (currentIdx < unitFiles.length) {
+            const file = unitFiles[currentIdx];
+            const imgEl = document.getElementById('unit-preview');
+            const placeholder = document.getElementById('preview-placeholder');
+
+            imgEl.src = URL.createObjectURL(file);
+            imgEl.style.display = 'block';
+            placeholder.style.display = 'none';
+
+            document.getElementById('status-text').innerText = `진행 상태: ${currentIdx + 1} / ${unitFiles.length} (${file.name})`;
+        }
+    }
+
+    // CORS 이슈 방지 및 URL 이미지 로더 헬퍼
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Canvas 합성시 CORS 에러 방지
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`이미지 로드 실패: ${src}`));
+            img.src = src;
+        });
+    }
+
+    // 캔버스 기반 이미지 합성 및 다운로드
+    async function mergeAndDownload(bgImg, starImg, arImg, outputName) {
+        const canvas = document.createElement('canvas');
+        canvas.width = bgImg.width;
+        canvas.height = bgImg.height;
+        const ctx = canvas.getContext('2d');
+
+        // 1. 배경
+        ctx.drawImage(bgImg, 0, 0);
+
+        // 2. 별 (좌측 하단 35x35)
+        if (starImg) {
+            ctx.drawImage(starImg, 0, bgImg.height - 35, 35, 35);
+        }
+
+        // 3. AR (우측 하단 56x30)
+        if (arImg) {
+            ctx.drawImage(arImg, bgImg.width - 56, bgImg.height - 30, 56, 30);
+        }
+
+        // 4. 자동 다운로드
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = outputName;
+                link.click();
+                setTimeout(resolve, 150);
+            }, 'image/png');
+        });
+    }
+
+    // 합성 프로세스 실행
+    async function processImage() {
+        const name = document.getElementById('name-input').value.trim();
+        const attrCode = document.getElementById('attr-select').value;
+
+        if (!name) {
+            alert("캐릭터 이름을 입력해주세요.");
+            return;
+        }
+        if (!selectedRole) {
+            alert("역할을 선택해주세요.");
+            return;
+        }
+
+        const roleCode = roleMap[selectedRole];
+        const arCode = attrCode + roleCode; // 예: "00"
+
+        document.getElementById('btn-save').disabled = true;
+        document.getElementById('btn-save').innerText = '합성 처리 중...';
+
+        try {
+            // 1. GitHub에서 AR 이미지 로드 (예: .../ars/00.png)
+            const arUrl = `${GITHUB_BASE}/ars/${arCode}.png`;
+            const arImg = await loadImage(arUrl);
+
+            // 2. 선택된 배경 이미지 로드
+            const bgImg = await loadImage(URL.createObjectURL(unitFiles[currentIdx]));
+
+            // 3. 6성 여부에 따른 별 로드 경로 세팅
+            const isSix = document.getElementById('six-star-check').checked;
+            const starsToMerge = isSix ? [6] : [3, 4, 5];
+
+            // A. 기본 합성 (별 없음)
+            await mergeAndDownload(bgImg, null, arImg, `${name}.png`);
+
+            // B. 별 레벨별 합성 (GitHub의 .../stars/3.png 로드)
+            for (const starNum of starsToMerge) {
+                const starUrl = `${GITHUB_BASE}/stars/${starNum}.png`;
+                const starImg = await loadImage(starUrl);
+                await mergeAndDownload(bgImg, starImg, arImg, `${name}${starNum}.png`);
+            }
+
+            alert(`${name} 합성 완료!`);
+
+            // 다음 이미지로 진행
+            currentIdx++;
+            document.getElementById('name-input').value = '';
+            if (currentIdx < unitFiles.length) {
+                updateImage();
+            } else {
+                alert("모든 작업이 완료되었습니다!");
+                document.getElementById('status-text').innerText = "모든 작업 완료";
+            }
+        } catch (err) {
+            console.error(err);
+            alert("이미지 불러오기 중 오류가 발생했습니다. GitHub URL 및 파일명을 확인해주세요.");
+        } finally {
+            document.getElementById('btn-save').disabled = false;
+            document.getElementById('btn-save').innerText = '합성 및 저장';
+        }
+    }
+</script>
+
+</body>
+</html>
