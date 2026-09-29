@@ -252,17 +252,76 @@
         .boss-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fff; }
         .boss-item:hover { border-color: var(--primary-color); background-color: #eef2ff; transform: translateY(-2px); }
         .boss-item img { width: 100%; height: auto; display: block; border-radius: 4px; }
+        /* 상단 고정 영역 헤더 스타일 */
+.sticky-toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: #1e293b; /* 어두운 계열로 강조 (취향에 맞게 수정) */
+    color: #ffffff;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* 토글 버튼 스타일 */
+.btn-toggle-sticky-all {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s ease;
+}
+
+.btn-toggle-sticky-all:hover {
+    background: #2563eb;
+}
+
+/* 접히는 컨테이너 트랜지션 처리 */
+.sticky-body {
+    max-height: 2000px; /* 콘텐츠가 다 들어갈 만큼 충분한 높이 */
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out, padding 0.3s ease-in-out;
+    opacity: 1;
+}
+
+/* 접힌 상태 클래스 */
+.sticky-body.collapsed {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    pointer-events: none; /* 접혔을 때 내부 요소 클릭 방지 */
+}
+/* 상단 고정이 취소되었을 때 적용할 클래스 */
+.sticky-container.unstick {
+    position: static !important;
+}
     </style>
 </head>
 <body>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin-bottom: 0;">🎮 프리코네 타임라인 공략 작성기</h2>
+        <!-- 헤더 버튼 영역에 상단 고정 토글 버튼 추가 -->
+        <button class="btn-import" id="btn-toggle-sticky" onclick="toggleSticky()">📌 상단 고정 OFF</button>    
         <button class="btn-clear" onclick="resetAllData()">🔄 전체 초기화</button>
         <button class="btn-import" onclick="openImportModal()">📂 생성된 HTML 불러오기</button>
     </div>
 
     <div class="sticky-container">
+        <!-- 📌 [추가] 상단 고정 영역 전체 접기/펴기 헤더 -->
+    <div class="sticky-toggle-header">
+        <span class="sticky-toggle-title">⚙️ 공략 및 파티 설정 패널</span>
+        <button type="button" id="btn-toggle-sticky-all" class="btn-toggle-sticky-all" onclick="toggleStickyAll()">
+            상단 패널 접기 ▲
+        </button>
+    </div>
+    <!-- 📌 [추가] 접히고 펼쳐질 콘텐츠 감싸기 -->
+    <div id="sticky-body" class="sticky-body">
         <!-- 0. 공통 공략 설정 -->
         <div class="card">
             <label style="font-size: 14px; color: #111827; margin-bottom: 8px;">공략 공통 설정</label>
@@ -341,6 +400,7 @@
 
                 <button type="button" class="btn-add" id="btn-add-party" onclick="addPartyToResult()">➕ 이 조합을 최종 결과에 추가</button>
             </div>
+        </div>
         </div>
     </div>
 
@@ -1136,7 +1196,25 @@
     </tbody>
 </table>`.trim();
         }
-
+        // 1. 상단 고정 온/오프 토글 함수
+        function toggleSticky() {
+            const container = document.querySelector('.sticky-container');
+            const btn = document.getElementById('btn-toggle-sticky');
+            
+            // unstick 클래스 토글
+            const isUnstuck = container.classList.toggle('unstick');
+            
+            // 버튼 텍스트 및 스타일 변경
+            if (isUnstuck) {
+                btn.innerText = '📌 상단 고정 ON';
+                btn.style.backgroundColor = '#6b7280'; // 비활성화 느낌의 회색
+            } else {
+                btn.innerText = '📌 상단 고정 OFF';
+                btn.style.backgroundColor = '#3b82f6';
+            }
+            
+            saveToLocalStorage();
+        }
         // [추가] 1. 상태를 로컬스토리지에 저장하는 함수
         function saveToLocalStorage() {
             const currentChars = [];
@@ -1160,7 +1238,8 @@
                 currentDmg: document.getElementById('dmg-input').value,
                 currentOperation: document.getElementById('operation-input').value,
                 currentChars: currentChars,
-                editingIndex: editingIndex
+                editingIndex: editingIndex,
+                isStickyOff: document.querySelector('.sticky-container').classList.contains('unstick')
             };
             localStorage.setItem('priconne_full_auto_builder_data', JSON.stringify(state));
         }
@@ -1203,14 +1282,54 @@
                     btnAdd.innerText = `💾 ${editingIndex + 1}번 조합 수정 완료`;
                     btnAdd.classList.add('edit-mode');
                 }
-
+                if (state.isStickyOff) {
+                    const container = document.querySelector('.sticky-container');
+                    const btn = document.getElementById('btn-toggle-sticky');
+                    if (container && btn) {
+                        container.classList.add('unstick');
+                        btn.innerText = '📌 상단 고정 ON';
+                        btn.style.backgroundColor = '#6b7280';
+                    }
+                }
                 renderRecentBosses();
                 renderRecentCharTags();
             } catch (e) {
                 console.error('로컬스토리지 데이터 로드 실패:', e);
             }
         }
+function toggleStickyAll() {
+    const body = document.getElementById('sticky-body');
+    const btn = document.getElementById('btn-toggle-sticky-all');
+    
+    // collapsed 클래스 토글
+    const isCollapsed = body.classList.toggle('collapsed');
+    
+    // 버튼 텍스트 및 스타일 변경
+    if (isCollapsed) {
+        btn.innerText = '상단 패널 펼치기 ▼';
+        btn.style.backgroundColor = '#64748b'; // 접혔을 때 회색으로 변경
+    } else {
+        btn.innerText = '상단 패널 접기 ▲';
+        btn.style.backgroundColor = '#3b82f6';
+    }
+    
+    // 로컬 스토리지 상태 저장 (필요시)
+    localStorage.setItem('sticky_panel_collapsed', isCollapsed);
+}
 
+// 페이지 로드 시 이전에 접어두었는지 상태 복원
+document.addEventListener('DOMContentLoaded', () => {
+    const isCollapsed = localStorage.getItem('sticky_panel_collapsed') === 'true';
+    if (isCollapsed) {
+        const body = document.getElementById('sticky-body');
+        const btn = document.getElementById('btn-toggle-sticky-all');
+        if (body && btn) {
+            body.classList.add('collapsed');
+            btn.innerText = '상단 패널 펼치기 ▼';
+            btn.style.backgroundColor = '#64748b';
+        }
+    }
+});
         function renderFinalPreview() {
             const container = document.getElementById('final-html-container');
             const guideText = document.getElementById('guide-text').value.trim();
