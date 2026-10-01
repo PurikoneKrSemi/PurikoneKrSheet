@@ -64,6 +64,7 @@
     color: #334155;
     font-family: "Noto Sans KR", sans-serif !important;
     font-weight: 700 !important;
+    text-shadow: -1px -1px 0 #cbd5e1, 1px -1px 0 #cbd5e1, -1px 1px 0 #cbd5e1, 1px 1px 0 #cbd5e1;
   }
 
   .category-heading::after {
@@ -756,7 +757,7 @@
 <script>
 
   const bgImages = ["images/bg/PC_11.jpg", "images/bg/PC_12.jpg", "images/bg/PC_13.jpg", "images/bg/PC_14.jpg", "images/bg/PC_15.jpg", "images/bg/PC_16.jpg", "images/bg/PC_17.jpg", "images/bg/PC_18.jpg", "images/bg/PC_19.jpg", "images/bg/PC_20.jpg", "images/bg/PC_21.jpg", "images/bg/PC_22.jpg", "images/bg/PC_23.jpg", "images/bg/PC_24.jpg", "images/bg/PC_25.jpg", "images/bg/PC_26.jpg", "images/bg/_PC_20.jpg", "images/bg/_PC_21.jpg", "images/bg/_PC_22.jpg", "images/bg/_PC_23.jpg", "images/bg/_PC_24.jpg", "images/bg/_PC_25.jpg", "images/bg/_PC_26.jpg", "images/bg/_PC_27.jpg", "images/bg/_PC_28.jpg"];
-  const ENABLE_RANDOM_BACKGROUND = false;
+  const ENABLE_RANDOM_BACKGROUND = true;
 
   function setRandomBackground() {
     if (!ENABLE_RANDOM_BACKGROUND) return;

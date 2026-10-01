@@ -6272,39 +6272,12 @@ XOOOX 29300</div></div></div><div class="mobile-full-auto-team"><div class="mobi
             }
         });
 
-function fitActiveTab() {
-    const activeTab = document.querySelector('.tab-content.active');
-    if (!activeTab) return;
-
-    activeTab.style.transform = 'none';
-    activeTab.style.marginBottom = '0px';
-
-    // 채용시트는 기존 로직 유지
-    if (activeTab.closest('#wide-content-container')) return;
-
-    const pageContent = activeTab.querySelector('#page-content');
-    if (!pageContent) return;
-
-    const table = pageContent.querySelector('table');
-    if (!table) return;
-
-    // 부모의 100% 폭을 제거하고 실제 콘텐츠 크기를 사용
-    activeTab.style.width = 'fit-content';
-    activeTab.style.maxWidth = 'none';
-
-    pageContent.style.width = 'fit-content';
-    pageContent.style.maxWidth = 'none';
-
-    // 실제 테이블 폭에 맞춰 외부 영역도 동일하게 설정
-    requestAnimationFrame(() => {
-        const tableWidth = table.getBoundingClientRect().width;
-
-        if (tableWidth > 0) {
-            activeTab.style.width = `${tableWidth}px`;
-            pageContent.style.width = `${tableWidth}px`;
+        function fitActiveTab() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+            activeTab.style.transform = 'none';
+            activeTab.style.marginBottom = '0px';
         }
-    });
-}
         window.addEventListener('resize', fitActiveTab);
         document.addEventListener('DOMContentLoaded', fitActiveTab);
         setTimeout(fitActiveTab, 100);
