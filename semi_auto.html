@@ -525,17 +525,29 @@
         .admin-status.success { color: #059669; }
         .admin-status.error { color: #dc2626; }
     
-        body { padding-bottom: 16px !important; display: flex; flex-direction: column; align-items: center; }
-        #page-content { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
-        .tab-content { display: none; width: 100%; margin: 0 auto; }
-        .tab-content.active { display: flex; flex-direction: column; align-items: center; }
-        .tab-content table { margin-left: auto; margin-right: auto; }
+        body { padding-bottom: 16px !important; }
+
+        /* 원본 HTML의 본문 크기를 유지하고 가운데 정렬 */
+        #page-content {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            box-sizing: border-box;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
 
         /* 하위탭 + 이월시간 패널 레이아웃 */
         .subtab-header-panel {
             display: flex;
             align-items: center;
             gap: 12px;
+            .subtab-header-panel {
         }
 
         /* 모던 커스텀 드롭다운 스타일 (밝은 배경 적용) */
@@ -651,6 +663,11 @@
             cursor: pointer;
             transition: background 0.2s;
         }
+        tr.timeline-past {
+            text-decoration: line-through !important;
+            opacity: 0.45 !important;
+            color: #888888 !important;
+        }
         .timeline-apply-btn:hover { background: #4338ca; }
         tr.timeline-past { text-decoration: line-through !important; opacity: 0.45 !important; color: #888888 !important; }
     </style>
@@ -671,7 +688,7 @@
 </div>
 </div>
 <div class="inline-timeline-panel">
-<span>⏱️ 이월</span>
+<span>이월 계산기</span>
 <input id="user-timeline-input" max="90" min="20" type="number" value="90"/> 초
                 <button class="timeline-apply-btn" onclick="applyCustomTimeline()" type="button">적용</button>
 </div>
@@ -21790,8 +21807,23 @@
                     } else if (lastKnownSec !== null) {
                         checkSec = lastKnownSec - diff;
                     }
-                    if (checkSec !== null && checkSec <= 0) tr.classList.add('timeline-past');
-                    else tr.classList.remove('timeline-past');
+                    if (checkSec !== null && checkSec <= 0) {
+                        tr.classList.add('timeline-past');
+
+                        tr.querySelectorAll('td').forEach(td => {
+                            td.style.setProperty('text-decoration', 'line-through', 'important');
+                            td.style.setProperty('opacity', '0.45', 'important');
+                            td.style.setProperty('color', '#888888', 'important');
+                        });
+                    } else {
+                        tr.classList.remove('timeline-past');
+
+                        tr.querySelectorAll('td').forEach(td => {
+                            td.style.removeProperty('text-decoration');
+                            td.style.removeProperty('opacity');
+                            td.style.removeProperty('color');
+                        });
+                    }
                 });
             });
         }

@@ -5,278 +5,2029 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프리코네 클랜전｜심연토벌전 시트</title>
   <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-size: cover;
-      background-position: center bottom;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-    }
-    
-    /* 상단 고정 탭 바: 반투명 유리에 투명도 처리 */
-    .tab-bar {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100vw !important;
-      z-index: 999999 !important;
-      background-color: rgba(248, 250, 252, 0.75) !important; /* 투명도 적용 */
-      backdrop-filter: blur(12px) saturate(180%);
-      -webkit-backdrop-filter: blur(12px) saturate(180%);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-    }
 
-    /* 상위탭 + 하위탭 슬롯을 하나의 스크롤 묶음으로: 좁아지면 전체가 통째로 스크롤됨 */
-    .tab-bar-scroll {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: flex-end !important; /* 상위 탭 하단 정렬 */
-      justify-content: flex-start !important;
-      gap: 16px !important;
-      padding: 10px 16px 0 16px !important;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      cursor: grab;
-      user-select: none;
-    }
-    .tab-bar-scroll::-webkit-scrollbar { display: none; }
-    .tab-bar-scroll.dragging { cursor: grabbing; }
+<style>
+  * {
+    box-sizing: border-box;
+  }
 
-    .tab-bar-main {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: flex-start !important;
-      gap: 4px !important;
-      flex-shrink: 0;
-    }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
 
+  :root {
+    --archive-accent: #ec4899;
+    --archive-accent-soft: #fce7f3;
+  }
+
+  /* 카테고리 헤더 & 메인 탭 버튼 */
+  .tab-bar {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    position: static;
+  }
+
+  .tab-bar-scroll {
+    display: block;
+    padding: 0;
+    overflow: visible;
+    cursor: default;
+    user-select: auto;
+  }
+
+  .tab-bar-main {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 0;
+  }
+
+  .category-heading {
+    display: flex !important;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 0;
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    color: #334155;
+    font-family: "Noto Sans KR", sans-serif !important;
+    font-weight: 700 !important;
+  }
+
+  .category-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #d8dee8;
+  }
+
+  .main-tab-btn {
+    min-width: 0;
+    padding: 12px 34px;
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: #334155;
+    background: #ffffff;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  }
+
+  .main-tab-btn:hover {
+    background: #fff;
+    color: #111827;
+    transform: translateY(-1px);
+  }
+
+  .main-tab-btn.active {
+    background: #ec4899;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: none;
+  }
+
+  #subtab-slot {
+    display: none !important;
+  }
+
+  /* 메인 레이아웃 */
+  .page-body {
+    width: 100%;
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: 36px 40px 48px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .content-column {
+    min-width: 0;
+  }
+
+  #content-container {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 32px;
+    overflow-y: visible;
+  }
+
+  /* 세로 이중 스크롤바 방지 */
+  #content-container,
+  #page-content,
+  .tab-content,
+  .tab-content.active {
+    overflow-y: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* 축소(scale) 동작 시 높이 계산 오류 및 여분의 스크롤바 생성 방지 */
+  .tab-content.active {
+    transform-origin: top center !important;
+  }
+
+  #desktop-archive-sidebar {
+    display: none;
+  }
+
+  #desktop-archive-sidebar,
+  .custom-select-options.desktop-grouped {
+    font-family: sans-serif !important;
+  }
+
+  /* 드롭다운 & 이월 계산기 */
+  .subtab-header-panel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .top-tab-dropdown-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+    user-select: none;
+  }
+
+  .custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 20px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 110px;
+    box-sizing: border-box;
+  }
+
+  .custom-select-options {
+    display: none;
+    position: fixed;
+    min-width: 140px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    z-index: 999999;
+    padding: 6px 0;
+  }
+
+  .top-tab-dropdown-wrapper.open .custom-select-options {
+    display: block;
+  }
+
+  .custom-option {
+    padding: 10px 16px;
+    font-size: 1rem;
+    color: #334155;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    text-align: left;
+  }
+
+  .custom-option:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .custom-option.selected {
+    background-color: #eff6ff;
+    color: #4f46e5;
+    font-weight: 600;
+  }
+
+  .inline-timeline-panel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #475569;
+    font-weight: 500;
+    box-sizing: border-box;
+  }
+
+  .inline-timeline-panel input {
+    width: 52px;
+    padding: 4px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 1rem;
+    outline: none;
+    background: #ffffff;
+  }
+
+  .timeline-apply-btn {
+    padding: 6px 14px;
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* 우측 월별 아카이브 패널 */
+  .archive-sidebar-title {
+    background: var(--archive-accent);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 22px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .archive-sidebar-title-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .archive-sidebar-body {
+    background: #ffffff;
+    padding: 18px 20px 22px;
+  }
+
+  .archive-sidebar-extra {
+    background: #ffffff;
+    padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .archive-sidebar-extra .inline-timeline-panel {
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* 채용시트 전용 컨테이너 */
+  .roster-table {
+    width: max-content !important;
+    max-width: none !important;
+  }
+
+  .roster-toolbar {
+    max-width: 100% !important;
+  }
+
+  #wide-content-container {
+    width: fit-content;
+    max-width: none;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  #wide-content-container .roster-table {
+    width: max-content;
+    max-width: none;
+  }
+
+  .category-heading,
+  .tab-bar-scroll {
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 40px;
+    padding-right: 40px;
+    box-sizing: border-box;
+  }
+
+  /* 반응형 */
+  @media (max-width: 900px) {
+
+    /*
+     * 모바일/태블릿 아카이브
+     * 데스크톱과 동일하게 연도 → 월 구조를 사용하고
+     * 상단 헤더를 눌러 접었다 펼친다.
+     */
     #subtab-slot {
-      display: flex !important;
-      align-items: flex-end !important; /* 하단 수평 라인 밀착 */
-      flex-shrink: 0;
-      margin-bottom: 0 !important;      /* 하단 여백 제거 */
+      display: block !important;
+      margin-top: 12px;
+      width: 100%;
     }
-    #subtab-slot:empty { display: none; }
 
-    /* 이전 상위 탭 스타일 복구 */
-    .main-tab-btn {
-      padding: 8px 18px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: #64748b;
-      background: rgba(255, 255, 255, 0.85);
-      border: none;
-      border-radius: 10px 10px 0 0;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
-      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.03);
+    #subtab-slot .subtab-header-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      width: 100%;
     }
-    .main-tab-btn:hover {
-      background: #ffffff;
+
+    #subtab-slot .top-tab-dropdown-wrapper {
+      display: block !important;
+      width: 100%;
+    }
+
+    /*
+     * 기존 선택 월 표시 대신
+     * 모바일에서는 "월별 아카이브"를 헤더로 사용
+     */
+    #subtab-slot .custom-select-trigger {
+      width: 100%;
+      min-width: 0;
+      padding: 12px 16px;
+      background: var(--archive-accent);
+      color: #ffffff;
+      border-radius: 10px;
+      font-size: 0;
+      font-weight: 700;
+    }
+
+    #subtab-slot .custom-select-trigger::before {
+      content: '월별 아카이브';
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    #subtab-slot .custom-select-trigger #selected-subtab-label {
+      display: none;
+    }
+
+    #subtab-slot .custom-select-trigger svg {
+      stroke: #ffffff !important;
+      transition: transform 0.2s ease;
+    }
+
+    /*
+     * 아카이브가 열렸을 때 헤더와 목록을 하나의 박스처럼 연결
+     */
+    #subtab-slot .top-tab-dropdown-wrapper.open .custom-select-trigger {
+      border-radius: 10px 10px 0 0;
+    }
+
+    #subtab-slot .top-tab-dropdown-wrapper.open .custom-select-trigger svg {
+      transform: rotate(180deg);
+    }
+
+    /*
+     * 기존 fixed 드롭다운을 모바일에서는
+     * 일반적인 본문 영역으로 전환
+     */
+    #subtab-slot .custom-select-options {
+      position: static !important;
+      top: auto !important;
+      left: auto !important;
+      min-width: 0 !important;
+      width: 100% !important;
+
+      display: none !important;
+
+      max-height: 55vh !important;
+      overflow-y: auto !important;
+
+      margin: 0 !important;
+      padding: 12px !important;
+
+      border: 1px solid #e2e8f0 !important;
+      border-top: none !important;
+      border-radius: 0 0 10px 10px !important;
+
+      box-shadow: none !important;
+      background: #ffffff !important;
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px 6px;
+    }
+
+    /*
+     * 헤더를 눌렀을 때만 월 목록 표시
+     */
+    #subtab-slot .top-tab-dropdown-wrapper.open .custom-select-options {
+      display: grid !important;
+    }
+
+    /*
+     * 월 버튼
+     */
+    #subtab-slot .custom-select-options .custom-option {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+
+      padding: 9px 4px !important;
+
+      border-radius: 8px;
+
+      font-size: 15px !important;
+      line-height: 1.25;
+
+      text-align: center;
+      white-space: nowrap;
       color: #334155;
     }
-    .main-tab-btn.active {
-      background: #4f46e5;
-      color: #ffffff;
-      font-weight: 600;
-      box-shadow: 0 -2px 8px rgba(79, 70, 229, 0.2);
+
+    #subtab-slot .custom-select-options .custom-option:hover {
+      background: #f8fafc;
+      color: #0f172a;
     }
+
+    #subtab-slot .custom-select-options .custom-option.selected {
+      background: var(--archive-accent-soft) !important;
+      color: var(--archive-accent) !important;
+      font-weight: 600;
+    }
+
+    /*
+     * 연도 헤더
+     */
+    #subtab-slot .custom-select-options .archive-year-header {
+      grid-column: 1 / -1;
+
+      font-weight: 700;
+      font-size: 18px !important;
+      line-height: 1.3;
+
+      color: var(--archive-accent);
+
+      padding: 8px 0 6px;
+      margin-top: 6px;
+
+      border-top: 1px solid #f1f5f9;
+    }
+
+    #subtab-slot .custom-select-options .archive-year-header:first-child {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    /*
+     * 모바일 이월 계산기
+     */
+    #subtab-slot .inline-timeline-panel {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .page-body {
+      grid-template-columns: 1fr;
+      padding: 28px 16px 32px;
+    }
+
+    #desktop-archive-sidebar {
+      display: none !important;
+    }
+
+    .category-heading {
+      font-size: 24px;
+    }
+
+    .main-tab-btn {
+      padding: 10px 24px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 600px) {
+
+    .tab-bar-main {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .main-tab-btn {
+      width: 100%;
+      padding: 10px 8px;
+      font-size: 15px;
+    }
+
+    .page-body {
+      padding: 22px 12px 28px;
+    }
+
+    /*
+     * 좁은 화면에서도 데스크톱과 동일하게 4열 유지
+     */
+    #subtab-slot .custom-select-options {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px 4px;
+      padding: 10px !important;
+    }
+
+    #subtab-slot .custom-select-options .custom-option {
+      padding: 8px 2px !important;
+      font-size: 14px !important;
+    }
+
+    #subtab-slot .custom-select-options .archive-year-header {
+      font-size: 17px !important;
+    }
+  }
+
+  /* 데스크톱 사이드바 & 아카이브 */
+  @media (min-width: 901px) {
+
+    #desktop-archive-sidebar.has-content {
+      display: block;
+      width: 340px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .custom-select-options.desktop-grouped {
+      position: static !important;
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px 6px;
+      box-shadow: none !important;
+      border: none !important;
+      padding: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+      width: 100% !important;
+    }
+
+    .custom-select-options.desktop-grouped .custom-option {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px !important;
+      border-radius: 8px;
+      font-size: 20px !important;
+      color: #334155;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+    }
+
+    .custom-select-options.desktop-grouped .custom-option:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    .custom-select-options.desktop-grouped .custom-option.selected {
+      background: var(--archive-accent-soft) !important;
+      color: var(--archive-accent) !important;
+      font-weight: 600;
+    }
+
+    .custom-select-options.desktop-grouped .archive-year-header {
+      grid-column: 1 / -1;
+      font-weight: 700;
+      font-size: 24px !important;
+      color: var(--archive-accent);
+      padding: 12px 0 8px;
+      margin-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .custom-select-options.desktop-grouped .archive-year-header:first-child {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+  }
+
+  #content-container table {
+    width: 100%;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  @media (max-width: 1023px) {
 
     #content-container {
-      margin-top: 56px;
-      width: 100%;
-      min-height: calc(100vh - 56px);
-      box-sizing: border-box;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      align-items: flex-start !important;
     }
-  </style>
+
+    .tab-content.active,
+    #page-content {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+
+    #page-content img {
+      max-width: 100vw !important;
+      height: auto !important;
+    }
+
+    #page-content {
+      width: 100% !important;
+    }
+  }
+@media (min-width: 1024px) {
+
+    #content-container.page-full-auto .card:has(table.output-table),
+    #content-container.page-abyss .card:has(table.output-table) {
+        width: fit-content !important;
+        max-width: none !important;
+    }
+
+    #content-container.page-full-auto .card:has(table.output-table) .card-body,
+    #content-container.page-abyss .card:has(table.output-table) .card-body {
+        width: fit-content !important;
+        max-width: none !important;
+    }
+
+    #content-container.page-full-auto .card:has(table.output-table) .table-responsive,
+    #content-container.page-abyss .card:has(table.output-table) .table-responsive {
+        width: fit-content !important;
+        max-width: none !important;
+    }
+
+}
+@media (min-width: 1024px) {
+    #content-container.page-full-auto .card:has(table.output-table),
+    #content-container.page-abyss .card:has(table.output-table) {
+        align-self: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+</style>
 </head>
+
 <body>
 
-  <!-- 상단 고정: 상위 탭 + 우측 하위 탭 드롭다운 (하나의 스크롤 묶음) -->
-  <div class="tab-bar">
-    <div class="tab-bar-scroll">
-      <div class="tab-bar-main">
-        <button type="button" class="main-tab-btn active" onclick="switchTab(event, this, 'semi_auto.html')">세미오토</button>
-        <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'full_auto.html')">풀오토</button>
-        <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'recruits.html')">채용시트</button>
-        <button type="button" class="main-tab-btn" onclick="switchTab(event, this, 'abyss.html')">심연토벌전</button>
-      </div>
-      <div id="subtab-slot"></div>
-    </div>
+  <div class="page-body">
+
+    <main class="content-column">
+
+      <nav class="tab-bar" aria-label="category">
+
+        <div class="category-heading">category</div>
+
+        <div class="tab-bar-scroll">
+
+          <div class="tab-bar-main">
+
+            <button
+              type="button"
+              class="main-tab-btn active"
+              onclick="switchTab(event, this, 'semi_auto.html')">
+              세미오토
+            </button>
+
+            <button
+              type="button"
+              class="main-tab-btn"
+              onclick="switchTab(event, this, 'full_auto.html')">
+              풀오토
+            </button>
+
+            <button
+              type="button"
+              class="main-tab-btn"
+              onclick="switchTab(event, this, 'recruits.html')">
+              채용시트
+            </button>
+
+            <button
+              type="button"
+              class="main-tab-btn"
+              onclick="switchTab(event, this, 'abyss.html')">
+              심연토벌전
+            </button>
+
+          </div>
+
+          <div id="subtab-slot"></div>
+
+        </div>
+
+      </nav>
+
+      <div id="content-container"></div>
+
+    </main>
+
+    <aside id="desktop-archive-sidebar"></aside>
+
   </div>
 
-  <div id="content-container"></div>
+  <!-- 채용시트 전용 와이드 컨테이너 -->
+  <div id="wide-content-container"></div>
 
-  <script>
-    const bgImages = "{{BG_IMAGES_PLACEHOLDER}}";
+<script>
 
-    function setRandomBackground() {
-      if (!Array.isArray(bgImages) || bgImages.length === 0) return;
-      const randomImage = bgImages[Math.floor(Math.random() * bgImages.length)];
-      document.body.style.backgroundImage = `url('${randomImage}')`;
+  const bgImages = "{{BG_IMAGES_PLACEHOLDER}}";
+  const ENABLE_RANDOM_BACKGROUND = false;
+
+  function setRandomBackground() {
+    if (!ENABLE_RANDOM_BACKGROUND) return;
+    if (!Array.isArray(bgImages) || bgImages.length === 0) return;
+
+    const randomImage =
+      bgImages[Math.floor(Math.random() * bgImages.length)];
+
+    document.body.style.backgroundImage =
+      `url('${randomImage}')`;
+  }
+
+
+  const DESKTOP_BREAKPOINT = 901;
+
+  let currentSubtabPanel = null;
+
+  function isDesktopLayout() {
+    return window.innerWidth >= DESKTOP_BREAKPOINT;
+  }
+
+
+  /*
+   * 아카이브 원본 라벨
+   */
+  function getArchiveOriginalLabel(opt) {
+
+    return (
+      opt &&
+      opt.getAttribute('data-archive-label')
+    ) ||
+    (
+      opt
+        ? opt.textContent.trim()
+        : ''
+    );
+
+  }
+
+
+  /*
+   * 아카이브 연도 파싱
+   */
+  function parseArchiveYear(label) {
+
+    const text = (label || '').trim();
+
+    // 2026년9월 / 2026년 9월
+    let m =
+      text.match(/^(\d{4})년\s*\d{1,2}월$/);
+
+    if (m) {
+      return parseInt(m[1], 10);
     }
 
-    function initMainTabDragScroll() {
-      const slider = document.querySelector('.tab-bar-scroll');
-      if (!slider) return;
-      let isDown = false, startX = 0, scrollLeft = 0, dragDistance = 0;
+    // 26년9월 / 26년 9월
+    m =
+      text.match(/^(\d{2})년\s*\d{1,2}월$/);
 
-      const start = (pageX) => {
-        isDown = true;
-        dragDistance = 0;
-        slider.classList.add('dragging');
-        startX = pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      };
-      const move = (pageX) => {
-        if (!isDown) return;
-        const x = pageX - slider.offsetLeft;
-        const walk = x - startX;
-        dragDistance = Math.abs(walk);
-        slider.scrollLeft = scrollLeft - walk;
-      };
-      const end = () => {
-        isDown = false;
-        slider.classList.remove('dragging');
-      };
+    if (m) {
+      return 2000 + parseInt(m[1], 10);
+    }
 
-      slider.addEventListener('mousedown', (e) => {
-        // input/textarea/select는 드래그 대상이 아니라 직접 타이핑/클릭해야 하는 요소이므로
-        // 기본 동작(포커스, 커서 배치)을 막지 않고 그냥 통과시킴
-        if (e.target.closest('input, textarea, select')) return;
+    // 2609월 같은 기존 형식
+    m =
+      text.match(/^(\d{2})\d{1,2}월$/);
+
+    if (m) {
+      return 2000 + parseInt(m[1], 10);
+    }
+
+    return null;
+  }
+
+
+  /*
+   * 월 표시
+   */
+  function formatArchiveMonthLabel(label) {
+
+    const m =
+      (label || '')
+        .trim()
+        .match(/^\d{2}년(\d{1,2})월$/);
+
+    return m
+      ? parseInt(m[1], 10) + '월'
+      : (label || '').trim();
+
+  }
+
+
+  /*
+   * 아카이브 옵션 포맷
+   */
+  function formatArchiveOptions(optionsBox) {
+
+    if (!optionsBox) return;
+
+    optionsBox
+      .querySelectorAll('.custom-option')
+      .forEach(opt => {
+
+        if (!opt.hasAttribute('data-archive-label')) {
+
+          opt.setAttribute(
+            'data-archive-label',
+            opt.textContent.trim()
+          );
+
+        }
+
+        opt.textContent =
+          formatArchiveMonthLabel(
+            getArchiveOriginalLabel(opt)
+          );
+
+      });
+
+  }
+
+
+  /*
+   * 기존 연도 헤더 제거
+   */
+  function clearArchiveHeaders(optionsBox) {
+
+    optionsBox
+      .querySelectorAll('.archive-year-header')
+      .forEach(el => el.remove());
+
+  }
+
+
+  /*
+   * 연도별 그룹 생성
+   *
+   * 데스크톱과 모바일이 동일한 구조를 사용한다.
+   */
+  function buildArchiveGroups(optionsBox) {
+
+    if (!optionsBox) return;
+
+    clearArchiveHeaders(optionsBox);
+
+    formatArchiveOptions(optionsBox);
+
+    const options =
+      Array.from(optionsBox.children)
+        .filter(el =>
+          el.classList.contains('custom-option')
+        );
+
+    let lastYear = null;
+
+    options.forEach(opt => {
+
+      const year =
+        parseArchiveYear(
+          getArchiveOriginalLabel(opt)
+        );
+
+      if (
+        year !== null &&
+        year !== lastYear
+      ) {
+
+        const header =
+          document.createElement('div');
+
+        header.className =
+          'archive-year-header';
+
+        header.textContent =
+          year;
+
+        optionsBox.insertBefore(
+          header,
+          opt
+        );
+
+        lastYear = year;
+      }
+
+    });
+
+  }
+
+
+  /*
+   * 데스크톱 아카이브
+   */
+  function buildDesktopArchive(optionsBox) {
+
+    buildArchiveGroups(optionsBox);
+
+    optionsBox.classList.add(
+      'desktop-grouped'
+    );
+
+  }
+
+
+  /*
+   * 모바일 아카이브 열기/닫기
+   *
+   * 기존 custom-select의 동작과 별개로
+   * 모바일에서만 직접 처리한다.
+   */
+  function setupMobileArchiveToggle(panel) {
+
+    if (!panel) return;
+
+    const trigger =
+      panel.querySelector(
+        '.custom-select-trigger'
+      );
+
+    const wrapper =
+      panel.querySelector(
+        '.top-tab-dropdown-wrapper'
+      );
+
+    const optionsBox =
+      panel.querySelector(
+        '.custom-select-options'
+      );
+
+    if (
+      !trigger ||
+      !wrapper ||
+      !optionsBox
+    ) {
+      return;
+    }
+
+    /*
+     * 중복 이벤트 등록 방지
+     */
+    if (
+      trigger.dataset.mobileArchiveToggle === 'true'
+    ) {
+      return;
+    }
+
+    trigger.dataset.mobileArchiveToggle =
+      'true';
+
+    trigger.addEventListener(
+      'click',
+      function(e) {
+
+        if (isDesktopLayout()) {
+          return;
+        }
+
+        /*
+         * 기존 custom dropdown의 클릭 이벤트가
+         * 모바일에서 fixed 위치를 계산하지 않도록 차단
+         */
         e.preventDefault();
-        start(e.pageX);
-      });
-      window.addEventListener('mousemove', (e) => { if (isDown) { e.preventDefault(); move(e.pageX); } });
-      window.addEventListener('mouseup', end);
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
-      slider.addEventListener('touchstart', (e) => start(e.touches[0].pageX), { passive: true });
-      slider.addEventListener('touchmove', (e) => move(e.touches[0].pageX), { passive: true });
-      slider.addEventListener('touchend', end);
+        wrapper.classList.toggle('open');
 
-      // 드래그였다면(클릭이 아니라면) 탭 전환이 실행되지 않도록 클릭을 캡처 단계에서 막음
-      slider.addEventListener('click', (e) => {
-        if (dragDistance > 5) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      }, true);
-    }
+      },
+      true
+    );
 
-    let rosterResizeObserver = null;
+  }
 
-    function syncRosterToolbarWidth() {
-      const container = document.getElementById('content-container');
-      if (!container) return;
 
-      // 페이지가 바뀌면 이전 옵저버는 정리(끊긴 요소를 계속 관찰하지 않도록)
-      if (rosterResizeObserver) {
-        rosterResizeObserver.disconnect();
-        rosterResizeObserver = null;
+  /*
+   * 외부 영역 클릭 시 모바일 아카이브 닫기
+   */
+  document.addEventListener(
+    'click',
+    function(e) {
+
+      if (isDesktopLayout()) {
+        return;
       }
 
-      const table = container.querySelector('.roster-table');
-      const toolbar = container.querySelector('.roster-toolbar');
-      if (!table || !toolbar) return;
+      const slot =
+        document.getElementById(
+          'subtab-slot'
+        );
 
-      const apply = () => { toolbar.style.width = table.offsetWidth + 'px'; };
-      apply();
+      if (!slot) return;
 
-      if (window.ResizeObserver) {
-        rosterResizeObserver = new ResizeObserver(apply);
-        rosterResizeObserver.observe(table);
-      } else {
-        // ResizeObserver 미지원 브라우저를 위한 대체 수단
-        window.addEventListener('resize', apply);
-      }
-    }
+      const wrapper =
+        slot.querySelector(
+          '.top-tab-dropdown-wrapper'
+        );
 
-    function switchTab(evt, buttonEl, fileUrl) {
-      if (evt && typeof evt.preventDefault === 'function') {
-        evt.preventDefault();
-      }
-      if (window.event) {
-        window.event.returnValue = false;
+      if (!wrapper) return;
+
+      if (!wrapper.contains(e.target)) {
+
+        wrapper.classList.remove(
+          'open'
+        );
+
       }
 
-      const buttons = document.querySelectorAll('.main-tab-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      if (buttonEl) buttonEl.classList.add('active');
+    }
+  );
 
-      loadPage(fileUrl);
-      return false;
+
+  /*
+   * 서브탭 패널 위치 이동
+   */
+  function placeSubtabPanel() {
+
+    const panel =
+      currentSubtabPanel;
+
+    const subtabSlot =
+      document.getElementById(
+        'subtab-slot'
+      );
+
+    const sidebar =
+      document.getElementById(
+        'desktop-archive-sidebar'
+      );
+
+    if (
+      !subtabSlot ||
+      !sidebar
+    ) {
+      return;
     }
 
-    async function loadPage(fileUrl) {
-      const container = document.getElementById('content-container');
-      const subtabSlot = document.getElementById('subtab-slot');
-      if (!container) return;
 
-      try {
-        const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        
-        const html = await response.text();
-        container.innerHTML = html;
-        updateContentOffset();
+    /*
+     * 현재 서브탭이 없을 경우
+     */
+    if (!panel) {
 
-        const scripts = Array.from(container.querySelectorAll('script'));
-        scripts.forEach(oldScript => {
-          const newScript = document.createElement('script');
-          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-          oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
+      sidebar.classList.remove(
+        'has-content'
+      );
 
-        if (subtabSlot) {
-          subtabSlot.innerHTML = '';
-          const subtabPanel = container.querySelector('.subtab-header-panel') || container.querySelector('.top-tab-dropdown-wrapper');
-          if (subtabPanel) subtabSlot.appendChild(subtabPanel);
-        }
+      sidebar.innerHTML = '';
 
-        syncRosterToolbarWidth();
+      subtabSlot.innerHTML = '';
 
-      } catch (err) {
-        container.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">페이지를 불러올 수 없습니다: ' + err.message + '</div>';
-        if (subtabSlot) subtabSlot.innerHTML = '';
+      return;
+    }
+
+
+    const optionsBox =
+      panel.querySelector(
+        '.custom-select-options'
+      );
+
+    const trigger =
+      panel.querySelector(
+        '.custom-select-trigger'
+      );
+
+    const timeline =
+      panel.querySelector(
+        '.inline-timeline-panel'
+      );
+
+    const dropdownWrapper =
+      panel.querySelector(
+        '.top-tab-dropdown-wrapper'
+      );
+
+    const panelHeader =
+      panel.querySelector(
+        '.subtab-header-panel'
+      );
+
+    const hasMonths =
+      !!optionsBox &&
+      !!optionsBox.querySelector(
+        '.custom-option'
+      );
+
+
+    /*
+     * =========================
+     * 데스크톱
+     * =========================
+     */
+    if (isDesktopLayout()) {
+
+      if (trigger) {
+        trigger.style.display =
+          'none';
       }
-      updateContentOffset();
+
+      if (optionsBox) {
+
+        buildDesktopArchive(
+          optionsBox
+        );
+
+      }
+
+      /*
+       * 사이드바 초기화
+       */
+      sidebar.innerHTML = '';
+
+
+      /*
+       * 월별 아카이브 제목
+       */
+      if (hasMonths) {
+
+        const titleBar =
+          document.createElement('div');
+
+        titleBar.className =
+          'archive-sidebar-title';
+
+        titleBar.textContent =
+          '월별 아카이브';
+
+        sidebar.appendChild(
+          titleBar
+        );
+
+      }
+
+
+      /*
+       * 월 목록
+       */
+      const body =
+        document.createElement('div');
+
+      body.className =
+        'archive-sidebar-body';
+
+      sidebar.appendChild(
+        body
+      );
+
+      if (optionsBox) {
+
+        body.appendChild(
+          optionsBox
+        );
+
+      }
+
+
+      /*
+       * 이월 계산기
+       */
+      if (timeline) {
+
+        const extra =
+          document.createElement('div');
+
+        extra.className =
+          'archive-sidebar-extra archive-timeline-extra';
+
+        extra.appendChild(
+          timeline
+        );
+
+        sidebar.appendChild(
+          extra
+        );
+
+      }
+
+
+      sidebar.classList.toggle(
+        'has-content',
+        hasMonths || !!timeline
+      );
+
+      /*
+       * 데스크톱에서는 서브탭 패널을
+       * 본문 위에 둘 필요 없음
+       */
+      subtabSlot.innerHTML = '';
+
     }
 
-    function updateContentOffset() {
-      const tabBar = document.querySelector('.tab-bar');
-      const container = document.getElementById('content-container');
-      if (!tabBar || !container) return;
-      const h = tabBar.offsetHeight;
-      container.style.marginTop = h + 'px';
-      container.style.minHeight = 'calc(100vh - ' + h + 'px)';
-      document.documentElement.style.setProperty('--tab-bar-height', h + 'px');
-    }
-    window.addEventListener('resize', updateContentOffset);
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setRandomBackground();
-        initMainTabDragScroll();
-        loadPage('semi_auto.html');
-      });
+    /*
+     * =========================
+     * 모바일 / 태블릿
+     * =========================
+     */
+    else {
+
+      /*
+       * 데스크톱에서 사이드바로 이동했던
+       * optionsBox를 원래 dropdown 안으로 복구
+       */
+      if (
+        optionsBox &&
+        dropdownWrapper &&
+        optionsBox.parentElement !==
+          dropdownWrapper
+      ) {
+
+        dropdownWrapper.appendChild(
+          optionsBox
+        );
+
+      }
+
+
+      /*
+       * 데스크톱에서 사이드바로 이동했던
+       * 이월 계산기를 원래 패널로 복구
+       */
+      if (
+        timeline &&
+        panelHeader &&
+        timeline.parentElement !==
+          panelHeader
+      ) {
+
+        panelHeader.appendChild(
+          timeline
+        );
+
+      }
+
+
+      /*
+       * 모바일에서는 기존 desktop-grouped
+       * 클래스 제거
+       */
+      if (optionsBox) {
+
+        optionsBox.classList.remove(
+          'desktop-grouped'
+        );
+
+        buildArchiveGroups(
+          optionsBox
+        );
+
+      }
+
+
+      /*
+       * 데스크톱 사이드바 숨김
+       */
+      sidebar.classList.remove(
+        'has-content'
+      );
+
+      sidebar.innerHTML = '';
+
+
+      /*
+       * 서브탭 패널을 모바일 슬롯으로 이동
+       */
+      subtabSlot.innerHTML = '';
+
+      subtabSlot.appendChild(
+        panel
+      );
+
+
+      /*
+       * 모바일 아카이브 토글 연결
+       */
+      setupMobileArchiveToggle(
+        panel
+      );
+
+    }
+
+  }
+
+
+  /*
+   * 화면 크기 변경
+   */
+  let layoutResizeTimer = null;
+
+  window.addEventListener(
+    'resize',
+    () => {
+
+      clearTimeout(
+        layoutResizeTimer
+      );
+
+      layoutResizeTimer =
+        setTimeout(
+          placeSubtabPanel,
+          150
+        );
+
+    }
+  );
+
+
+  let rosterResizeObserver = null;
+
+
+  /*
+   * 채용시트 툴바 폭 동기화
+   */
+  function syncRosterToolbarWidth() {
+
+    const container =
+      document.getElementById(
+        'content-container'
+      );
+
+    if (!container) return;
+
+
+    if (rosterResizeObserver) {
+
+      rosterResizeObserver.disconnect();
+
+      rosterResizeObserver = null;
+
+    }
+
+
+    const table =
+      container.querySelector(
+        '.roster-table'
+      );
+
+    const toolbar =
+      container.querySelector(
+        '.roster-toolbar'
+      );
+
+    if (!table || !toolbar) {
+      return;
+    }
+
+
+    const apply = () => {
+
+      toolbar.style.width =
+        table.offsetWidth + 'px';
+
+    };
+
+    apply();
+
+
+    if (window.ResizeObserver) {
+
+      rosterResizeObserver =
+        new ResizeObserver(
+          apply
+        );
+
+      rosterResizeObserver.observe(
+        table
+      );
+
     } else {
-      setRandomBackground();
-      initMainTabDragScroll();
-      loadPage('semi_auto.html');
+
+      window.addEventListener(
+        'resize',
+        apply
+      );
+
     }
-  </script>
+
+  }
+
+
+  /*
+   * 채용시트 sticky header
+   */
+  function syncRosterStickyHeader() {
+
+    const container =
+      document.getElementById(
+        'content-container'
+      );
+
+    if (!container) return;
+
+
+    const toolbar =
+      container.querySelector(
+        '.roster-toolbar'
+      );
+
+    const table =
+      container.querySelector(
+        '.roster-table'
+      );
+
+    if (!toolbar) return;
+
+
+    toolbar.style.setProperty(
+      'top',
+      '0px',
+      'important'
+    );
+
+    toolbar.style.setProperty(
+      'position',
+      'sticky',
+      'important'
+    );
+
+    toolbar.style.setProperty(
+      'z-index',
+      '1000',
+      'important'
+    );
+
+
+    const toolbarHeight =
+      toolbar.getBoundingClientRect()
+        .height;
+
+    container.style.setProperty(
+      '--roster-toolbar-height',
+      toolbarHeight + 'px'
+    );
+
+
+    if (table) {
+
+      const rows =
+        table.querySelectorAll(
+          'thead tr'
+        );
+
+      let currentTop =
+        toolbarHeight;
+
+
+      rows.forEach(
+        (tr, rowIndex) => {
+
+          const ths =
+            tr.querySelectorAll(
+              'th'
+            );
+
+          if (!ths.length) {
+            return;
+          }
+
+
+          ths.forEach(th => {
+
+            th.style.setProperty(
+              'top',
+              currentTop + 'px',
+              'important'
+            );
+
+            th.style.setProperty(
+              'position',
+              'sticky',
+              'important'
+            );
+
+            th.style.setProperty(
+              'z-index',
+              (900 - rowIndex) + '',
+              'important'
+            );
+
+          });
+
+
+          const normalTh =
+            tr.querySelector(
+              'th:not([rowspan])'
+            ) ||
+            ths[0];
+
+          if (normalTh) {
+
+            currentTop +=
+              normalTh.getBoundingClientRect()
+                .height;
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+
+
+  window.addEventListener(
+    'resize',
+    syncRosterStickyHeader
+  );
+
+
+  /*
+   * 메인 탭 전환
+   */
+  function switchTab(
+    evt,
+    buttonEl,
+    fileUrl
+  ) {
+
+    if (
+      evt &&
+      typeof evt.preventDefault ===
+        'function'
+    ) {
+
+      evt.preventDefault();
+
+    }
+
+
+    if (window.event) {
+      window.event.returnValue =
+        false;
+    }
+
+
+    const buttons =
+      document.querySelectorAll(
+        '.main-tab-btn'
+      );
+
+    buttons.forEach(
+      btn =>
+        btn.classList.remove(
+          'active'
+        )
+    );
+
+
+    if (buttonEl) {
+
+      buttonEl.classList.add(
+        'active'
+      );
+
+    }
+
+
+    loadPage(
+      fileUrl
+    );
+
+    return false;
+
+  }
+
+
+  /*
+   * 페이지 로드
+   */
+  async function loadPage(fileUrl) {
+
+    const container =
+      document.getElementById(
+        'content-container'
+      );
+
+    const wideContainer =
+      document.getElementById(
+        'wide-content-container'
+      );
+
+    if (
+      !container ||
+      !wideContainer
+    ) {
+      return;
+    }
+
+
+    const isRecruits =
+      fileUrl.includes(
+        'recruits.html'
+      );
+    const isSemiAuto = fileUrl.includes('semi_auto.html');
+    const isFullAuto = fileUrl.includes('full_auto.html');
+    const isAbyss = fileUrl.includes('abyss.html');
+
+    const targetContainer =
+      isRecruits
+        ? wideContainer
+        : container;
+
+    const otherContainer =
+      isRecruits
+        ? container
+        : wideContainer;
+
+
+    /*
+     * 비활성 컨테이너 초기화
+     */
+    otherContainer.innerHTML =
+      '';
+
+    otherContainer.style.display =
+      'none';
+
+    targetContainer.style.display =
+      'flex';
+
+
+    try {
+
+      const response =
+        await fetch(
+          fileUrl
+        );
+
+      if (!response.ok) {
+
+        throw new Error(
+          'HTTP ' +
+          response.status
+        );
+
+      }
+
+
+      const html =
+        await response.text();
+
+
+      targetContainer.innerHTML =
+        html;
+      targetContainer.classList.remove(
+          'page-semi-auto',
+          'page-full-auto',
+          'page-abyss'
+      );
+
+      if (isSemiAuto) {
+          targetContainer.classList.add('page-semi-auto');
+      } else if (isFullAuto) {
+          targetContainer.classList.add('page-full-auto');
+      } else if (isAbyss) {
+          targetContainer.classList.add('page-abyss');
+      }
+
+      /*
+       * 동적으로 삽입된 script 실행
+       */
+      const scripts =
+        Array.from(
+          targetContainer.querySelectorAll(
+            'script'
+          )
+        );
+
+
+      scripts.forEach(
+        oldScript => {
+
+          const newScript =
+            document.createElement(
+              'script'
+            );
+
+
+          Array.from(
+            oldScript.attributes
+          ).forEach(
+            attr =>
+              newScript.setAttribute(
+                attr.name,
+                attr.value
+              )
+          );
+
+
+          newScript.appendChild(
+            document.createTextNode(
+              oldScript.innerHTML
+            )
+          );
+
+
+          oldScript.parentNode.replaceChild(
+            newScript,
+            oldScript
+          );
+
+        }
+      );
+
+
+      /*
+       * 현재 서브탭 패널 찾기
+       */
+      currentSubtabPanel =
+        targetContainer.querySelector(
+          '.subtab-header-panel'
+        ) ||
+        targetContainer.querySelector(
+          '.top-tab-dropdown-wrapper'
+        );
+
+
+      /*
+       * 아카이브 위치 배치
+       */
+      placeSubtabPanel();
+
+
+      /*
+       * 채용시트
+       */
+      syncRosterToolbarWidth();
+
+
+      if (
+        typeof fitActiveTab ===
+        'function'
+      ) {
+
+        fitActiveTab();
+
+      }
+
+
+      syncRosterStickyHeader();
+
+
+    } catch (err) {
+
+      targetContainer.innerHTML =
+        '<div style="color: red; padding: 20px; text-align: center;">' +
+        '페이지를 불러올 수 없습니다: ' +
+        err.message +
+        '</div>';
+
+
+      currentSubtabPanel =
+        null;
+
+      placeSubtabPanel();
+
+    }
+
+  }
+
+
+  /*
+   * 채용시트 툴바 폭 동기화
+   *
+   * wide-content-container까지 포함해서 검색
+   */
+  function syncRosterToolbarWidth() {
+
+    if (rosterResizeObserver) {
+
+      rosterResizeObserver.disconnect();
+
+      rosterResizeObserver =
+        null;
+
+    }
+
+
+    const table =
+      document.querySelector(
+        '.roster-table'
+      );
+
+    const toolbar =
+      document.querySelector(
+        '.roster-toolbar'
+      );
+
+    if (!table || !toolbar) {
+      return;
+    }
+
+
+    const apply = () => {
+
+      toolbar.style.width =
+        table.offsetWidth + 'px';
+
+    };
+
+    apply();
+
+
+    if (window.ResizeObserver) {
+
+      rosterResizeObserver =
+        new ResizeObserver(
+          apply
+        );
+
+      rosterResizeObserver.observe(
+        table
+      );
+
+    } else {
+
+      window.addEventListener(
+        'resize',
+        apply
+      );
+
+    }
+
+  }
+
+
+  /*
+   * 채용시트 sticky header
+   */
+  function syncRosterStickyHeader() {
+
+    const toolbar =
+      document.querySelector(
+        '.roster-toolbar'
+      );
+
+    const table =
+      document.querySelector(
+        '.roster-table'
+      );
+
+    if (!toolbar) {
+      return;
+    }
+
+
+    toolbar.style.setProperty(
+      'top',
+      '0px',
+      'important'
+    );
+
+    toolbar.style.setProperty(
+      'position',
+      'sticky',
+      'important'
+    );
+
+    toolbar.style.setProperty(
+      'z-index',
+      '1000',
+      'important'
+    );
+
+
+    const toolbarHeight =
+      toolbar.getBoundingClientRect()
+        .height;
+
+
+    if (table) {
+
+      const rows =
+        table.querySelectorAll(
+          'thead tr'
+        );
+
+      let currentTop =
+        toolbarHeight;
+
+
+      rows.forEach(
+        (tr, rowIndex) => {
+
+          const ths =
+            tr.querySelectorAll(
+              'th'
+            );
+
+          if (!ths.length) {
+            return;
+          }
+
+
+          ths.forEach(th => {
+
+            th.style.setProperty(
+              'top',
+              currentTop + 'px',
+              'important'
+            );
+
+            th.style.setProperty(
+              'position',
+              'sticky',
+              'important'
+            );
+
+            th.style.setProperty(
+              'z-index',
+              (900 - rowIndex) + '',
+              'important'
+            );
+
+          });
+
+
+          const normalTh =
+            tr.querySelector(
+              'th:not([rowspan])'
+            ) ||
+            ths[0];
+
+
+          if (normalTh) {
+
+            currentTop +=
+              normalTh.getBoundingClientRect()
+                .height;
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /*
+   * 초기 실행
+   */
+  if (
+    document.readyState ===
+    'loading'
+  ) {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+
+        setRandomBackground();
+
+        loadPage(
+          'semi_auto.html'
+        );
+
+      }
+    );
+
+  } else {
+
+    setRandomBackground();
+
+    loadPage(
+      'semi_auto.html'
+    );
+
+  }
+
+</script>
+
 </body>
 </html>
