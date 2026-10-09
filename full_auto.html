@@ -614,6 +614,41 @@
             color: #4f46e5;
             font-weight: 600;
         }
+
+        /* 📱 모바일(767px 이하) 가로 스크롤 방지 및 강제 반응형 스타일 추가 */
+        @media (max-width: 767px) {
+            .tab-content table.output-table {
+                width: 100% !important;
+                max-width: 100% !important;
+                table-layout: auto !important;
+            }
+
+            .tab-content table.output-table td,
+            .tab-content table.output-table th {
+                white-space: normal !important;
+                word-break: break-word !important;
+                overflow-wrap: anywhere !important;
+                padding: 4px 2px !important;
+            }
+
+            .tab-content table.output-table td.img-td,
+            .tab-content table.output-table th.img-td {
+                width: auto !important;
+                min-width: 0 !important;
+                max-width: none !important;
+                height: auto !important;
+            }
+
+            .tab-content table.output-table td.img-td img,
+            .tab-content table.output-table th.img-td img {
+                width: 100% !important;
+                max-width: 45px !important;
+                height: auto !important;
+                min-width: 0 !important;
+                min-height: 0 !important;
+                object-fit: contain !important;
+            }
+        }
     </style>
 <style data-mobile-reflow-injected="1">
 /* 모바일 풀오토/심연토벌전 테이블 재배치 */

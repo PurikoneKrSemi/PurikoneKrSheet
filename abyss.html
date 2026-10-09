@@ -614,6 +614,41 @@
             color: #4f46e5;
             font-weight: 600;
         }
+
+        /* 📱 모바일(767px 이하) 가로 스크롤 방지 및 강제 반응형 스타일 추가 */
+        @media (max-width: 767px) {
+            .tab-content table.output-table {
+                width: 100% !important;
+                max-width: 100% !important;
+                table-layout: auto !important;
+            }
+
+            .tab-content table.output-table td,
+            .tab-content table.output-table th {
+                white-space: normal !important;
+                word-break: break-word !important;
+                overflow-wrap: anywhere !important;
+                padding: 4px 2px !important;
+            }
+
+            .tab-content table.output-table td.img-td,
+            .tab-content table.output-table th.img-td {
+                width: auto !important;
+                min-width: 0 !important;
+                max-width: none !important;
+                height: auto !important;
+            }
+
+            .tab-content table.output-table td.img-td img,
+            .tab-content table.output-table th.img-td img {
+                width: 100% !important;
+                max-width: 45px !important;
+                height: auto !important;
+                min-width: 0 !important;
+                min-height: 0 !important;
+                object-fit: contain !important;
+            }
+        }
     </style>
 <style data-mobile-reflow-injected="1">
 /* 모바일 풀오토/심연토벌전 테이블 재배치 */
@@ -4958,8 +4993,23 @@ XOOOO 40000</td>
   }
 
   function updateMode() {
+    const mobile = MOBILE_QUERY.matches;
+
+    // 📱 모바일/PC 화면 폭에 따라 colspan="8" 헤더 셀 동적 변경
+    document.querySelectorAll('.output-table th[colspan], .output-table td[colspan]').forEach(cell => {
+      if (mobile) {
+        if (cell.getAttribute('colspan') === '8') {
+          cell.dataset.origColspan = '8';
+          cell.colSpan = 6;
+        }
+      } else {
+        if (cell.dataset.origColspan === '8') {
+          cell.colSpan = 8;
+        }
+      }
+    });
+
     document.querySelectorAll('table.output-table.mobile-reflow-enabled').forEach(table => {
-      const mobile = MOBILE_QUERY.matches;
       table.querySelectorAll('[data-mobile-generated="1"]').forEach(row => {
         row.style.display = mobile ? 'table-row' : 'none';
       });
@@ -4967,7 +5017,6 @@ XOOOO 40000</td>
         row.style.display = mobile ? 'none' : '';
       });
       table.querySelectorAll('thead tr').forEach(row => {
-        // 원래 헤더의 딜량/조작 열은 모바일에서 숨기고, 안내 링크/섹션 제목은 유지한다.
         if (row.querySelector('.guide-link-row') || row.classList.contains('guide-link-row')) return;
         const cells = directCells(row);
         if (cells.some(c => /^(딜량|조작)$/.test((c.textContent || '').trim()))) {
