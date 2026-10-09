@@ -1020,14 +1020,17 @@
                 el.removeAttribute('title');
             });
 
-            // 기존 작성기 UI 스크립트 제거
+            // 기존 작성기 UI 관리용 스크립트 제거
             cloneDoc.querySelectorAll('script').forEach(sc => sc.remove());
 
-            // 📱 저장되는 HTML에 모바일 재배치 스크립트 자동 주입
-            const mobileScript = cloneDoc.createElement('script');
+            // 📱 document.createElement를 사용하여 모바일 재배치 스크립트 생성 및 주입
+            const mobileScript = document.createElement('script');
             mobileScript.setAttribute('data-mobile-reflow-injected', '1');
             mobileScript.textContent = MOBILE_REFINE_SCRIPT_TEXT;
-            (cloneDoc.body || cloneDoc.documentElement).appendChild(mobileScript);
+
+            // 복제된 문서의 body 또는 최상위 요소에 추가
+            const bodyOrDoc = cloneDoc.querySelector('body') || cloneDoc;
+            bodyOrDoc.appendChild(mobileScript);
 
             const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
