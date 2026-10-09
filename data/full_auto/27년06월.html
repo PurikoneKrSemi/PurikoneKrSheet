@@ -477,6 +477,22 @@
         .admin-status.error { color: #dc2626; }
     </style>
 <style data-mobile-reflow-injected="1">
+/* 🌐 데스크탑/모바일 공통: 안내 링크 볼드 해제 및 말줄임 처리 */
+.output-table .guide-link-row a,
+.output-table .header-link a,
+.output-table th.header-link,
+.output-table tr.guide-link-row th {
+  font-weight: normal !important; /* 볼드 완전 해제 */
+}
+
+.output-table .guide-link-row a,
+.output-table .header-link a {
+  display: block !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
 /* 모바일 풀오토/심연토벌전 테이블 재배치 */
 @media (max-width: 767px) {
   .output-table.mobile-reflow-enabled { width: 100% !important; min-width: 0 !important; table-layout: fixed !important; }
@@ -489,6 +505,22 @@
     height: auto !important; min-height: 0 !important; padding: 5px 3px !important;
     font-size: 12px !important; line-height: 1.35 !important; white-space: normal !important;
     overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+  /* 🔗 1행 안내 링크 줄바꿈 방지 및 말줄임표(...) 처리 */
+  .output-table .guide-link-row th,
+  .output-table .guide-link-row td {
+    max-width: 0 !important; /* table-layout: fixed에서 overflow 적용을 위해 필수 */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .output-table .guide-link-row a {
+    display: block !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 .output-table.mobile-reflow-enabled .mobile-data-row td.img-td {
     width: 16.666% !important;
@@ -1195,8 +1227,23 @@
   }
 
   function updateMode() {
+    const mobile = MOBILE_QUERY.matches;
+
+    // 📱 모바일/PC 화면 폭에 따라 colspan="8" 헤더 셀 동적 변경
+    document.querySelectorAll('.output-table th[colspan], .output-table td[colspan]').forEach(cell => {
+      if (mobile) {
+        if (cell.getAttribute('colspan') === '8') {
+          cell.dataset.origColspan = '8';
+          cell.colSpan = 6;
+        }
+      } else {
+        if (cell.dataset.origColspan === '8') {
+          cell.colSpan = 8;
+        }
+      }
+    });
+
     document.querySelectorAll('table.output-table.mobile-reflow-enabled').forEach(table => {
-      const mobile = MOBILE_QUERY.matches;
       table.querySelectorAll('[data-mobile-generated="1"]').forEach(row => {
         row.style.display = mobile ? 'table-row' : 'none';
       });
@@ -1204,7 +1251,6 @@
         row.style.display = mobile ? 'none' : '';
       });
       table.querySelectorAll('thead tr').forEach(row => {
-        // 원래 헤더의 딜량/조작 열은 모바일에서 숨기고, 안내 링크/섹션 제목은 유지한다.
         if (row.querySelector('.guide-link-row') || row.classList.contains('guide-link-row')) return;
         const cells = directCells(row);
         if (cells.some(c => /^(딜량|조작)$/.test((c.textContent || '').trim()))) {

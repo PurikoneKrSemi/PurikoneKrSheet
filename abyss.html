@@ -651,6 +651,22 @@
         }
     </style>
 <style data-mobile-reflow-injected="1">
+/* 🌐 데스크탑/모바일 공통: 안내 링크 볼드 해제 및 말줄임 처리 */
+.output-table .guide-link-row a,
+.output-table .header-link a,
+.output-table th.header-link,
+.output-table tr.guide-link-row th {
+  font-weight: normal !important; /* 볼드 완전 해제 */
+}
+
+.output-table .guide-link-row a,
+.output-table .header-link a {
+  display: block !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
 /* 모바일 풀오토/심연토벌전 테이블 재배치 */
 @media (max-width: 767px) {
   .output-table.mobile-reflow-enabled { width: 100% !important; min-width: 0 !important; table-layout: fixed !important; }
@@ -663,6 +679,22 @@
     height: auto !important; min-height: 0 !important; padding: 5px 3px !important;
     font-size: 12px !important; line-height: 1.35 !important; white-space: normal !important;
     overflow-wrap: anywhere !important; word-break: break-word !important;
+  }
+  /* 🔗 1행 안내 링크 줄바꿈 방지 및 말줄임표(...) 처리 */
+  .output-table .guide-link-row th,
+  .output-table .guide-link-row td {
+    max-width: 0 !important; /* table-layout: fixed에서 overflow 적용을 위해 필수 */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .output-table .guide-link-row a {
+    display: block !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 .output-table.mobile-reflow-enabled .mobile-data-row td.img-td {
     width: 16.666% !important;
@@ -707,289 +739,17 @@
 <div class="subtab-header-panel">
 <div class="top-tab-dropdown-wrapper">
 <div class="custom-select-trigger" onclick="toggleCustomDropdown(event)">
-<span id="selected-subtab-label">26년10월</span>
+<span id="selected-subtab-label">26년11월</span>
 <svg fill="none" height="12" stroke="#64748b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="12">
 <polyline points="6 9 12 15 18 9"></polyline>
 </svg>
 </div>
 <div class="custom-select-options">
-<div class="custom-option selected" onclick="selectCustomOption(this, 'tab-page-1', '26년10월')">26년10월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-2', '26년11월')">26년11월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-3', '26년12월')">26년12월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-4', '27년01월')">27년01월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-5', '27년02월')">27년02월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-6', '27년03월')">27년03월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-7', '27년04월')">27년04월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-8', '27년05월')">27년05월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-9', '27년06월')">27년06월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-10', '27년07월')">27년07월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-11', '27년08월')">27년08월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-12', '27년09월')">27년09월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-13', '27년10월')">27년10월</div>
+<div class="custom-option selected" onclick="selectCustomOption(this, 'tab-page-1', '26년11월')">26년11월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-2', '26년12월')">26년12월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-3', '27년01월')">27년01월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-4', '27년02월')">27년02월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-5', '27년03월')">27년03월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-6', '27년04월')">27년04월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-7', '27년05월')">27년05월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-8', '27년06월')">27년06월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-9', '27년07월')">27년07월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-10', '27년08월')">27년08월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-11', '27년09월')">27년09월</div><div class="custom-option" onclick="selectCustomOption(this, 'tab-page-12', '27년10월')">27년10월</div>
 </div>
 </div>
 </div>
 <div class="tab-content active" id="tab-page-1">
-<!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
-<div class="card">
-<div class="card-body">
-<div class="table-responsive">
-<table class="output-table"><colgroup><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 100px;"/><col style="width: 300px;"/></colgroup>
-<thead>
-<tr class="guide-link-row">
-<th colspan="8"><a href="https://www.youtube.com/watch?v=xt35uAi3bL8" target="_blank">【プリコネR】9月完全版「火」深淵討伐戦の攻略編成を色々紹介！2025年9月火属性【ベノムサラマンドラ】【トレントキャッスル】【フラワーシュバリエ】</a></th>
-</tr>
-<tr>
-<th>전초퀘스트</th><th colspan="5">캐릭터</th><th>딜량</th><th>조작</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="img-td"></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A6%AC%EC%8A%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A9%94%EC%8A%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%EB%84%A4%EC%B9%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8B%A0%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%84%A4%EB%AA%A8%EB%84%A45.png"/></td>
-<td></td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td></td>
-<td class="operation-td">OOOOO</td>
-</tr>
-</tbody>
-<thead>
-<tr>
-<th>노말/하드</th><th colspan="5">캐릭터</th><th>딜량</th><th>조작</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td></td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td></td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td></td>
-<td class="operation-td">OOOOO
-
-무이미나 크리스 사망할수도 있음
-안되면 EX 편성 참고</td>
-</tr>
-</tbody>
-<thead>
-<tr>
-<th>베하/익스</th><th colspan="5">캐릭터</th><th>딜량</th><th>조작</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>48500</td>
-<td class="operation-td">XXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>45200</td>
-<td class="operation-td">XXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%9C%EC%A6%88%EB%A3%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>43100</td>
-<td class="operation-td">XXXOO
-
-마지막에 카논 사망</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%95%A0%ED%86%A0%EB%AA%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>41700</td>
-<td class="operation-td">XXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9A%94%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>39100</td>
-<td class="operation-td">XXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%9C%EC%A6%88%EB%A3%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%82%AC%EB%A0%8C5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>37600</td>
-<td class="operation-td">XOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%9A%94%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td>
-<td>37200</td>
-<td class="operation-td">XXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9E%91%EC%98%A4%EC%9D%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td>
-<td>34700</td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>33800</td>
-<td class="operation-td">OXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A6%B0%EB%93%9C5.png"/></td>
-<td>33600</td>
-<td class="operation-td">XOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_3.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%B9%B4%EB%85%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>31700</td>
-<td class="operation-td">OXOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%9B%84%EB%B6%80%ED%82%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>46500</td>
-<td class="operation-td">OOOOO
-
-아이라 사망 시 XOXOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%95%A0%EB%AF%B8%EB%AF%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>45200</td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%9B%84%EB%B6%80%ED%82%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td>41700</td>
-<td class="operation-td">OOOOO
-
-쥰 → 와츠리 가능</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%82%AC%EB%A0%8C5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>39800</td>
-<td class="operation-td">OOOOO
-
-아이라 사망할수도</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9E%91%EC%98%A4%EC%9D%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AF%B8%EC%86%8C%EA%B8%B06.png"/></td>
-<td>38200</td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%9B%84%EB%B6%80%ED%82%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%82%AC%EB%A0%8C5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>37600</td>
-<td class="operation-td">XOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9E%91%EC%98%A4%EC%9D%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>35900</td>
-<td class="operation-td">OOOOO</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%9B%84%EB%B6%80%ED%82%A45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td>33200</td>
-<td class="operation-td">OXOOO 오토O
-1:06 봉황 → 봉황 SET 네피 OFF</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_4.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9E%91%EC%98%A4%EC%9D%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%AC%B4%EC%9D%B4%EB%AF%B86.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%A5%B06.png"/></td>
-<td>27700</td>
-<td class="operation-td">OOXOO 오토O
-1:06 봉황 → 봉황 SET</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>45900</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%95%A0%EC%BF%84%EC%B9%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>44500</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>44400</td>
-<td class="operation-td">OOOOX 오토X
-
-오우카 사망시 오토O</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>42500</td>
-<td class="operation-td">OOOOX 오토X
-
-오우카 사망시 오토O</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EB%A7%88%EB%A0%885.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>37900</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>37500</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>36800</td>
-<td class="operation-td">OOOXX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8E%B8%EC%BA%AC%EB%A3%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>36600</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EB%A7%88%EB%A0%885.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%A4%EA%B8%80%EB%A0%88%EC%96%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>36100</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8E%B8%EC%BA%AC%EB%A3%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A7%88%ED%98%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>34800</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8E%B8%EC%BA%AC%EB%A3%A85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%9D%BC%EC%97%985.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%97%90%EB%A1%9C%EC%B2%B45.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B8%94%EB%A3%B85.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%98%A4%EC%9A%B0%EC%B9%B45.png"/></td>
-<td>34700</td>
-<td class="operation-td">OOOOX</td>
-</tr>
-<tr>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/cellImage_2024065881_5.png"/></td>
-<td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%82%AC%EB%A0%8C5.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%81%AC%EB%A6%AC%EC%8A%A46.png"/></td><td class="img-td"><img onerror="handleTableImgError(this)" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
-<td>29000</td>
-<td class="operation-td">OOXOO</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div></div><div class="tab-content" id="tab-page-2">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -1216,7 +976,7 @@
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-3">
+</div></div><div class="tab-content" id="tab-page-2">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -1448,7 +1208,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-4">
+</div></div><div class="tab-content" id="tab-page-3">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -1709,7 +1469,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-5">
+</div></div><div class="tab-content" id="tab-page-4">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -1932,7 +1692,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-6">
+</div></div><div class="tab-content" id="tab-page-5">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -2353,7 +2113,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-7">
+</div></div><div class="tab-content" id="tab-page-6">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -2627,7 +2387,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-8">
+</div></div><div class="tab-content" id="tab-page-7">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -3018,7 +2778,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-9">
+</div></div><div class="tab-content" id="tab-page-8">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -3381,7 +3141,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-10">
+</div></div><div class="tab-content" id="tab-page-9">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -3845,7 +3605,7 @@ OOXOO 45300</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-11">
+</div></div><div class="tab-content" id="tab-page-10">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -4252,7 +4012,7 @@ XOOOO 40000</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-12">
+</div></div><div class="tab-content" id="tab-page-11">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
@@ -4549,7 +4309,7 @@ XOOOO 40000</td>
 </table>
 </div>
 </div>
-</div></div><div class="tab-content" id="tab-page-13">
+</div></div><div class="tab-content" id="tab-page-12">
 <!-- 동적으로 생성되는 카드들이 이곳에 위치하게 됩니다 -->
 <div class="card">
 <div class="card-body">
