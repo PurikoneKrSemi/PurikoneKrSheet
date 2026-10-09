@@ -547,7 +547,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            .subtab-header-panel {
         }
 
         /* 모던 커스텀 드롭다운 스타일 (밝은 배경 적용) */
@@ -669,7 +668,6 @@
             color: #888888 !important;
         }
         .timeline-apply-btn:hover { background: #4338ca; }
-        tr.timeline-past { text-decoration: line-through !important; opacity: 0.45 !important; color: #888888 !important; }
     </style>
 </head>
 <body>
@@ -21732,8 +21730,6 @@
                 return;
             }
 
-            // 상위 탭바가 가로 스크롤 컨테이너(overflow-x:auto)라 position:absolute로는
-            // 세로로 잘려서 안 보이므로, position:fixed로 두고 트리거 기준 좌표를 직접 계산해서 배치
             const trigger = wrapper.querySelector('.custom-select-trigger');
             const options = wrapper.querySelector('.custom-select-options');
             if (trigger && options) {
