@@ -157,7 +157,61 @@
   background-color: #e2e8f0;
 }
 
-    </style>
+    
+/* ===== 모바일(태블릿 포함) 전용 보기: 표 대신 월별 보기 + 컴팩트 전체 보기 ===== */
+#rosterMobile { display: none; }
+@media (max-width: 1023px) {
+  .roster-toolbar, .roster-table { display: none !important; }
+  #rosterMobile { display: block; font-family: Arial, sans-serif; color: #1e293b; padding: 8px 4px 24px; --rm-top: 0px; }
+  #rosterMobile .rm-bar { background: #fff; padding: 4px 0 8px; }
+  #rosterMobile .rm-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  #rosterMobile input[type=text], #rosterMobile select, #rosterMobile button {
+    font-size: 14px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #1e293b; min-width: 0;
+  }
+  #rosterMobile input[type=text] { flex: 1; }
+  #rosterMobile select { flex: 1; }
+  #rosterMobile .rm-seg { display: flex; flex: 0 0 auto; }
+  #rosterMobile .rm-seg button { border-radius: 0; padding: 8px 14px; }
+  #rosterMobile .rm-seg button:first-child { border-radius: 8px 0 0 8px; }
+  #rosterMobile .rm-seg button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  #rosterMobile .rm-seg button.on { background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700; }
+  #rosterMobile .rm-info { font-size: 12px; color: #64748b; }
+
+  #rosterMobile table.rm-table { border-collapse: separate !important; border-spacing: 0; width: 100% !important; table-layout: fixed !important; margin: 0 !important; font-size: 12px; text-align: center; background: #fff; }
+  #rosterMobile .rm-table th, #rosterMobile .rm-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 0; background: #fff; box-sizing: border-box; }
+  #rosterMobile .rm-table thead th { background: #eef2f5; font-weight: 700; position: sticky; z-index: 3; height: 34px; }
+  #rosterMobile .rm-month .rm-table thead th { top: var(--rm-top); }
+  #rosterMobile .rm-month col.n { width: 34%; }
+  #rosterMobile .rm-month col.c { width: 11.5%; }
+  #rosterMobile .rm-month col.t { width: 8.5%; }
+  #rosterMobile td.rm-name { text-align: left; padding: 3px 4px; }
+  #rosterMobile .rm-name .rm-box { display: flex; align-items: center; gap: 5px; }
+  #rosterMobile .rm-name img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex: 0 0 auto; background: #f1f5f9; }
+  #rosterMobile .rm-name span { font-size: 12px; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+  #rosterMobile td.rm-c { height: 46px; font-size: 16px; font-weight: 700; color: #047857; }
+  #rosterMobile td.rm-c.hit { background: #bff3d5; }
+  #rosterMobile td.rm-c.pre { background: repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 3px, #e5e7eb 3px, #e5e7eb 6px); }
+  #rosterMobile td.rm-cnt { line-height: 1.2; background: #f8fafc; }
+  #rosterMobile td.rm-cnt b { display: block; font-size: 16px; }
+  #rosterMobile td.rm-cnt small { color: #64748b; font-size: 10px; }
+  #rosterMobile .rm-empty { padding: 30px 0; text-align: center; color: #64748b; font-size: 13px; }
+
+  /* 전체 월 보기: 이름 열 고정 + 안쪽 스크롤 */
+  #rosterMobile .rm-wrap.all { overflow: auto; max-height: calc(100vh - 150px); border: 1px solid #e2e8f0; border-radius: 8px; -webkit-overflow-scrolling: touch; }
+  #rosterMobile .rm-all table.rm-table { width: max-content !important; table-layout: auto !important; }
+  #rosterMobile .rm-all thead tr:nth-child(1) th { top: 0; height: 28px; }
+  #rosterMobile .rm-all thead tr:nth-child(2) th { top: 28px; height: 22px; font-size: 10px; font-weight: 600; }
+  #rosterMobile .rm-all th.rm-name, #rosterMobile .rm-all td.rm-name { position: sticky; left: 0; z-index: 2; min-width: 92px; max-width: 92px; width: 92px; }
+  #rosterMobile .rm-all thead th.rm-name { z-index: 5; }
+  #rosterMobile .rm-all td.rm-name { padding: 2px 3px; box-shadow: 1px 0 0 #cbd5e1; }
+  #rosterMobile .rm-all .rm-name img { width: 30px; height: 30px; }
+  #rosterMobile .rm-all .rm-name span { font-size: 11px; }
+  #rosterMobile .rm-all td.rm-c { min-width: 18px; width: 18px; height: 36px; font-size: 0; }
+  #rosterMobile .rm-all .me { border-right: 2px solid #2d3748 !important; }
+  #rosterMobile .rm-all thead th[data-m] { cursor: pointer; padding: 0 8px; white-space: nowrap; }
+  #rosterMobile .rm-all td.rm-cnt { min-width: 44px; }
+}
+</style>
 </head>
 <body>
 
@@ -169,7 +223,6 @@
         헤더의 "캐릭터"/"등판횟수" 클릭 시 해당 기준 내림차순 정렬, 월 헤더(예: 9월) 클릭 시 그 달에 등판한 캐릭터가 위로 정렬됩니다.
     </span>
 </div>
-
 <table class="roster-table">
     <thead>
         <tr>
@@ -2181,6 +2234,139 @@
     document.getElementById('rosterResetBtn').addEventListener('click', resetOrder);
 })();
 
+
+/* ===== 모바일 보기 (월별 보기 / 전체 보기). 데스크톱 표는 건드리지 않고 같은 데이터를 읽어 별도 화면을 만든다 ===== */
+(function () {
+    const table = document.querySelector('.roster-table');
+    if (!table || !table.tBodies[0]) return;
+    const hr1 = table.querySelector('thead tr:nth-child(1)');
+    const heads = Array.from(hr1.children);
+    const months = heads.slice(1, heads.length - 2).map(th => th.textContent.trim());
+    const nM = months.length, total = nM * 5;
+    if (!nM) return;
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    // 데이터 읽기
+    const rows = Array.from(table.tBodies[0].rows).map((tr, idx) => {
+        const cells = Array.from(tr.cells);
+        const name = (tr.querySelector('.roster-name') ? tr.querySelector('.roster-name').textContent : '').trim();
+        const imgEl = tr.querySelector('.roster-img img');
+        const hits = new Array(total).fill(false);
+        let col = 0, pre = 0;
+        cells.slice(2, cells.length - 2).forEach((td, i) => {
+            const sp = td.colSpan || 1, hit = td.classList.contains('roster-hit');
+            if (i === 0 && sp > 1 && !hit) pre = Math.floor(sp / 5) * 5;
+            if (hit) for (let k = 0; k < sp; k++) hits[col + k] = true;
+            col += sp;
+        });
+        const c1 = parseInt(cells[cells.length - 2].textContent, 10) || 0;
+        const c2 = parseInt(cells[cells.length - 1].textContent, 10) || 0;
+        return { idx, name, img: imgEl ? imgEl.getAttribute('src') : '', hits, pre, c1, c2, none: pre >= total };
+    });
+
+    const monthLabel = i => months[i];
+
+    const root = document.createElement('div');
+    root.id = 'rosterMobile';
+    root.innerHTML =
+        '<div class="rm-bar">' +
+        '<div class="rm-row"><input type="text" id="rmSearch" placeholder="캐릭터명 검색 (공백으로 여러 명)"><button type="button" id="rmReset">초기화</button></div>' +
+        '<div class="rm-row"><select id="rmMonth">' + months.map((m, i) => '<option value="' + i + '">' + esc(monthLabel(i)) + '</option>').join('') + '</select>' +
+        '<div class="rm-seg"><button type="button" data-mode="month" class="on">월별</button><button type="button" data-mode="all">전체</button></div></div>' +
+        '<div class="rm-row"><select id="rmFilter"><option value="all">전체 캐릭터</option><option value="hit">이 달 등판한 캐릭터</option><option value="miss">이 달 안 나온 캐릭터</option></select>' +
+        '<select id="rmSort"><option value="def">기본 순서</option><option value="c1d">등판(네임드별) 많은 순</option><option value="c2d">등판(월별) 많은 순</option><option value="c1a">등판(네임드별) 적은 순</option></select></div>' +
+        '<div class="rm-info" id="rmInfo"></div></div>' +
+        '<div id="rmBody"></div>';
+    table.parentNode.insertBefore(root, table.nextSibling);
+
+    const $ = id => root.querySelector('#' + id);
+    const state = { mode: 'month', month: nM - 1 };
+    $('rmMonth').value = String(state.month);
+
+    function visibleRows() {
+        const m = state.month;
+        const terms = $('rmSearch').value.trim().split(/\s+/).filter(Boolean);
+        const filter = $('rmFilter').value, sort = $('rmSort').value;
+        let list = rows.filter(r => !terms.length || terms.some(t => r.name.includes(t)));
+        if (filter === 'hit') list = list.filter(r => r.pre <= m * 5 && r.hits.slice(m * 5, m * 5 + 5).some(Boolean));
+        if (filter === 'miss') list = list.filter(r => r.pre <= m * 5 && !r.hits.slice(m * 5, m * 5 + 5).some(Boolean));
+        const cmp = {
+            def: (a, b) => a.idx - b.idx,
+            c1d: (a, b) => b.c1 - a.c1 || a.idx - b.idx,
+            c2d: (a, b) => b.c2 - a.c2 || a.idx - b.idx,
+            c1a: (a, b) => a.c1 - b.c1 || a.idx - b.idx
+        }[sort];
+        return list.sort(cmp);
+    }
+
+    const nameCell = r => '<td class="rm-name"><div class="rm-box">' + (r.img ? '<img src="' + esc(r.img) + '" loading="lazy" alt="" onerror="this.style.visibility=\'hidden\'">' : '') + '<span>' + esc(r.name) + '</span></div></td>';
+    const cntCells = r => r.none ? '<td class="rm-cnt"></td>' : '<td class="rm-cnt"><b>' + r.c1 + '</b><small>월 ' + r.c2 + '</small></td>';
+
+    function monthTable(list) {
+        const m = state.month;
+        let h = '<div class="rm-wrap rm-month"><table class="rm-table"><colgroup><col class="n"><col class="c"><col class="c"><col class="c"><col class="c"><col class="c"><col class="t"></colgroup>' +
+            '<thead><tr><th>캐릭터<br><span style="font-weight:400;font-size:10px">' + esc(monthLabel(m)) + '</span></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>횟수</th></tr></thead><tbody>';
+        list.forEach(r => {
+            h += '<tr>' + nameCell(r);
+            for (let k = 0; k < 5; k++) {
+                const c = m * 5 + k;
+                h += c < r.pre ? '<td class="rm-c pre"></td>' : (r.hits[c] ? '<td class="rm-c hit">✓</td>' : '<td class="rm-c"></td>');
+            }
+            h += cntCells(r) + '</tr>';
+        });
+        return h + '</tbody></table></div>';
+    }
+
+    function allTable(list) {
+        let h1 = '<th class="rm-name" rowspan="2">캐릭터</th>', h2 = '';
+        months.forEach((_, i) => {
+            h1 += '<th colspan="5" class="me" data-m="' + i + '">' + esc(monthLabel(i)) + '</th>';
+            for (let k = 1; k <= 5; k++) h2 += '<th' + (k === 5 ? ' class="me"' : '') + '>' + k + '</th>';
+        });
+        h1 += '<th rowspan="2">횟수</th>';
+        let h = '<div class="rm-wrap all rm-all"><table class="rm-table"><thead><tr>' + h1 + '</tr><tr>' + h2 + '</tr></thead><tbody>';
+        list.forEach(r => {
+            h += '<tr>' + nameCell(r);
+            for (let c = 0; c < total; c++) {
+                const me = c % 5 === 4 ? ' me' : '';
+                h += c < r.pre ? '<td class="rm-c pre' + me + '"></td>' : (r.hits[c] ? '<td class="rm-c hit' + me + '">✓</td>' : '<td class="rm-c' + me + '"></td>');
+            }
+            h += cntCells(r) + '</tr>';
+        });
+        return h + '</tbody></table></div>';
+    }
+
+    function render() {
+        const list = visibleRows();
+        $('rmInfo').textContent = list.length + '명 · ' + monthLabel(state.month) + ' 기준' + (state.mode === 'all' ? ' (필터·정렬)' : '');
+        $('rmBody').innerHTML = list.length ? (state.mode === 'month' ? monthTable(list) : allTable(list)) : '<div class="rm-empty">조건에 맞는 캐릭터가 없습니다.</div>';
+    }
+
+    $('rmSearch').addEventListener('input', render);
+    $('rmFilter').addEventListener('change', render);
+    $('rmSort').addEventListener('change', render);
+    $('rmMonth').addEventListener('change', e => { state.month = +e.target.value; render(); });
+    $('rmReset').addEventListener('click', () => {
+        $('rmSearch').value = ''; $('rmFilter').value = 'all'; $('rmSort').value = 'def';
+        state.month = nM - 1; $('rmMonth').value = String(state.month);
+        setMode('month');
+    });
+    function setMode(m) {
+        state.mode = m;
+        root.querySelectorAll('.rm-seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+        render();
+    }
+    root.querySelectorAll('.rm-seg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    // 전체 보기에서 월 헤더를 누르면 그 달의 월별 보기로 이동
+    $('rmBody').addEventListener('click', e => {
+        const th = e.target.closest('th[data-m]');
+        if (!th) return;
+        state.month = +th.dataset.m; $('rmMonth').value = String(state.month);
+        setMode('month');
+        root.scrollIntoView({ block: 'start' });
+    });
+    render();
+})();
 </script>
 
 </body>
