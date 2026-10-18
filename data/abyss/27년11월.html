@@ -2,7 +2,7 @@
 <html lang="ko"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>풀오토 공략 페이지 제작</title>
+    <title>심연토벌전 공략 페이지 제작</title>
     <!-- Google Fonts: JetBrains Mono, Roboto Mono, Pretendard -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -1025,12 +1025,10 @@
       table.querySelectorAll('[data-mobile-original="1"]').forEach(row => {
         row.style.display = mobile ? 'none' : '';
       });
-      table.querySelectorAll('thead tr').forEach(row => {
-        if (row.querySelector('.guide-link-row') || row.classList.contains('guide-link-row')) return;
-        const cells = directCells(row);
-        if (cells.some(c => /^(딜량|조작)$/.test((c.textContent || '').trim()))) {
-          row.dataset.mobileHeader = '1';
-          row.style.display = mobile ? 'none' : '';
+      // 헤더 행은 유지하고, 딜량/조작 헤더 칸만 모바일에서 숨긴다 (남는 칸 합계 6)
+      table.querySelectorAll('thead th, thead td').forEach(cell => {
+        if (/^(딜량|조작)$/.test((cell.textContent || '').trim())) {
+          cell.style.display = mobile ? 'none' : '';
         }
       });
     });

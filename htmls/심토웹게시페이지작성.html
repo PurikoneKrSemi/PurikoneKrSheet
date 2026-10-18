@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>풀오토 공략 페이지 제작</title>
+    <title>심연토벌전 공략 페이지 제작</title>
     <!-- Google Fonts: JetBrains Mono, Roboto Mono, Pretendard -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -753,12 +753,10 @@
       table.querySelectorAll('[data-mobile-original="1"]').forEach(row => {
         row.style.display = mobile ? 'none' : '';
       });
-      table.querySelectorAll('thead tr').forEach(row => {
-        if (row.querySelector('.guide-link-row') || row.classList.contains('guide-link-row')) return;
-        const cells = directCells(row);
-        if (cells.some(c => /^(딜량|조작)$/.test((c.textContent || '').trim()))) {
-          row.dataset.mobileHeader = '1';
-          row.style.display = mobile ? 'none' : '';
+      // 헤더 행은 유지하고, 딜량/조작 헤더 칸만 모바일에서 숨긴다 (남는 칸 합계 6)
+      table.querySelectorAll('thead th, thead td').forEach(cell => {
+        if (/^(딜량|조작)$/.test((cell.textContent || '').trim())) {
+          cell.style.display = mobile ? 'none' : '';
         }
       });
     });
@@ -773,16 +771,15 @@
   window.addEventListener('resize', updateMode);
 })();
 `;
-        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/AbyssBoss/";
         const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
 
-        const bossList = [
-            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
-            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
-            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
-            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
-            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
-        ];
+        async function loadBossFiles() {
+            const res = await fetch("https://api.github.com/repos/PurikoneKrSemi/SemiAutoSheet/contents/images/AbyssBoss");
+            if (!res.ok) throw new Error('GitHub API 실패 (' + res.status + ')');
+            const files = await res.json();
+            return files.filter(f => f.type === 'file' && /\.(png|jpe?g|webp)$/i.test(f.name)).map(f => f.name);
+        }
 
         const headerList = [
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
@@ -790,20 +787,27 @@
 
         let targetBossImgElem = null;
 
-        function initModals() {
-            // 보스 선택 모달 초기화
+        async function initModals() {
+            // 보스 선택 모달 초기화 (GitHub AbyssBoss 폴더에서 목록 로드)
             const bossContainer = document.getElementById('boss-grid-container');
-            bossContainer.innerHTML = '';
-            bossList.forEach(boss => {
+            bossContainer.innerHTML = '<div style="grid-column:1/-1;padding:10px;text-align:center;">보스 목록을 불러오는 중...</div>';
+            let bossFiles = [];
+            try {
+                bossFiles = await loadBossFiles();
+                bossContainer.innerHTML = '';
+            } catch (e) {
+                bossContainer.textContent = '보스 목록을 불러오지 못했습니다: ' + e.message;
+            }
+            bossFiles.forEach(file => {
                 const item = document.createElement('div');
                 item.className = 'boss-item';
                 item.onclick = () => {
                     if (targetBossImgElem) {
-                        targetBossImgElem.src = `${GITHUB_BOSS_IMAGE_BASE}${boss}.png`;
+                        targetBossImgElem.src = `${GITHUB_BOSS_IMAGE_BASE}${file}`;
                     }
                     closeBossModal();
                 };
-                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${file}" alt="${file}">`;
                 bossContainer.appendChild(item);
             });
 
@@ -1036,7 +1040,7 @@
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'full_auto_guide.html';
+            link.download = 'abyss_guide.html';
             link.click();
 
             showStatus("웹 게시용 파일 저장이 완료되었습니다.", "success");
