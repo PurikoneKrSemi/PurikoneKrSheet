@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>채용시트 편집기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--tx2:#64748b;--bd:#e2e8f0;--pri:#4f46e5;--hit:#bff3d5;--end:#2d3748}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;font-size:14px}
+.bar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar h1{font-size:16px;margin:0 8px 0 0}
+button,input{font:inherit}
+button{padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer}
+button:hover{background:#e2e8f0}
+button.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+button.pri:hover{background:#4338ca}
+input[type=text]{padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px}
+.sep{width:1px;height:24px;background:var(--bd);margin:0 4px}
+.hint{padding:8px 16px;font-size:12px;color:var(--tx2)}
+#log{margin:0 16px 8px;padding:8px 12px;background:#fff;border:1px solid var(--bd);border-radius:6px;font-size:12px;white-space:pre-wrap;display:none;max-height:140px;overflow:auto}
+.wrap{overflow:auto;margin:0 16px 40px;background:#fff;border:1px solid var(--bd);border-radius:8px;max-height:calc(100vh - 150px)}
+table.ed{border-collapse:separate;border-spacing:0;font-size:12px}
+.ed th,.ed td{border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);text-align:center;background:#fff}
+.ed thead th{position:sticky;background:#eef2f5;z-index:5}
+.ed thead tr:nth-child(1) th{top:0}
+.ed thead tr:nth-child(2) th{top:33px}
+.ed .me{border-right:2px solid var(--end)}
+.ed td.cell{width:24px;min-width:24px;height:30px;cursor:pointer;user-select:none}
+.ed td.cell:hover{background:#e0e7ff}
+.ed td.cell.hit{background:var(--hit)}
+.ed td.cell.pre{background:repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 4px,#e2e8f0 4px,#e2e8f0 8px);cursor:not-allowed}
+.ed td.nm{position:sticky;left:0;z-index:3;min-width:150px;padding:2px 6px;text-align:left;white-space:nowrap}
+.ed td.nm img{width:30px;height:30px;object-fit:cover;vertical-align:middle;border-radius:4px;margin-right:6px}
+.ed td.nm input{width:90px;border:1px solid transparent;border-radius:4px;padding:2px 4px;background:transparent}
+.ed td.nm input:focus{border-color:#a5b4fc;background:#fff;outline:none}
+.ed td.nm .tools{float:right;opacity:0}
+.ed tr:hover td.nm .tools{opacity:1}
+.ed td.nm .tools button{padding:0 5px;font-size:11px;border-radius:4px}
+.ed tr.act td.nm{background:#eef2ff}
+.ed td.cnt{min-width:60px;font-size:16px;font-weight:600;background:#f8fafc}
+.ed thead th.mh input{width:84px;text-align:center;font-weight:600;border:1px solid transparent;background:transparent}
+.ed thead th.mh input:focus{border-color:#a5b4fc;background:#fff;outline:none}
+.ed thead th.mh button{padding:0 5px;font-size:11px;border-radius:4px;margin-left:2px}
+.ed th.sub{font-size:12px;width:24px}
+#bulk{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;display:none;align-items:center;justify-content:center}
+#bulk .box{background:#fff;border-radius:12px;padding:20px;width:min(900px,94vw);max-height:92vh;overflow:auto}
+#bulk h2{margin:0 0 12px;font-size:16px}
+#bulk .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}
+#bulk label{font-weight:600;font-size:13px;display:block;margin-bottom:4px}
+#bulk textarea{width:100%;height:150px;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font:inherit;resize:vertical}
+#bulk select{padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;font:inherit}
+#bulk .opts{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px}
+#bulkMsg{white-space:pre-wrap;font-size:12px;color:var(--tx2);margin-top:8px;max-height:130px;overflow:auto}
+@media(max-width:700px){#bulk .grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>채용시트 편집기</h1>
+  <button class="pri" id="btnExport">게시용 HTML 저장</button>
+  <button id="btnPreview">미리보기(새 탭)</button>
+  <div class="sep"></div>
+  <button id="btnImportHtml">게시된 HTML 불러오기</button>
+  <button id="btnImportJson">JSON 불러오기</button>
+  <button id="btnExportJson">JSON 저장</button>
+  <div class="sep"></div>
+  <button id="btnBulk" class="pri">월별 일괄 입력</button>
+  <button id="btnAddMonth">+ 새 달 추가</button>
+  <input type="text" id="newName" placeholder="새 캐릭터 이름" size="12">
+  <button id="btnAddRow">+ 캐릭터 추가</button>
+  <label style="font-size:12px;color:var(--tx2)"><input type="checkbox" id="autoSort" checked> 이름순 위치에 삽입</label>
+  <input type="text" id="search" placeholder="검색" size="10">
+  <span id="info" style="color:var(--tx2);font-size:12px"></span>
+  <input type="file" id="fileHtml" accept=".html,.htm" hidden>
+  <input type="file" id="fileJson" accept=".json" hidden>
+</div>
+<div class="hint">셀 클릭/드래그 = 등판 표시 켜기·끄기 · <b>Shift+클릭</b> = 그 달을 "출시 전(빗금)"으로 지정/해제 · 새 캐릭터는 이름순 위치에 자동으로 들어갑니다(체크를 끄면 마지막으로 클릭한 행 아래). 작업 내용은 브라우저에 자동 저장됩니다.</div>
+<div id="log"></div>
+<div id="bulk"><div class="box">
+  <h2>월별 일괄 입력</h2>
+  <div class="opts">
+    <label style="margin:0">월 <select id="bkMonth"></select></label>
+    <label style="margin:0;font-weight:400"><input type="checkbox" id="bkReplace" checked> 이 달 기존 표시를 지우고 새로 입력</label>
+    <label style="margin:0;font-weight:400"><input type="checkbox" id="bkNew"> 목록에 없는 이름은 새 캐릭터로 추가</label>
+    <button id="bkLoad">현재 값 불러오기</button>
+  </div>
+  <div class="grid" id="bkGrid"></div>
+  <div style="font-size:12px;color:var(--tx2)">보스별로 캐릭터 이름을 공백·쉼표·줄바꿈으로 구분해서 입력하세요. 같은 캐릭터가 여러 보스에 나와도 됩니다.</div>
+  <div id="bulkMsg"></div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+    <button id="bkClose">닫기</button><button id="bkApply" class="pri">적용</button>
+  </div>
+</div></div>
+<div class="wrap"><table class="ed" id="ed"></table></div>
+
+<script>
+const IMG_BASE='https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/nostar/';
+const KEY='priconne_roster_builder_data';
+const PUB_STYLE="\n        .roster-table {\n            border-collapse: collapse;\n            text-align: center;\n            font-family: Arial, sans-serif;\n            font-size: 12px;\n            background-color: #ffffff ;\n        }\n\n        /* 모든 셀의 기본 테두리: 연한 회색 (1px solid) */\n        .roster-table th,\n        .roster-table td {\n        border: 1px solid #E2E8F0; /* 기본 연한 회색 */\n        padding: 6px 8px;\n        text-align: center;\n        background-color: #ffffff ;\n        }\n\n        .roster-table thead th {\n            background-color: #eef2f5;\n            color: #333;\n            background-color: #ffffff ;\n        }\n\n        .roster-name {\n            font-size: 16px;\n            background-color: #f9f9f9;\n            white-space: nowrap;\n            padding: 0 8px;\n            background-color: #ffffff ;\n        }\n\n        .roster-img img {\n            width: 100px;\n            height: 100px;\n            display: block;\n            margin: 0 auto;\n            border-radius: 4px;\n        }\n\n        /* 등판 기록 셀 색상 설정 */\n        .roster-hit {\n            background-color: #bff3d5 !important; /* 파란색 계열 배경 */\n        }\n\n        .roster-count {\n            font-size: 30px;\n            background-color: #f3f4f6;\n            background-color: #ffffff ;\n        }\n\n        .roster-table tbody tr:hover {\n            background-color: #f0f7ff;\n        }\n        /* 기본 테이블 셀 경계 설정 (테두리가 겹치지 않도록 세팅) */\n        /* 테이블 중앙 정렬 */\n        .roster-table {\n        margin: 0 auto !important; /* 화면 중앙 배치 */\n        border-collapse: collapse;\n        }\n        /* 보스 번호(1~5) 헤더 셀 스타일 통일 */\n        .roster-table th.roster-sub-th {\n        font-size: 14px;       /* 숫자의 크기를 일정하게 설정 (원하는 크기로 변경 가능) */\n        font-weight: bold;     /* 굵기 통일 */\n        text-align: center;    /* 정중앙 정렬 */\n        padding: 4px 0;        /* 내부 여백을 줄여 셀 간격에 딱 맞춤 */\n        width: 22px;           /* 각 보스 번호 칸의 너비를 동일하게 고정 (선택 사항) */\n        }\n        /* 월과 월 사이 구분선: 진한 회색 (또는 검정색) */\n        .roster-table .roster-month-end {\n            font-size:16px;\n        border-right-color: #2D3748 !important; /* 진한 회색 (완전 검정을 원하시면 #000000 으로 변경) */\n        }\n        /* 월 구분선 적용 셀의 오른쪽 테두리 색상 변경 */\n        .roster-table .roster-month-end {\n        border-right-color: #2D3748 !important; /* 원하시는 구분선 색상 */\n        }\n\n/* 5번 셀 오른쪽의 '등판횟수(네임드별)' 헤더 및 데이터 셀의 왼쪽 테두리 색상 맞춰주기 */\n.roster-table .roster-month-end + th,\n.roster-table .roster-month-end + td {\n  border-left-color: #2D3748 !important;\n}\n\n/* 캐릭터 이미지 셀의 여백을 완전히 제거 */\n.roster-table td.roster-img {\n  padding: 0 !important;\n  width: 110px;\n  height: 110px;\n  min-width: 110px;  /* 핵심: 브라우저가 줄어들어도 셀 너비 유지 */\n  min-height: 110px; /* 핵심: 셀 높이 유지 */\n  box-sizing: border-box;\n}\n\n/* 이미지가 셀 크기에 맞춰 완전히 채워지도록 설정 */\n.roster-table td.roster-img img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n/* 1. 첫 번째 헤더 행 고정 (메인 탭 바 바로 아래에 밀착) */\n.roster-table thead tr:nth-child(1) th {\n  position: sticky;\n  top: 53px; /* 메인 탭 바 높이(약 53px)만큼 아래로 설정 */\n  z-index: 10;\n  background-color: #eef2f5; /* 스크롤 시 뒤 텍스트 비침 방지 */\n}\n\n/* 2. 두 번째 헤더 행 고정 (첫 번째 헤더 행 바로 아래에 밀착) */\n.roster-table thead tr:nth-child(2) th {\n  position: sticky;\n  top: 88px; /* 53px(메인 탭 바) + 35px(첫 번째 헤더 행 높이) */\n  z-index: 9;\n  background-color: #eef2f5;\n}\n\n/* 정렬/필터 기능이 있는 헤더 셀: 클릭 가능함을 시각적으로 표시 */\n.roster-table th.roster-clickable-th {\n  cursor: pointer;\n  user-select: none;\n}\n.roster-table th.roster-clickable-th:hover {\n  background-color: #d7dee5 !important;\n}\n\n/* 툴바 중앙 정렬 */\n.roster-toolbar {\n  margin: 0 auto;             /* 하단 여백(margin-bottom) 제거 및 중앙 정렬 */\n  position: sticky;\n  top: 45px;                 /* 상단 바 높이에 맞게 밀착 (필요 시 조절) */\n  z-index: 11; \n  background-color: #ffffff;\n  padding: 8px 12px;\n  display: flex;\n  align-items: center;\n  justify-content: center;   /* 내부 아이템 중앙 정렬 */\n  width: 100%;               /* 본문 테이블 너비와 일치 */\n  box-sizing: border-box;\n  border: 1px solid #cbd5e1;  /* 테이블 테두리와 자연스럽게 연결 */\n  border-bottom: none;       /* 테이블 상단 테두리와 맞닿는 경계선 중복 제거 */\n}\n.roster-toolbar button {\n  padding: 6px 14px;\n  font-size: 13px;\n  border: 1px solid #cbd5e1;\n  border-radius: 6px;\n  background-color: #f8fafc;\n  cursor: pointer;\n}\n.roster-toolbar button:hover {\n  background-color: #e2e8f0;\n}\n\n    ";
+const PUB_TOOLBAR="<div class=\"roster-toolbar\">\n    <button id=\"rosterResetBtn\" type=\"button\">🔄 전체 초기화<\/button>\n    <input type=\"text\" id=\"rosterSearchInput\" placeholder=\"캐릭터명 검색 (공백으로 여러 명 동시 검색)\"\n           style=\"padding:6px 10px;font-size:13px;border:1px solid #cbd5e1;border-radius:6px;width:280px;margin-left:8px;\">\n    <span style=\"font-size:12px;color:#64748b;margin-left:8px;\">\n        헤더의 \"캐릭터\"/\"등판횟수\" 클릭 시 해당 기준 내림차순 정렬, 월 헤더(예: 9월) 클릭 시 그 달에 등판한 캐릭터가 위로 정렬됩니다.\n    <\/span>\n<\/div>";
+const PUB_SCRIPT="\n(function () {\n    const table = document.querySelector('.roster-table');\n    const tbody = table.querySelector('tbody');\n    const headerRow1 = table.querySelector('thead tr:nth-child(1)');\n    const headerThs = Array.from(headerRow1.children);\n\n    // 헤더 구성: [0]=캐릭터(이름+이미지), [1..13]=월(13개), [14]=등판횟수(네임드별), [15]=등판횟수(월별)\n    const nameHeader = headerThs[0];\n    const monthHeaders = headerThs.slice(1, headerThs.length - 2);\n    const countHeaderByBoss = headerThs[headerThs.length - 2];   // 등판횟수(네임드별) -> 뒤에서 2번째 열\n    const countHeaderByMonth = headerThs[headerThs.length - 1];  // 등판횟수(월별)     -> 마지막 열\n\n    // 원래 행 순서 저장 (전체 초기화용)\n    const originalRowOrder = Array.from(tbody.rows);\n\n    function applyOrder(rows) {\n        const fragment = document.createDocumentFragment();\n        rows.forEach(r => fragment.appendChild(r));\n        tbody.appendChild(fragment);\n    }\n\n    // 이름(1열) 내림차순 정렬\n    function sortByNameDesc() {\n        const rows = Array.from(tbody.rows);\n        rows.sort((a, b) => {\n            const an = (a.querySelector('.roster-name')?.textContent || '').trim();\n            const bn = (b.querySelector('.roster-name')?.textContent || '').trim();\n            return bn.localeCompare(an, 'ko');\n        });\n        applyOrder(rows);\n    }\n\n    // 마지막 2열(등판횟수) 중 하나를 내림차순 정렬. fromEnd: 1=마지막 열, 2=마지막에서 두번째 열\n    function sortByCountDesc(fromEnd) {\n        const rows = Array.from(tbody.rows);\n        rows.sort((a, b) => {\n            const av = parseInt(a.cells[a.cells.length - fromEnd]?.textContent.trim(), 10) || 0;\n            const bv = parseInt(b.cells[b.cells.length - fromEnd]?.textContent.trim(), 10) || 0;\n            return bv - av;\n        });\n        applyOrder(rows);\n    }\n\n    // 한 행에서, 이름/이미지/등판횟수 2열을 제외한 \"일자 셀\"들의 실제 열 위치를 계산해서\n    // roster-hit 클래스가 걸린 절대 열 인덱스 목록을 반환 (colspan으로 압축된 빈 칸 대응)\n    function getHitColumns(row) {\n        const cells = Array.from(row.cells).slice(2, row.cells.length - 2);\n        let col = 0;\n        const hits = [];\n        cells.forEach(td => {\n            const span = td.colSpan || 1;\n            if (td.classList.contains('roster-hit')) {\n                for (let i = 0; i < span; i++) hits.push(col + i);\n            }\n            col += span;\n        });\n        return hits;\n    }\n\n    // monthIndex(0-based)의 등판 여부를 기준으로, 등판한 행을 위로 올림 (그 외 상대 순서는 유지)\n    function sortByMonthHit(monthIndex) {\n        const rangeStart = monthIndex * 5;\n        const rangeEnd = rangeStart + 4;\n        const rows = Array.from(tbody.rows);\n        const decorated = rows.map((row, idx) => {\n            const hits = getHitColumns(row);\n            const hasHit = hits.some(h => h >= rangeStart && h <= rangeEnd);\n            return { row, hasHit, idx };\n        });\n        decorated.sort((a, b) => {\n            if (a.hasHit === b.hasHit) return a.idx - b.idx; // 안정 정렬(원래 순서 유지)\n            return a.hasHit ? -1 : 1;\n        });\n        applyOrder(decorated.map(d => d.row));\n    }\n\n    function resetOrder() {\n        applyOrder(originalRowOrder);\n        searchInput.value = '';\n        applySearch();\n    }\n\n    // 캐릭터명 검색 (공백으로 구분된 여러 이름을 동시 검색, 부분일치 OR 조건)\n    function applySearch() {\n        const raw = searchInput.value.trim();\n        const terms = raw.split(/\\s+/).filter(Boolean);\n        const rows = Array.from(tbody.rows);\n\n        if (terms.length === 0) {\n            rows.forEach(row => { row.style.display = ''; });\n            return;\n        }\n\n        rows.forEach(row => {\n            const name = (row.querySelector('.roster-name')?.textContent || '').trim();\n            const matched = terms.some(term => name.includes(term));\n            row.style.display = matched ? '' : 'none';\n        });\n    }\n\n    const searchInput = document.getElementById('rosterSearchInput');\n    searchInput.addEventListener('input', applySearch);\n\n    // --- 툴바 + 테이블 헤더 sticky 위치를 실제 렌더링 높이에 맞춰 동적 계산 ---\n    const TAB_BAR_HEIGHT = 53; // 메인 탭 바 높이 (기존 CSS와 동일한 값)\n    const toolbar = document.querySelector('.roster-toolbar');\n    const headerRow2 = table.querySelector('thead tr:nth-child(2)');\n\n    function updateStickyOffsets() {\n        toolbar.style.top = TAB_BAR_HEIGHT + 'px';\n\n        const toolbarHeight = toolbar.offsetHeight;\n        const row1Top = TAB_BAR_HEIGHT + toolbarHeight;\n        headerThs.forEach(th => { th.style.top = row1Top + 'px'; });\n\n        const row1Height = headerRow1.offsetHeight;\n        const row2Top = row1Top + row1Height;\n        Array.from(headerRow2.children).forEach(th => { th.style.top = row2Top + 'px'; });\n    }\n\n    window.addEventListener('load', updateStickyOffsets);\n    window.addEventListener('resize', updateStickyOffsets);\n    updateStickyOffsets();\n\n    // --- 헤더에 클릭 이벤트 연결 ---\n    nameHeader.classList.add('roster-clickable-th');\n    nameHeader.title = '클릭 시 이름 내림차순 정렬';\n    nameHeader.addEventListener('click', sortByNameDesc);\n\n    countHeaderByBoss.classList.add('roster-clickable-th');\n    countHeaderByBoss.title = '클릭 시 등판횟수(네임드별) 내림차순 정렬';\n    countHeaderByBoss.addEventListener('click', () => sortByCountDesc(2));\n\n    countHeaderByMonth.classList.add('roster-clickable-th');\n    countHeaderByMonth.title = '클릭 시 등판횟수(월별) 내림차순 정렬';\n    countHeaderByMonth.addEventListener('click', () => sortByCountDesc(1));\n\n    monthHeaders.forEach((th, i) => {\n        th.classList.add('roster-clickable-th');\n        th.title = `클릭 시 ${th.textContent.trim()}에 등판한 캐릭터를 위로 정렬`;\n        th.addEventListener('click', () => sortByMonthHit(i));\n    });\n\n    document.getElementById('rosterResetBtn').addEventListener('click', resetOrder);\n})();\n\n";
+let S={months:[],rows:[]};   // rows:{name,hits:bool[],pre:number}
+let active=-1;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const N=()=>S.months.length*5;
+function log(msg){const l=$('log');l.style.display='block';l.textContent=msg;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.months&&d.rows)S=d;}catch(e){}}
+function counts(r,nm=S.months.length){
+  if(r.pre>=nm*5)return['',''];
+  let t=0,m=0;
+  for(let i=0;i<nm;i++){let h=0;for(let k=0;k<5;k++)if(r.hits[i*5+k]&&i*5+k>=r.pre)h++;t+=h;if(h)m++;}
+  return[String(t),String(m)];
+}
+function imgSrc(n){return IMG_BASE+encodeURIComponent(n)+'.png';}
+function render(){
+  const M=S.months;
+  let h='<thead><tr><th rowspan="2" class="me" style="min-width:150px;left:0;z-index:6">캐릭터</th>';
+  M.forEach((m,i)=>{h+=`<th colspan="5" class="mh me"><input value="${esc(m)}" data-mi="${i}"><button data-delm="${i}" title="이 달 삭제">×</button></th>`;});
+  h+='<th rowspan="2">등판횟수<br>(네임드별)</th><th rowspan="2">등판횟수<br>(월별)</th></tr><tr>';
+  for(let i=0;i<M.length;i++)for(let k=1;k<=5;k++)h+=`<th class="sub${k==5?' me':''}">${k}</th>`;
+  h+='</tr></thead><tbody>';
+  S.rows.forEach((r,ri)=>{
+    h+=`<tr data-r="${ri}"><td class="nm"><img src="${imgSrc(r.name)}" onerror="this.style.visibility='hidden'" loading="lazy"><input value="${esc(r.name)}" data-ni="${ri}"><span class="tools"><button data-up="${ri}">▲</button><button data-dn="${ri}">▼</button><button data-del="${ri}">×</button></span></td>`;
+    for(let c=0;c<N();c++){
+      const cl=['cell'];if(c<r.pre)cl.push('pre');else if(r.hits[c])cl.push('hit');if(c%5==4)cl.push('me');
+      h+=`<td class="${cl.join(' ')}" data-c="${c}"></td>`;
+    }
+    const [a,b]=counts(r);
+    h+=`<td class="cnt">${a}</td><td class="cnt">${b}</td></tr>`;
+  });
+  $('ed').innerHTML=h+'</tbody>';
+  fixHead();
+  $('info').textContent=`${S.rows.length}명 · ${M.length}개월`;
+  applySearch();
+}
+function fixHead(){
+  const r1=document.querySelector('#ed thead tr:nth-child(1)');if(!r1)return;
+  const h=r1.getBoundingClientRect().height;
+  document.querySelectorAll('#ed thead tr:nth-child(2) th').forEach(th=>{th.style.top=(h-1)+'px';});
+}
+window.addEventListener('resize',fixHead);
+function insertPos(name){
+  if(!$('autoSort').checked)return active>=0?active+1:S.rows.length;
+  for(let i=S.rows.length-1;i>=0;i--)if(S.rows[i].name<=name)return i+1;
+  return 0;
+}
+function applySearch(){
+  const t=$('search').value.trim().split(/\s+/).filter(Boolean);
+  document.querySelectorAll('#ed tbody tr').forEach(tr=>{
+    const n=S.rows[+tr.dataset.r].name;
+    tr.style.display=(!t.length||t.some(x=>n.includes(x)))?'':'none';
+  });
+}
+function refreshRow(ri){
+  const tr=document.querySelector(`#ed tbody tr[data-r="${ri}"]`);if(!tr)return;
+  const r=S.rows[ri];
+  tr.querySelectorAll('td.cell').forEach(td=>{const c=+td.dataset.c;td.classList.toggle('pre',c<r.pre);td.classList.toggle('hit',c>=r.pre&&!!r.hits[c]);});
+  const [a,b]=counts(r);const cs=tr.querySelectorAll('td.cnt');cs[0].textContent=a;cs[1].textContent=b;
+}
+// 셀 클릭/드래그
+let paint=null;
+$('ed').addEventListener('mousedown',e=>{
+  const td=e.target.closest('td.cell');
+  const tr=e.target.closest('tbody tr');
+  if(tr){active=+tr.dataset.r;document.querySelectorAll('#ed tr.act').forEach(x=>x.classList.remove('act'));tr.classList.add('act');}
+  if(!td)return;
+  const ri=+tr.dataset.r,c=+td.dataset.c,r=S.rows[ri];
+  if(e.shiftKey){
+    const m=Math.floor(c/5);
+    r.pre=(r.pre>=(m+1)*5)?m*5:(m+1)*5;
+    refreshRow(ri);save();e.preventDefault();return;
+  }
+  if(c<r.pre)return;
+  paint=!r.hits[c];r.hits[c]=paint;refreshRow(ri);e.preventDefault();
+});
+$('ed').addEventListener('mouseover',e=>{
+  if(paint===null||!(e.buttons&1))return;
+  const td=e.target.closest('td.cell');if(!td)return;
+  const ri=+td.closest('tr').dataset.r,c=+td.dataset.c,r=S.rows[ri];
+  if(c<r.pre||!!r.hits[c]===paint)return;
+  r.hits[c]=paint;refreshRow(ri);
+});
+window.addEventListener('mouseup',()=>{if(paint!==null){paint=null;save();}});
+$('ed').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.mi!==undefined){S.months[+t.dataset.mi]=t.value.trim();save();}
+  if(t.dataset.ni!==undefined){S.rows[+t.dataset.ni].name=t.value.trim();save();render();}
+});
+$('ed').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const d=b.dataset;
+  if(d.del!==undefined){const i=+d.del;if(confirm(`'${S.rows[i].name}' 행을 삭제할까요?`)){S.rows.splice(i,1);active=-1;save();render();}}
+  else if(d.up!==undefined){const i=+d.up;if(i>0){[S.rows[i-1],S.rows[i]]=[S.rows[i],S.rows[i-1]];active=i-1;save();render();hl();}}
+  else if(d.dn!==undefined){const i=+d.dn;if(i<S.rows.length-1){[S.rows[i+1],S.rows[i]]=[S.rows[i],S.rows[i+1]];active=i+1;save();render();hl();}}
+  else if(d.delm!==undefined){
+    const m=+d.delm;
+    if(S.months.length>1&&confirm(`'${S.months[m]}' 열 5칸을 모든 캐릭터에서 삭제할까요?`)){
+      S.months.splice(m,1);
+      S.rows.forEach(r=>{r.hits.splice(m*5,5);if(r.pre>=(m+1)*5)r.pre-=5;});
+      save();render();
+    }
+  }
+});
+function hl(){const tr=document.querySelector(`#ed tbody tr[data-r="${active}"]`);if(tr){tr.classList.add('act');tr.scrollIntoView({block:'nearest'});}}
+$('search').addEventListener('input',applySearch);
+$('btnAddMonth').onclick=()=>{
+  const last=S.months[S.months.length-1]||'';const n=parseInt(last,10);
+  const name=prompt('새 달 이름',isNaN(n)?'':(n%12+1)+'월');if(name===null)return;
+  const wasAll=S.rows.map(r=>r.pre>=N());
+  S.months.push(name.trim());
+  S.rows.forEach((r,i)=>{for(let k=0;k<5;k++)r.hits.push(false);if(wasAll[i])r.pre+=5;});
+  save();render();
+};
+$('btnAddRow').onclick=()=>{
+  const name=$('newName').value.trim();if(!name)return;
+  if(S.rows.some(r=>r.name===name)&&!confirm('같은 이름이 이미 있습니다. 그래도 추가할까요?'))return;
+  const row={name,hits:Array(N()).fill(false),pre:0};
+  const at=insertPos(name);
+  S.rows.splice(at,0,row);active=at;$('newName').value='';save();render();hl();
+};
+$('newName').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnAddRow').click();});
+
+// ---------- 불러오기 ----------
+function parsePublished(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const t=doc.querySelector('table.roster-table');if(!t)throw new Error('roster-table 을 찾지 못했습니다.');
+  const ths=[...t.querySelector('thead tr').children];
+  const months=ths.slice(1,ths.length-2).map(th=>th.textContent.trim());
+  const total=months.length*5,warn=[],rows=[];
+  [...t.tBodies[0].rows].forEach(tr=>{
+    const tds=[...tr.cells];
+    const name=(tr.querySelector('.roster-name')?.textContent||'').trim();
+    const cells=tds.slice(2,tds.length-2);
+    const hits=Array(total).fill(false);let col=0,pre=0;
+    cells.forEach((td,i)=>{
+      const sp=td.colSpan||1,hit=td.classList.contains('roster-hit');
+      if(i===0&&sp>1&&!hit)pre=Math.floor(sp/5)*5;
+      if(hit)for(let k=0;k<sp;k++)hits[col+k]=true;
+      col+=sp;
+    });
+    if(col!==total)warn.push(`${name}: 칸 수 ${col} ≠ ${total}`);
+    const r={name,hits,pre};rows.push(r);
+    const exp=counts(r,months.length),got=[tds[tds.length-2].textContent.trim(),tds[tds.length-1].textContent.trim()];
+    if(exp[0]!==got[0]||exp[1]!==got[1])warn.push(`${name}: 등판횟수 ${got.join('/')} (계산값 ${exp.join('/')})`);
+  });
+  return{data:{months,rows},warn};
+}
+const readFile=f=>new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsText(f,'utf-8');});
+$('btnImportHtml').onclick=()=>$('fileHtml').click();
+$('btnImportJson').onclick=()=>$('fileJson').click();
+$('fileHtml').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(S.rows.length&&!confirm('현재 편집 내용을 덮어씁니다. 계속할까요?')){e.target.value='';return;}
+  try{
+    const {data,warn}=parsePublished(await readFile(f));
+    S=data;active=-1;save();render();
+    log(`불러오기 완료: ${data.rows.length}명 · ${data.months.length}개월`+(warn.length?`\n경고 ${warn.length}건\n`+warn.join('\n'):'\n표시된 등판횟수와 계산값이 모두 일치합니다.'));
+  }catch(err){log('불러오기 실패: '+err.message);}
+  e.target.value='';
+};
+$('fileJson').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await readFile(f));if(!d.months||!d.rows)throw new Error('형식이 맞지 않습니다.');S=d;active=-1;save();render();log('JSON 불러오기 완료');}
+  catch(err){log('JSON 불러오기 실패: '+err.message);}
+  e.target.value='';
+};
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+$('btnExportJson').onclick=()=>download('recruits-data.json',JSON.stringify(S),'application/json');
+
+// ---------- 게시용 HTML 생성 ----------
+function buildPublished(){
+  const M=S.months,n=N();
+  let h='<table class="roster-table">\n    <thead>\n        <tr>\n            <th rowspan="2" colspan="2" class="roster-month-end">캐릭터</th>\n            ';
+  h+=M.map(m=>`<th colspan="5" class="roster-month-end">${esc(m)}</th>`).join('');
+  h+='\n            <th rowspan="2">등판횟수<br>(네임드별)</th>\n            <th rowspan="2">등판횟수<br>(월별)</th>\n        </tr>\n        <tr>\n            ';
+  let sub='';for(let i=0;i<M.length;i++)for(let k=1;k<=5;k++)sub+=`<th class="roster-sub-th${k==5?' roster-month-end':''}">${k}</th>`;
+  h+=sub+'\n        </tr>\n    </thead>\n    <tbody>\n';
+  S.rows.forEach(r=>{
+    h+=`        <tr>\n            <td class="roster-name">${esc(r.name)}</td>\n            <td class="roster-img roster-month-end"><img src="${imgSrc(r.name)}"></td>\n            `;
+    if(r.pre>0)h+=`<td colspan="${r.pre}" class="roster-month-end"></td>`;
+    for(let c=r.pre;c<n;c++){
+      const cl=[];if(r.hits[c])cl.push('roster-hit');if(c%5==4)cl.push('roster-month-end');
+      h+=cl.length?`<td class="${cl.join(' ')}"></td>`:'<td></td>';
+    }
+    const [a,b]=counts(r);
+    h+=`\n            <td class="roster-count">${a}</td>\n            <td class="roster-count">${b}</td>\n        </tr>\n`;
+  });
+  h+='    </tbody>\n</table>\n';
+  return '<!DOCTYPE html>\n<html lang="ko">\n<head>\n    <meta charset="UTF-8">\n    <title>채용시트</title>\n    <style>'+PUB_STYLE+'</style>\n</head>\n<body>\n\n'+PUB_TOOLBAR+'\n'+h+'\n<script>'+PUB_SCRIPT+'<\/script>\n\n</body>\n</html>\n';
+}
+$('btnExport').onclick=()=>download('recruits.html',buildPublished(),'text/html');
+$('btnPreview').onclick=()=>window.open(URL.createObjectURL(new Blob([buildPublished()],{type:'text/html'})),'_blank');
+
+
+// ---------- 월별 일괄 입력 ----------
+function bkInit(){
+  const sel=$('bkMonth');sel.innerHTML=S.months.map((m,i)=>`<option value="${i}">${esc(m)} (${i+1}번째 열)</option>`).join('');
+  sel.value=String(S.months.length-1);
+  if(!$('bkGrid').children.length)$('bkGrid').innerHTML=[1,2,3,4,5].map(k=>`<div><label>보스 ${k}</label><textarea id="bk${k}" placeholder="예: 거사렌 걸마호"></textarea></div>`).join('');
+}
+function bkLoadCurrent(){
+  const m=+$('bkMonth').value;
+  for(let k=0;k<5;k++)$('bk'+(k+1)).value=S.rows.filter(r=>m*5+k>=r.pre&&r.hits[m*5+k]).map(r=>r.name).join(' ');
+}
+$('btnBulk').onclick=()=>{
+  if(!S.months.length){alert('먼저 달을 추가하거나 불러오세요.');return;}
+  bkInit();$('bulkMsg').textContent='';$('bulk').style.display='flex';bkLoadCurrent();
+};
+$('bkClose').onclick=()=>{$('bulk').style.display='none';};
+$('bkMonth').onchange=bkLoadCurrent;
+$('bkLoad').onclick=bkLoadCurrent;
+$('bkApply').onclick=()=>{
+  const m=+$('bkMonth').value,replace=$('bkReplace').checked,addNew=$('bkNew').checked;
+  const dups=[];
+  const lists=[1,2,3,4,5].map((k,bi)=>[...new Set($('bk'+k).value.split(/[\s,，、]+/).filter(Boolean).filter((x,i,a)=>{if(a.indexOf(x)!==i){dups.push(`보스${bi+1} ${x}`);return false;}return true;}))]);
+  const byName=new Map();S.rows.forEach(r=>{if(!byName.has(r.name))byName.set(r.name,r);});
+  const missing=[],released=[],added=[];let n=0;
+  // 먼저 이름 해석(새 캐릭터 추가 포함)
+  const resolved=lists.map(l=>l.map(name=>{
+    if(!byName.has(name)){
+      if(!addNew){if(!missing.includes(name))missing.push(name);return null;}
+      const nr={name,hits:Array(N()).fill(false),pre:0};S.rows.splice(insertPos(name),0,nr);byName.set(name,nr);added.push(name);
+    }
+    return byName.get(name);
+  }));
+  if(replace)S.rows.forEach(r=>{for(let k=0;k<5;k++)r.hits[m*5+k]=false;});
+  resolved.forEach((rs,k)=>rs.forEach(r=>{
+    if(!r)return;
+    if(r.pre>m*5){if(!released.includes(r.name))released.push(r.name);r.pre=m*5;}
+    r.hits[m*5+k]=true;n++;
+  }));
+  save();render();
+  let msg=`${S.months[m]}: ${n}건 입력 완료`;
+  if(added.length)msg+=`\n새로 추가한 캐릭터 ${added.length}명: ${added.join(', ')}`;
+  if(released.length)msg+=`\n출시 전(빗금) 표시를 해제한 캐릭터: ${released.join(', ')}`;
+  if(dups.length)msg+=`\n같은 보스에 중복 입력되어 1번만 반영: ${dups.join(', ')}`;
+  if(missing.length)msg+=`\n⚠ 목록에 없어 건너뜀 ${missing.length}명: ${missing.join(', ')}\n(이름 오타인지 확인하거나, "새 캐릭터로 추가"를 체크하고 다시 적용하세요)`;
+  $('bulkMsg').textContent=msg;
+};
+
+load();render();
+if(!S.rows.length)log('비어 있습니다. "게시된 HTML 불러오기"로 현재 recruits.html 을 불러오세요.');
+</script>
+</body>
+</html>
