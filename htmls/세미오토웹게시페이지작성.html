@@ -524,6 +524,45 @@
 
         .admin-status.success { color: #059669; }
         .admin-status.error { color: #dc2626; }
+    
+        /* ===== 택틱 편집기 ===== */
+        #boss-modal { z-index: 1100; }
+        #tactic-modal { z-index: 1050; align-items: flex-start; overflow-y: auto; }
+        .tactic-box { background: #fff; width: min(1040px, 96vw); margin: 20px auto; border-radius: 12px; padding: 18px 20px 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .tactic-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .tactic-head h3 { margin: 0; font-size: 18px; flex: 1; }
+        .tt-btn { border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+        .tt-btn:hover { background: #e2e8f0; }
+        .tt-btn.pri { background: var(--primary-color); border-color: var(--primary-color); color: #fff; font-weight: 600; }
+        .tt-btn.danger { color: #b91c1c; }
+        .tt-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .tt-field label, .tt-char label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+        .tt-field input, .tt-char input, .tr-row input, .tr-row textarea, .tr-row select { width: 100%; font: inherit; font-size: 13px; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .tt-boss { display: flex; align-items: center; gap: 6px; }
+        .tt-boss img, .tt-char img { width: 52px; height: 52px; object-fit: cover; border-radius: 4px; background: #f1f5f9; display: block; }
+        .tt-chars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .tt-char { border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; display: grid; gap: 4px; }
+        .tt-char .row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+        .tt-sec { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 13px; font-weight: 600; }
+        .tt-sec .sp { flex: 1; }
+        .tr-row { display: grid; grid-template-columns: 74px 64px 1fr auto 62px auto; gap: 6px; align-items: start; padding: 5px 6px; border-bottom: 1px solid var(--border-color); }
+        .tr-row.note { background: #f8fafc; }
+        .tr-row.empty { background: #fafafa; }
+        .tr-row textarea { resize: vertical; min-height: 32px; }
+        .tr-sets { display: flex; gap: 3px; }
+        .tr-sets button, .tr-auto { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; width: 30px; height: 32px; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .tr-sets button.x { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        .tr-sets button.chg { outline: 2px solid #ef4444; }
+        .tr-auto { width: 56px; }
+        .tr-auto.on { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+        .tr-auto.chg { outline: 2px solid #0284c7; }
+        .tr-ops { display: flex; gap: 3px; }
+        .tr-ops button { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; height: 32px; min-width: 28px; cursor: pointer; font-size: 12px; }
+        .tr-hint { font-size: 11px; color: var(--text-secondary); margin: 2px 0 6px; }
+        #tr-preview-wrap { margin-top: 14px; border-top: 2px solid var(--border-color); padding-top: 10px; }
+        #tr-preview { overflow-x: auto; }
+        #tr-rows { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        @media (max-width: 800px) { .tt-grid { grid-template-columns: 1fr 1fr; } .tt-chars { grid-template-columns: 1fr 1fr; } .tr-row { grid-template-columns: 1fr 1fr; } }
     </style>
 </head>
 <body>
@@ -547,6 +586,10 @@
         <input type="file" id="html-file-input" accept=".html,.htm" style="display: none;" onchange="handleFileSelect(event)">
         <div class="admin-btn-row">
             <button class="admin-btn load" onclick="document.getElementById('html-file-input').click()">📁 HTML 파일 불러오기</button>
+        </div>
+
+        <div class="admin-btn-row">
+            <button class="admin-btn add" style="width:100%; background:#f59e0b;" onclick="openTacticEditor(null)">➕ 새 택틱 직접 만들기</button>
         </div>
 
         <div class="admin-btn-row">
@@ -592,6 +635,42 @@
                 <button onclick="closeHeaderModal()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">닫기 ✕</button>
             </div>
             <div class="header-grid" id="header-grid-container"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="tactic-modal">
+        <div class="tactic-box">
+            <div class="tactic-head">
+                <h3 id="tactic-title">택틱 편집</h3>
+                <button class="tt-btn" type="button" onclick="closeTacticEditor()">취소</button>
+                <button class="tt-btn pri" type="button" onclick="applyTactic()">적용</button>
+            </div>
+            <div class="tt-grid">
+                <div class="tt-field"><label>공략 제목</label><input type="text" data-b="title" placeholder="공략 타임라인"></div>
+                <div class="tt-field"><label>공략 링크 URL</label><input type="text" data-b="url" placeholder="https://..."></div>
+                <div class="tt-field"><label>딜량</label><input type="text" data-b="dmg"></div>
+                <div class="tt-field"><label>TP</label><input type="text" data-b="tp" placeholder="예: 1234"></div>
+            </div>
+            <div class="tt-field" style="margin-bottom:12px;">
+                <label>보스</label>
+                <div class="tt-boss">
+                    <img id="tt-boss-img" src="" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
+                    <button class="tt-btn" type="button" onclick="tacticPickBoss()">보스 선택</button>
+                    <button class="tt-btn" type="button" onclick="tacticClearBoss()">보스 제거</button>
+                </div>
+            </div>
+            <div class="tt-chars" id="tt-chars"></div>
+            <div class="tt-sec"><span>타임라인</span><span class="sp"></span>
+                <button class="tt-btn" type="button" onclick="addTacticRow('normal')">+ 행동 행</button>
+                <button class="tt-btn" type="button" onclick="addTacticRow('note')">+ 설명 행</button>
+                <button class="tt-btn" type="button" onclick="addTacticRow('empty')">+ 빈 행</button>
+            </div>
+            <div class="tr-hint">SET 버튼을 누르면 O/X가 바뀝니다. 앞 행동 행과 달라진 SET·Auto는 표에서 자동으로 빨간 글자/배경색이 적용되고, 여기서는 테두리로 표시됩니다. 시간은 숫자만 입력해도 됩니다(예: 112 → 1:12).</div>
+            <div id="tr-rows"></div>
+            <div id="tr-preview-wrap">
+                <div class="tt-sec"><span>미리보기</span></div>
+                <div id="tr-preview"></div>
+            </div>
         </div>
     </div>
 
@@ -887,6 +966,7 @@
             tools.appendChild(dragHandle);
             tools.appendChild(spaceBtn);
             tools.appendChild(delBtn);
+            addEditButton(tools, section);
             section.appendChild(tools);
 
             const body = document.createElement('div');
@@ -1045,6 +1125,7 @@
                     tools.appendChild(dragHandle);
                     tools.appendChild(spaceBtn);
                     tools.appendChild(delBtn);
+                    addEditButton(tools, importedNode);
 
                     bindDraggable(importedNode, dragHandle);
 
@@ -1098,6 +1179,8 @@
             if (bossModal) bossModal.remove();
             const headerModal = cloneDoc.querySelector('#header-modal');
             if (headerModal) headerModal.remove();
+            const tacticModalEl = cloneDoc.querySelector('#tactic-modal');
+            if (tacticModalEl) tacticModalEl.remove();
 
             cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn, .drag-handle').forEach(btn => btn.remove());
 
@@ -1128,6 +1211,369 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // =====================================================
+        // 택틱 편집기 (세미오토 표를 폼으로 직접 만들고 수정)
+        // =====================================================
+        const GITHUB_CHAR_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
+        let T = null;
+        let tacticCard = null;
+
+        function tEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function formatTimeInput(raw) {
+            const t = String(raw || '').trim();
+            if (!t) return '';
+            if (t.includes(':')) return t;
+            if (/^\d+$/.test(t)) {
+                if (t.length === 1) return `0:0${t}`;
+                if (t.length === 2) return `0:${t}`;
+                if (t.length === 3) return `${t[0]}:${t.slice(1)}`;
+                if (t.length === 4) return `${t.slice(0, 2)}:${t.slice(2)}`;
+            }
+            return t;
+        }
+        function emptyTactic() {
+            return { title: '', url: '', boss: '', dmg: '', tp: '',
+                chars: [0, 1, 2, 3, 4].map(() => ({ name: '', star: '5', rank: '', cr: '', img: '' })),
+                rows: [] };
+        }
+        function charImgUrl(name, star) {
+            return (name && star) ? GITHUB_CHAR_IMAGE_BASE + encodeURIComponent(`${name}${star}.png`) : '';
+        }
+
+        // ---- 표 → 모델 ----
+        function parseTacticTable(table) {
+            const rows = Array.from(table.tBodies[0] ? table.tBodies[0].rows : []);
+            if (rows.length < 6 || rows[0].cells.length !== 6 || rows[1].cells.length !== 6) {
+                throw new Error('세미오토 택틱 표 구조(6열, 보스/캐릭터/⭐/RANK/CR/TP 행)가 아닙니다.');
+            }
+            const txt = td => (td ? td.textContent.replace(/ /g, ' ').trim() : '');
+            const m = emptyTactic();
+            const th = table.querySelector('thead th');
+            if (th) {
+                const a = th.querySelector('a');
+                m.title = (a ? a.textContent : th.textContent).trim();
+                m.url = a ? (a.getAttribute('href') || '') : '';
+            }
+            const img0 = rows[0].cells[0].querySelector('img');
+            m.boss = img0 ? (img0.getAttribute('src') || '') : '';
+            m.dmg = txt(rows[1].cells[0]);
+            for (let i = 0; i < 5; i++) {
+                const im = rows[0].cells[i + 1].querySelector('img');
+                m.chars[i] = {
+                    name: txt(rows[1].cells[i + 1]),
+                    star: txt(rows[2].cells[i + 1]),
+                    rank: txt(rows[3].cells[i + 1]),
+                    cr: txt(rows[4].cells[i + 1]),
+                    img: im ? (im.getAttribute('src') || '') : ''
+                };
+            }
+            m.tp = txt(rows[5].cells[0]).replace(/^TP\s*/i, '');
+            const splitTime = html => {
+                const mt = html.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+([\s\S]*)$/);
+                return mt ? { time: mt[1], action: mt[2] } : { time: '', action: html.trim() };
+            };
+            rows.slice(6).forEach(tr => {
+                const tds = Array.from(tr.cells);
+                if (tds.length === 1) {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tds[0].innerHTML)));
+                } else if (tds.length === 3 && tds[0].classList.contains('empty-row-td')) {
+                    m.rows.push({ type: 'empty', time: '', action: '', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' });
+                } else if (tds.length === 3) {
+                    const setStr = txt(tds[1]).replace(/\s+/g, '');
+                    const set = [0, 1, 2, 3, 4].map(i => setStr[i] === 'X' ? 'X' : 'O');
+                    const auto = txt(tds[2]).toUpperCase() === 'ON' ? 'ON' : 'OFF';
+                    m.rows.push(Object.assign({ type: 'normal', set, auto }, splitTime(tds[0].innerHTML)));
+                } else {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tr.textContent)));
+                }
+            });
+            return m;
+        }
+
+        // ---- 모델 → 표 HTML ----
+        function buildTacticHTML(m) {
+            const guideText = (m.title || '').trim() || '공략 타임라인';
+            const url = (m.url || '').trim();
+            const headerContent = url ? `<a href="${tEsc(url)}" target="_blank">${tEsc(guideText)}</a>` : tEsc(guideText);
+            const tpVal = (m.tp || '').trim();
+            const tpText = tpVal ? (tpVal.toUpperCase().startsWith('TP') ? tpVal : `TP ${tpVal}`) : 'TP';
+            let rowsHtml = '';
+            let prevStates = null, prevAuto = null;
+            m.rows.forEach(r => {
+                const content = (r.time ? formatTimeInput(r.time) + ' ' : '') + (r.action || '');
+                if (r.type === 'empty') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left empty-row-td"></td>
+            <td></td>
+            <td></td>
+        </tr>`;
+                } else if (r.type === 'note') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="6" class="text-left">${content}</td>
+        </tr>`;
+                } else {
+                    let autoBgClass = '';
+                    if (prevAuto !== null && prevAuto !== r.auto) autoBgClass = r.auto === 'ON' ? 'bg-auto-on' : 'bg-auto-off';
+                    let setContent = '';
+                    r.set.forEach((ch, i) => {
+                        setContent += (prevStates && prevStates[i] !== ch) ? `<span class="change-x">${ch}</span>` : ch;
+                    });
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left">${content}</td>
+            <td>${setContent}</td>
+            <td class="${autoBgClass}">${tEsc(r.auto)}</td>
+        </tr>`;
+                    prevStates = r.set.slice();
+                    prevAuto = r.auto;
+                }
+            });
+            const imgCell = src => `<td class="img-td">${src ? `<img src="${tEsc(src)}">` : ''}</td>`;
+            return `<table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link">${headerContent}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            ${imgCell(m.boss)}
+            ${m.chars.map(c => imgCell(c.name ? c.img : '')).join('')}
+        </tr>
+        <tr>
+            <td>${tEsc(m.dmg)}</td>
+            ${m.chars.map(c => `<td>${tEsc(c.name)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            ${m.chars.map(c => `<td>${tEsc(c.star)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            ${m.chars.map(c => `<td>${tEsc(c.rank)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            ${m.chars.map(c => `<td>${tEsc(c.cr)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">${tEsc(tpText)}</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>${rowsHtml}
+    </tbody>
+</table>`;
+        }
+
+        // ---- 편집 UI ----
+        function openTacticEditor(card) {
+            tacticCard = card || null;
+            let m;
+            if (card && card.querySelector('.output-table')) {
+                try { m = parseTacticTable(card.querySelector('.output-table')); }
+                catch (e) { alert(e.message); return; }
+            } else {
+                m = emptyTactic();
+            }
+            T = m;
+            document.getElementById('tactic-title').textContent = card ? '택틱 수정' : '새 택틱 만들기';
+            const modal = document.getElementById('tactic-modal');
+            modal.querySelectorAll('[data-b]').forEach(inp => { inp.value = T[inp.dataset.b] || ''; });
+            renderTacticChars();
+            renderTacticRows();
+            refreshBossThumb();
+            renderTacticPreview();
+            modal.style.display = 'flex';
+            modal.scrollTop = 0;
+        }
+        function closeTacticEditor() {
+            document.getElementById('tactic-modal').style.display = 'none';
+            T = null; tacticCard = null;
+        }
+        function refreshBossThumb() {
+            const im = document.getElementById('tt-boss-img');
+            im.style.visibility = T.boss ? 'visible' : 'hidden';
+            im.src = T.boss || '';
+        }
+        function tacticPickBoss() {
+            const proxy = {
+                classList: { remove() {} },
+                set innerHTML(v) {
+                    const mt = String(v).match(/src="([^"]+)"/);
+                    if (T) { T.boss = mt ? mt[1] : ''; refreshBossThumb(); renderTacticPreview(); }
+                }
+            };
+            openBossModal(proxy);
+        }
+        function tacticClearBoss() { T.boss = ''; refreshBossThumb(); renderTacticPreview(); }
+
+        function renderTacticChars() {
+            document.getElementById('tt-chars').innerHTML = T.chars.map((c, i) => `
+                <div class="tt-char" data-ci="${i}">
+                    <img src="${tEsc(c.name ? c.img : '')}" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
+                    <div><label>캐릭터 ${i + 1}</label><input type="text" data-cf="name" value="${tEsc(c.name)}"></div>
+                    <div class="row2">
+                        <div><label>⭐</label><input type="text" data-cf="star" value="${tEsc(c.star)}"></div>
+                        <div><label>RANK</label><input type="text" data-cf="rank" value="${tEsc(c.rank)}"></div>
+                        <div><label>CR</label><input type="text" data-cf="cr" value="${tEsc(c.cr)}"></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function rowHtml(r, i) {
+            const ops = `<div class="tr-ops"><button type="button" data-act="up" title="위로">▲</button><button type="button" data-act="down" title="아래로">▼</button><button type="button" data-act="dup" title="복제">⧉</button><button type="button" data-act="del" title="삭제">✕</button></div>`;
+            const typeSel = `<select data-f="type"><option value="normal"${r.type === 'normal' ? ' selected' : ''}>행동</option><option value="note"${r.type === 'note' ? ' selected' : ''}>설명</option><option value="empty"${r.type === 'empty' ? ' selected' : ''}>빈 행</option></select>`;
+            if (r.type === 'empty') {
+                return `<div class="tr-row empty" data-i="${i}">${typeSel}<div></div><div style="color:#94a3b8;font-size:12px;padding-top:7px;">(빈 행)</div><div></div><div></div>${ops}</div>`;
+            }
+            const time = `<input type="text" data-f="time" value="${tEsc(r.time)}" placeholder="시간">`;
+            const action = `<textarea data-f="action" rows="1" placeholder="행동 내용">${tEsc(r.action)}</textarea>`;
+            if (r.type === 'note') {
+                return `<div class="tr-row note" data-i="${i}">${typeSel}${time}${action}<div></div><div></div>${ops}</div>`;
+            }
+            const sets = r.set.map((v, k) => `<button type="button" data-s="${k}" class="${v === 'X' ? 'x' : ''}">${v}</button>`).join('');
+            return `<div class="tr-row" data-i="${i}">${typeSel}${time}${action}<div class="tr-sets">${sets}</div><button type="button" class="tr-auto ${r.auto === 'ON' ? 'on' : ''}" data-f="auto">${r.auto}</button>${ops}</div>`;
+        }
+        function renderTacticRows() {
+            const box = document.getElementById('tr-rows');
+            box.innerHTML = T.rows.length ? T.rows.map(rowHtml).join('') : '<div style="padding:16px;color:#94a3b8;font-size:13px;text-align:center;">행이 없습니다. 위의 "+ 행동 행"을 눌러 추가하세요.</div>';
+            markTacticChanges();
+        }
+        function markTacticChanges() {
+            let prev = null, prevAuto = null;
+            T.rows.forEach((r, i) => {
+                const el = document.querySelector(`#tr-rows .tr-row[data-i="${i}"]`);
+                if (!el || r.type !== 'normal') return;
+                el.querySelectorAll('.tr-sets button').forEach((b, k) => b.classList.toggle('chg', !!prev && prev[k] !== r.set[k]));
+                const a = el.querySelector('.tr-auto');
+                if (a) a.classList.toggle('chg', prevAuto !== null && prevAuto !== r.auto);
+                prev = r.set; prevAuto = r.auto;
+            });
+        }
+        let tacticPreviewTimer = null;
+        function renderTacticPreview() {
+            clearTimeout(tacticPreviewTimer);
+            tacticPreviewTimer = setTimeout(() => {
+                if (!T) return;
+                document.getElementById('tr-preview').innerHTML = `<div class="table-responsive">${buildTacticHTML(T)}</div>`;
+            }, 120);
+        }
+        function addTacticRow(type) {
+            const lastNormal = [...T.rows].reverse().find(r => r.type === 'normal');
+            T.rows.push({ type, time: '', action: '', set: lastNormal ? lastNormal.set.slice() : ['O', 'O', 'O', 'O', 'O'], auto: lastNormal ? lastNormal.auto : 'OFF' });
+            renderTacticRows();
+            renderTacticPreview();
+            const box = document.getElementById('tr-rows');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        (function bindTacticEvents() {
+            const modal = document.getElementById('tactic-modal');
+            if (!modal) return;
+            modal.addEventListener('input', e => {
+                const t = e.target;
+                if (!T) return;
+                if (t.dataset.b) { T[t.dataset.b] = t.value; renderTacticPreview(); return; }
+                const ch = t.closest('.tt-char');
+                if (ch && t.dataset.cf) {
+                    const c = T.chars[+ch.dataset.ci];
+                    c[t.dataset.cf] = t.value;
+                    if (t.dataset.cf === 'name' && t.value.trim() && !String(c.star).trim()) {
+                        c.star = '5';
+                        const si = ch.querySelector('input[data-cf="star"]');
+                        if (si) si.value = '5';
+                    }
+                    if (t.dataset.cf === 'name' || t.dataset.cf === 'star') {
+                        c.img = charImgUrl(c.name.trim(), c.star.trim());
+                        const im = ch.querySelector('img');
+                        im.style.visibility = 'visible';
+                        im.src = c.name ? c.img : '';
+                    }
+                    renderTacticPreview();
+                    return;
+                }
+                const row = t.closest('.tr-row');
+                if (row && (t.dataset.f === 'time' || t.dataset.f === 'action')) {
+                    T.rows[+row.dataset.i][t.dataset.f] = t.value;
+                    renderTacticPreview();
+                }
+            });
+            modal.addEventListener('change', e => {
+                const t = e.target, row = t.closest('.tr-row');
+                if (row && t.dataset.f === 'type') {
+                    T.rows[+row.dataset.i].type = t.value;
+                    renderTacticRows(); renderTacticPreview();
+                }
+            });
+            modal.addEventListener('click', e => {
+                const b = e.target.closest('button');
+                if (!b || !T) return;
+                const row = b.closest('.tr-row');
+                if (!row) return;
+                const i = +row.dataset.i, r = T.rows[i];
+                if (b.dataset.s !== undefined) {
+                    const k = +b.dataset.s;
+                    r.set[k] = r.set[k] === 'O' ? 'X' : 'O';
+                    b.textContent = r.set[k]; b.classList.toggle('x', r.set[k] === 'X');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                if (b.dataset.f === 'auto') {
+                    r.auto = r.auto === 'ON' ? 'OFF' : 'ON';
+                    b.textContent = r.auto; b.classList.toggle('on', r.auto === 'ON');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                const act = b.dataset.act;
+                if (act === 'del') T.rows.splice(i, 1);
+                else if (act === 'up' && i > 0) [T.rows[i - 1], T.rows[i]] = [T.rows[i], T.rows[i - 1]];
+                else if (act === 'down' && i < T.rows.length - 1) [T.rows[i + 1], T.rows[i]] = [T.rows[i], T.rows[i + 1]];
+                else if (act === 'dup') T.rows.splice(i + 1, 0, JSON.parse(JSON.stringify(r)));
+                else return;
+                renderTacticRows(); renderTacticPreview();
+            });
+        })();
+
+        function applyTactic() {
+            if (!T) return;
+            const html = buildTacticHTML(T);
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newTable = document.importNode(doc.querySelector('table.output-table'), true);
+            if (tacticCard) {
+                const old = tacticCard.querySelector('.output-table');
+                if (old) old.replaceWith(newTable);
+                else tacticCard.querySelector('.table-responsive').appendChild(newTable);
+            } else {
+                let target = findInsertionTarget();
+                if (!target) target = createNewCardSection();
+                target.appendChild(newTable);
+            }
+            attachBossClickToTable(newTable);
+            closeTacticEditor();
+            saveToLocalStorage();
+            const st = document.getElementById('admin-status');
+            if (st) { st.textContent = '택틱을 적용했습니다.'; st.className = 'admin-status success'; }
+        }
+
+        function addEditButton(tools, card) {
+            if (tools.querySelector('.edit-btn')) return;
+            const btn = document.createElement('button');
+            btn.className = 'card-btn edit-btn';
+            btn.style.background = '#f59e0b';
+            btn.textContent = '✏ 편집';
+            btn.onclick = function () { openTacticEditor(card); };
+            tools.insertBefore(btn, tools.children[1] || null);
+        }
+
     </script>
 </body>
 </html>

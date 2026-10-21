@@ -26,81 +26,222 @@
     --archive-accent-soft: #fce7f3;
   }
 
-  /* 카테고리 헤더 & 메인 탭 버튼 */
-  .tab-bar {
-    width: 100%;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    position: static;
+  /* ===== 최상단 사이트 헤더 (공식 홈페이지 스타일) ===== */
+  :root {
+    --header-h: 55px;
+    --header-accent: #ec4899;
+    --clover-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 282 282'%3E%3Cpath d='M143.77 282C197.652 279.103 216.662 222.93 163.913 163.986C222.83 216.758 278.853 197.74 281.874 143.834C281.874 143.456 281.874 141.567 281.874 141.063C281.874 140.559 281.874 138.67 281.874 138.292C278.979 84.3859 222.83 65.3676 163.913 118.14C216.662 59.0701 197.526 3.02278 143.77 0C143.392 0 141.504 0 141 0C140.496 0 138.608 0 138.23 0C84.3482 2.89683 65.3384 59.0701 118.088 118.014C59.0438 65.3676 3.02143 84.3859 0 138.292C0 138.67 0 140.559 0 141.063C0 141.567 0 143.456 0 143.834C2.89554 197.74 59.0438 216.758 117.962 163.986C65.2125 222.93 84.3482 278.977 138.104 282C138.482 282 140.371 282 140.874 282C141.378 282 143.266 282 143.644 282H143.77Z' fill='white' fill-opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  .tab-bar-scroll {
+  .site-header {
+    position: fixed;             /* 스크롤해도 항상 상단에 고정 */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3000;
+    height: var(--header-h);
+    display: flex;
+    align-items: stretch;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+  }
+
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.78);   /* 투명도: 숫자가 작을수록 더 비침 */
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  /* 고정 헤더가 차지하던 자리를 채우는 여백 */
+  .site-header-spacer {
+    height: var(--header-h);
+  }
+
+  /* 채용시트 모바일 보기: 고정 헤더 아래에 붙도록 */
+  #rosterMobile {
+    --rm-top: var(--header-h) !important;
+  }
+
+  /* 왼쪽 로고 블록: 분홍 배경 + 오른쪽 사선 */
+  .site-logo {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 48px 0 28px;
+    background: var(--header-accent);   /* 분홍 블록이 필요 없으면 이 줄 삭제 */
+    clip-path: polygon(0 0, 100% 0, calc(100% - 26px) 100%, 0 100%);
+    text-decoration: none;
+  }
+
+  .site-logo img {
     display: block;
-    padding: 0;
-    overflow: visible;
-    cursor: default;
-    user-select: auto;
+    height: calc(var(--header-h) - 20px);
+    width: auto;
+    max-width: 260px;
+    object-fit: contain;
+  }
+
+  .tab-bar {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
   }
 
   .tab-bar-main {
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 0;
+    align-items: stretch;
+    gap: 4px;
+    padding: 0 12px 0 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
-
-  .category-heading {
-    display: flex !important;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 0;
-    font-size: 28px !important;
-    line-height: 1.2 !important;
-    font-weight: 600 !important;
-    color: #334155;
-    font-family: "Noto Sans KR", sans-serif !important;
-    font-weight: 700 !important;
-    text-shadow: -1px -1px 0 #cbd5e1, 1px -1px 0 #cbd5e1, -1px 1px 0 #cbd5e1, 1px 1px 0 #cbd5e1;
-  }
-
-  .category-heading::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #d8dee8;
-  }
+  .tab-bar-main::-webkit-scrollbar { display: none; }
 
   .main-tab-btn {
-    min-width: 0;
-    padding: 12px 34px;
-    font-size: 18px;
-    line-height: 1.25;
-    font-weight: 500;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 22px;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: "Noto Sans KR", sans-serif;
     color: #334155;
-    background: #ffffff;
+    background: transparent;
     border: 0;
-    border-radius: 999px;
+    border-radius: 0;
     cursor: pointer;
-    transition: all 0.2s ease;
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    transition: color 0.15s ease;
   }
 
-  .main-tab-btn:hover {
-    background: #fff;
-    color: #111827;
-    transform: translateY(-1px);
+  @media (hover: hover) {
+    .main-tab-btn:hover {
+      color: var(--header-accent);
+    }
   }
 
   .main-tab-btn.active {
-    background: #ec4899;
-    color: #ffffff;
-    font-weight: 600;
-    box-shadow: none;
+    color: var(--header-accent);
+  }
+
+  /* 탭 앞의 클로버: 자리는 항상 확보해 두고, 선택/마우스 오버 때만 보이게 */
+  .main-tab-btn::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 1em;                 /* 글자 크기(em)에 맞춰 같이 변함 */
+    height: 1em;
+    background: url('clover.png') center / contain no-repeat;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .main-tab-btn.active::before {
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    .main-tab-btn:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* 모바일 카테고리 버튼: 아래쪽이 둥근 탭 형태 */
+  .menu-toggle {
+    display: none;
+    --menu-border-width: 1.5px;
+    --menu-line-height: 2px;
+
+    position: absolute;
+    top: 0;
+    right: 4.8vw;
+    z-index: 3100;
+
+    width: 16vw;
+    height: 15.4667vw;
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    border-right: var(--menu-border-width) solid #fff;
+    border-bottom: var(--menu-border-width) solid #fff;
+    border-left: var(--menu-border-width) solid #fff;
+    border-radius: 0 0 999px 999px;
+
+    background: #fff;
+    color: var(--header-accent);
+    cursor: pointer;
+    overflow: hidden;
+    appearance: none;
+    -webkit-appearance: none;
+    isolation: isolate;
+  }
+
+  /* 분홍색 안쪽 윤곽 */
+  .menu-toggle::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    inset: 0 var(--menu-border-width) var(--menu-border-width);
+    display: block;
+    border: var(--menu-border-width) solid var(--header-accent);
+    border-top: 0;
+    border-radius: 0 0 999px 999px;
+    background: #fff;
+    pointer-events: none;
+    transition: background-color 0.15s ease;
+  }
+
+  /* 햄버거 선 */
+  .menu-toggle span {
+    position: absolute;
+    z-index: 1;
+    display: block;
+    left: 25%;
+    right: 25%;
+    height: var(--menu-line-height);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--header-accent);
+    transform-origin: center;
+    transition:
+      top 0.15s ease,
+      transform 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .menu-toggle span:nth-child(1) { top: 32%; }
+  .menu-toggle span:nth-child(2) { top: 48%; }
+
+  /* 메뉴가 열린 상태: 분홍 바탕 + 흰색 X */
+  body.menu-open .menu-toggle {
+    border-color: var(--header-accent);
+    background: var(--header-accent);
+  }
+
+  body.menu-open .menu-toggle::before {
+    border-color: var(--header-accent);
+    background: var(--header-accent);
+  }
+
+  body.menu-open .menu-toggle span {
+    top: 40%;
+    background: #fff;
+  }
+
+  body.menu-open .menu-toggle span:nth-child(1) {
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  body.menu-open .menu-toggle span:nth-child(2) {
+    transform: translateY(-50%) rotate(-45deg);
   }
 
   #subtab-slot {
@@ -112,7 +253,7 @@
     width: 100%;
     max-width: 1520px;
     margin: 0 auto;
-    padding: 36px 40px 48px;
+    padding: 28px 40px 48px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 280px;
     gap: 32px;
@@ -131,7 +272,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 32px;
     overflow-y: visible;
   }
 
@@ -277,6 +417,14 @@
     gap: 8px;
   }
 
+  .archive-sidebar-title::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    background: var(--clover-light) center / contain no-repeat;
+  }
+
   .archive-sidebar-title-icon {
     display: inline-flex;
     align-items: center;
@@ -328,16 +476,6 @@
     max-width: none;
   }
 
-  .category-heading,
-  .tab-bar-scroll {
-    max-width: 1500px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 40px;
-    padding-right: 40px;
-    box-sizing: border-box;
-  }
-
   /* 반응형 */
   @media (max-width: 900px) {
 
@@ -384,6 +522,8 @@
       content: '월별 아카이브';
       font-size: 16px;
       font-weight: 700;
+      padding-left: 28px;
+      background: var(--clover-light) left center / 20px 20px no-repeat;
     }
 
     #subtab-slot .custom-select-trigger #selected-subtab-label {
@@ -517,29 +657,106 @@
       display: none !important;
     }
 
-    .category-heading {
-      font-size: 24px;
+    :root { --header-h: 52px; }
+
+    /* 모바일: 헤더 배경 완전 투명 */
+    .site-header {
+      box-shadow: none;
     }
 
-    .main-tab-btn {
-      padding: 10px 24px;
-      font-size: 16px;
+    .site-header::before {
+      background: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
+
+    /* 모바일: 분홍 블록 없이 투명 배경 + 모바일용 로고 */
+    .site-logo {
+      position: relative;
+      z-index: 2950;      /* 전체 화면 메뉴 위에 로고가 보이도록 */
+      padding: 0 0 0 12px;
+      background: transparent;
+      clip-path: none;
+    }
+
+    .site-logo img {
+      height: calc(var(--header-h) - 12px);
+      max-width: 210px;
+    }
+
+    .menu-toggle {
+      display: block;
+    }
+
+    /* 전체 화면 메뉴 */
+    .tab-bar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2900;
+      padding: calc(var(--header-h) + 28px) 0 40px;
+      overflow-y: auto;
+      background: #ffeef5;
+    }
+
+    body.menu-open .tab-bar {
+      display: block;
+    }
+
+    body.menu-open {
+      overflow: hidden !important;
+    }
+
+    .tab-bar-main {
+      flex-direction: column;
+      gap: 12px;
+      padding: 0;
+      overflow: visible;
+    }
+
+    .tab-bar-main .main-tab-btn {
+      width: 88%;
+      padding: 15px 20px 15px 16px;
+      font-size: 18px;
+      color: #334155;
+      background: #ffffff;
+      border-left: 6px solid var(--item-color, var(--header-accent));
+      border-radius: 0 999px 999px 0;
+      box-shadow: 0 3px 8px rgba(236, 72, 153, 0.12);
+      text-align: left;
+    }
+
+    .tab-bar-main .main-tab-btn.active {
+      color: var(--header-accent);
+    }
+
+    /* 모바일 메뉴에서는 마우스 오버로 클로버를 띄우지 않음 (선택된 항목만) */
+    .tab-bar-main .main-tab-btn:not(.active):hover::before {
+      opacity: 0;
+    }
+
+    /* 오른쪽 화살표 버튼: category_btn.png를 마스크로 써서 항목별 색을 입힘 */
+    .tab-bar-main .main-tab-btn::after {
+      content: '';
+      flex: 0 0 auto;
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      background-color: var(--item-color, var(--header-accent));
+      -webkit-mask: url('category_btn.png') center / contain no-repeat;
+      mask: url('category_btn.png') center / contain no-repeat;
+    }
+
+    .tab-bar-main .main-tab-btn:nth-child(1) { --item-color: #ec4899; }
+    .tab-bar-main .main-tab-btn:nth-child(2) { --item-color: #f2685c; }
+    .tab-bar-main .main-tab-btn:nth-child(3) { --item-color: #f59e0b; }
+    .tab-bar-main .main-tab-btn:nth-child(4) { --item-color: #16a34a; }
   }
 
   @media (max-width: 600px) {
-
-    .tab-bar-main {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .main-tab-btn {
-      width: 100%;
-      padding: 10px 8px;
-      font-size: 15px;
-    }
 
     .page-body {
       padding: 22px 12px 28px;
@@ -566,7 +783,9 @@
 
   /* 데스크톱 사이드바 & 아카이브 */
   @media (min-width: 901px) {
-
+    main.main-content {
+        padding-top: 0 !important;
+    }
     #desktop-archive-sidebar.has-content {
       display: block;
       width: 300px;
@@ -695,53 +914,70 @@
 
 <body>
 
+  <header class="site-header">
+
+    <a class="site-logo" href="./" aria-label="home">
+      <picture>
+        <source media="(max-width: 900px)" srcset="title_logo_mobile.png">
+        <img src="title_logo.png" alt="프리코네 클랜전">
+      </picture>
+    </a>
+
+    <nav class="tab-bar" aria-label="category">
+
+      <div class="tab-bar-main">
+
+        <button
+          type="button"
+          class="main-tab-btn active"
+          onclick="switchTab(event, this, 'semi_auto.html')">
+          세미오토
+        </button>
+
+        <button
+          type="button"
+          class="main-tab-btn"
+          onclick="switchTab(event, this, 'full_auto.html')">
+          풀오토
+        </button>
+
+        <button
+          type="button"
+          class="main-tab-btn"
+          onclick="switchTab(event, this, 'recruits.html')">
+          채용시트
+        </button>
+
+        <button
+          type="button"
+          class="main-tab-btn"
+          onclick="switchTab(event, this, 'abyss.html')">
+          심연토벌전
+        </button>
+
+      </div>
+
+    </nav>
+
+    <button
+      type="button"
+      class="menu-toggle"
+      aria-label="메뉴"
+      aria-expanded="false"
+      onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+    </button>
+
+  </header>
+
+  <div class="site-header-spacer"></div>
+
   <div class="page-body">
 
     <main class="content-column">
 
-      <nav class="tab-bar" aria-label="category">
-
-        <div class="category-heading">category</div>
-
-        <div class="tab-bar-scroll">
-
-          <div class="tab-bar-main">
-
-            <button
-              type="button"
-              class="main-tab-btn active"
-              onclick="switchTab(event, this, 'semi_auto.html')">
-              세미오토
-            </button>
-
-            <button
-              type="button"
-              class="main-tab-btn"
-              onclick="switchTab(event, this, 'full_auto.html')">
-              풀오토
-            </button>
-
-            <button
-              type="button"
-              class="main-tab-btn"
-              onclick="switchTab(event, this, 'recruits.html')">
-              채용시트
-            </button>
-
-            <button
-              type="button"
-              class="main-tab-btn"
-              onclick="switchTab(event, this, 'abyss.html')">
-              심연토벌전
-            </button>
-
-          </div>
-
-          <div id="subtab-slot"></div>
-
-        </div>
-
-      </nav>
+      <div id="subtab-slot"></div>
 
       <div id="content-container"></div>
 
@@ -1436,6 +1672,11 @@
   }
 
 
+  function getHeaderHeight() {
+    const h = document.querySelector('.site-header');
+    return h ? h.getBoundingClientRect().height : 0;
+  }
+
   /*
    * 채용시트 sticky header
    */
@@ -1464,7 +1705,7 @@
 
     toolbar.style.setProperty(
       'top',
-      '0px',
+      getHeaderHeight() + 'px',
       'important'
     );
 
@@ -1499,7 +1740,7 @@
         );
 
       let currentTop =
-        toolbarHeight;
+        getHeaderHeight() + toolbarHeight;
 
 
       rows.forEach(
@@ -1567,6 +1808,35 @@
 
 
   /*
+   * 모바일 메뉴 열기/닫기
+   */
+  function toggleMobileMenu(force) {
+
+    const open =
+      typeof force === 'boolean'
+        ? force
+        : !document.body.classList.contains('menu-open');
+
+    document.body.classList.toggle('menu-open', open);
+
+    const btn = document.querySelector('.menu-toggle');
+
+    if (btn) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') toggleMobileMenu(false);
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= DESKTOP_BREAKPOINT) toggleMobileMenu(false);
+  });
+
+
+  /*
    * 메인 탭 전환
    */
   function switchTab(
@@ -1611,8 +1881,15 @@
         'active'
       );
 
+      /* 모바일에서 가로 스크롤된 탭바 안에서 선택 탭이 보이도록 */
+      if (buttonEl.scrollIntoView) {
+        buttonEl.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+
     }
 
+
+    toggleMobileMenu(false);
 
     loadPage(
       fileUrl
@@ -1905,7 +2182,7 @@
 
     toolbar.style.setProperty(
       'top',
-      '0px',
+      getHeaderHeight() + 'px',
       'important'
     );
 
@@ -1935,7 +2212,7 @@
         );
 
       let currentTop =
-        toolbarHeight;
+        getHeaderHeight() + toolbarHeight;
 
 
       rows.forEach(
