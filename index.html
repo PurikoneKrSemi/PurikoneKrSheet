@@ -151,19 +151,27 @@
     }
   }
 
-  /* 모바일 카테고리 버튼: 아래쪽이 둥근 탭 형태 */
+  /*
+   * 모바일 카테고리 버튼 (공식 홈페이지 .menu-button CSS의 비율 그대로)
+   * 공식은 1vw 기준이지만, 이 페이지는 가로로 넓은 표 때문에 vw 값이 커져서
+   * 버튼이 더 크게 나오므로 360px 폭 기준의 고정 px(1u = 3.5994px)로 계산합니다.
+   * → 버튼 크기 57.59 × 55.67px. 크기를 바꾸려면 --u 값만 조절하세요.
+   */
   .menu-toggle {
     display: none;
-    --menu-border-width: 1.5px;
-    --menu-line-height: 2px;
+    --u: 3.5994px;
+    --menu-border-width: calc(.533333 * var(--u));
+    --menu-line-height: calc(.8 * var(--u));
+    --menu-animation-duration: .15s;
+    --menu-button-animation-delay: var(--menu-animation-duration);
 
     position: absolute;
     top: 0;
-    right: 4.8vw;
+    right: calc(4.8 * var(--u));
     z-index: 3100;
 
-    width: 16vw;
-    height: 15.4667vw;
+    width: calc(16 * var(--u));
+    height: calc(15.4667 * var(--u));
     margin: 0;
     padding: 0;
 
@@ -173,76 +181,68 @@
     border-left: var(--menu-border-width) solid #fff;
     border-radius: 0 0 999px 999px;
 
-    background: #fff;
-    color: var(--header-accent);
+    background-color: #fff;
     cursor: pointer;
     overflow: hidden;
     appearance: none;
     -webkit-appearance: none;
-    isolation: isolate;
   }
 
   /* 분홍색 안쪽 윤곽 */
   .menu-toggle::before {
     content: '';
     position: absolute;
-    z-index: 0;
     inset: 0 var(--menu-border-width) var(--menu-border-width);
     display: block;
     border: var(--menu-border-width) solid var(--header-accent);
     border-top: 0;
     border-radius: 0 0 999px 999px;
-    background: #fff;
+    background-color: #fff;
+    transition: background-color var(--menu-animation-duration) ease var(--menu-button-animation-delay);
     pointer-events: none;
-    transition: background-color 0.15s ease;
   }
 
-  /* 햄버거 선 */
+  /* 햄버거 선 2줄 (공식 버튼 이미지를 측정한 위치) */
   .menu-toggle span {
     position: absolute;
     z-index: 1;
     display: block;
-    left: 25%;
-    right: 25%;
+    left: 26%;
+    right: 26%;
     height: var(--menu-line-height);
     margin: 0;
     padding: 0;
     border: 0;
     border-radius: 999px;
     background: var(--header-accent);
+    transform: translateY(-50%);
     transform-origin: center;
     transition:
-      top 0.15s ease,
-      transform 0.15s ease,
-      background-color 0.15s ease;
+      top var(--menu-animation-duration) ease,
+      transform var(--menu-animation-duration) ease,
+      background-color var(--menu-animation-duration) ease;
   }
 
-  .menu-toggle span:nth-child(1) { top: 32%; }
-  .menu-toggle span:nth-child(2) { top: 48%; }
+  .menu-toggle span:nth-child(1) { top: 29%; }
+  .menu-toggle span:nth-child(2) { top: 58%; }
 
   /* 메뉴가 열린 상태: 분홍 바탕 + 흰색 X */
   body.menu-open .menu-toggle {
     border-color: var(--header-accent);
-    background: var(--header-accent);
   }
 
   body.menu-open .menu-toggle::before {
-    border-color: var(--header-accent);
-    background: var(--header-accent);
+    transition: background-color var(--menu-animation-duration) ease;
+    background-color: var(--header-accent);
   }
 
   body.menu-open .menu-toggle span {
-    top: 40%;
+    top: 43.5%;
     background: #fff;
   }
 
-  body.menu-open .menu-toggle span:nth-child(1) {
-    transform: translateY(-50%) rotate(45deg);
-  }
-
-  body.menu-open .menu-toggle span:nth-child(2) {
-    transform: translateY(-50%) rotate(-45deg);
-  }
+  body.menu-open .menu-toggle span:nth-child(1) { transform: translateY(-50%) rotate(45deg); }
+  body.menu-open .menu-toggle span:nth-child(2) { transform: translateY(-50%) rotate(-45deg); }
 
   #subtab-slot {
     display: none !important;
@@ -995,16 +995,33 @@
   const bgImages = ["images/bg/PC_11.jpg", "images/bg/PC_12.jpg", "images/bg/PC_13.jpg", "images/bg/PC_14.jpg", "images/bg/PC_15.jpg", "images/bg/PC_16.jpg", "images/bg/PC_17.jpg", "images/bg/PC_18.jpg", "images/bg/PC_19.jpg", "images/bg/PC_20.jpg", "images/bg/PC_21.jpg", "images/bg/PC_22.jpg", "images/bg/PC_23.jpg", "images/bg/PC_24.jpg", "images/bg/PC_25.jpg", "images/bg/PC_26.jpg", "images/bg/_PC_20.jpg", "images/bg/_PC_21.jpg", "images/bg/_PC_22.jpg", "images/bg/_PC_23.jpg", "images/bg/_PC_24.jpg", "images/bg/_PC_25.jpg", "images/bg/_PC_26.jpg", "images/bg/_PC_27.jpg", "images/bg/_PC_28.jpg"];
   const ENABLE_RANDOM_BACKGROUND = true;
 
+  let currentRandomBackground = null;
+
+  /*
+   * 랜덤 배경은 데스크톱 레이아웃(901px 이상)에서만 사용.
+   * 모바일/태블릿에서는 배경 이미지를 쓰지 않는다.
+   * 화면 폭이 바뀌어도 같은 이미지를 유지한다.
+   */
   function setRandomBackground() {
     if (!ENABLE_RANDOM_BACKGROUND) return;
+
+    if (window.innerWidth < DESKTOP_BREAKPOINT) {
+      document.body.style.backgroundImage = '';
+      return;
+    }
+
     if (!Array.isArray(bgImages) || bgImages.length === 0) return;
 
-    const randomImage =
-      bgImages[Math.floor(Math.random() * bgImages.length)];
+    if (!currentRandomBackground) {
+      currentRandomBackground =
+        bgImages[Math.floor(Math.random() * bgImages.length)];
+    }
 
     document.body.style.backgroundImage =
-      `url('${randomImage}')`;
+      `url('${currentRandomBackground}')`;
   }
+
+  window.addEventListener('resize', setRandomBackground);
 
 
   const DESKTOP_BREAKPOINT = 901;
