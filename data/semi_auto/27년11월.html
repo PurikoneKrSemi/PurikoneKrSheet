@@ -1,0 +1,2842 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터 리포트</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Roboto+Mono:wght@500&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --primary-color: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        .header-banner {
+            width: 100%;
+            max-width: 648px;
+            position: relative;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .header-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .header-banner .banner-tools {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 648px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: block;
+            position: relative;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        .card.dragging, .boss-divider.dragging {
+            opacity: 0.3;
+            border: 2px dashed var(--primary-color) !important;
+        }
+
+        .card-body {
+            padding: 8px;
+        }
+
+        .boss-divider {
+            width: 100%;
+            max-width: 648px;
+            height: 80px;
+            margin: 10px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            background-color: transparent;
+            border: 0px dashed var(--border-color);
+            border-radius: 6px;
+        }
+
+        .card-tools {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .card-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .card-btn:hover {
+            opacity: 1;
+        }
+
+        .card-btn.drag-handle {
+            cursor: grab;
+            background: #475569;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .card-btn.drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .card-btn.add-space-btn {
+            background: #0284c7;
+        }
+
+        .card-btn.delete-btn {
+            background: #ef4444;
+        }
+
+        .divider-delete-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .divider-delete-btn:hover {
+            opacity: 1;
+        }
+
+        .table-responsive {
+            width: auto;
+            overflow-x: auto;
+        }
+
+        .output-table {
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: center;
+            width: 630px;
+            table-layout: fixed;
+        }
+
+        .output-table th, 
+        .output-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .output-table td:empty::before {
+            content: "\00a0";
+            display: inline-block;
+        }
+
+        .output-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: normal;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .output-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .output-table tbody tr:nth-child(-n+5) td {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        /* 6번째 행부터 OX문 폰트(Roboto Mono) 적용하도록 수정 */
+        .output-table tbody tr:nth-child(n+6) td:nth-last-child(2):not([colspan]) {
+            font-family: 'Roboto Mono', monospace !important;
+            letter-spacing: 2px !important;
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
+        }
+
+        .output-table tbody tr td.th-label,
+        .output-table tbody tr td.text-left {
+            font-family: 'Pretendard', sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
+        .header-link {
+            text-align: left !important;
+            padding: 6px 8px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 630px;
+        }
+
+        .header-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: normal;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .header-link a:hover {
+            text-decoration: underline;
+        }
+
+        .img-td {
+            padding: 1px !important;
+            width: 105px;
+        }
+
+        .img-td img {
+            width: 100%;
+            height: 105px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .boss-clickable {
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .boss-clickable:hover {
+            background-color: #e2e8f0;
+            border-color: var(--primary-color);
+        }
+
+        .boss-placeholder {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .th-label {
+            font-weight: normal;
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+        }
+
+        .text-left {
+            text-align: left !important;
+        }
+.change-x {
+            color: #ef4444;
+            font-weight: normal;
+        }
+
+        .auto-td {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            font-weight: normal;
+        }
+
+        .auto-changed-on, .bg-auto-on {
+            background-color: #e0f2fe !important;
+            color: #0284c7 !important;
+        }
+
+        .auto-changed-off, .bg-auto-off {
+            background-color: #ffe4e6 !important;
+            color: #e11d48 !important;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .boss-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .boss-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .boss-item, .header-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .boss-item:hover, .header-item:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+            transform: translateY(-2px);
+        }
+
+        .boss-item img, .header-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .boss-item.recent-item {
+            border-color: var(--primary-color);
+            background-color: #f5f3ff;
+        }
+
+        #admin-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+        }
+
+        #admin-toggle-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        #admin-panel-root {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            z-index: 900;
+            width: min(420px, calc(100vw - 40px));
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            padding: 16px;
+        }
+
+        #admin-panel-root.open {
+            display: block;
+        }
+
+        #admin-panel-root h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        #admin-panel-root p.admin-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        #admin-paste-area {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-btn.header-select {
+            background-color: #8b5cf6;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.add {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .admin-btn.save {
+            background-color: #10b981;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.load {
+            background-color: #0284c7;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-btn.reset {
+            background-color: #ef4444;
+            color: #fff;
+            width: 100%;
+        }
+
+        .admin-status {
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .admin-status.success { color: #059669; }
+        .admin-status.error { color: #dc2626; }
+    
+        /* ===== 택틱 편집기 ===== */
+        #boss-modal { z-index: 1100; }
+        #tactic-modal { z-index: 1050; align-items: flex-start; overflow-y: auto; }
+        .tactic-box { background: #fff; width: min(1040px, 96vw); margin: 20px auto; border-radius: 12px; padding: 18px 20px 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .tactic-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .tactic-head h3 { margin: 0; font-size: 18px; flex: 1; }
+        .tt-btn { border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+        .tt-btn:hover { background: #e2e8f0; }
+        .tt-btn.pri { background: var(--primary-color); border-color: var(--primary-color); color: #fff; font-weight: 600; }
+        .tt-btn.danger { color: #b91c1c; }
+        .tt-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .tt-field label, .tt-char label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+        .tt-field input, .tt-char input, .tr-row input, .tr-row textarea, .tr-row select { width: 100%; font: inherit; font-size: 13px; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .tt-boss { display: flex; align-items: center; gap: 6px; }
+        .tt-boss img, .tt-char img { width: 52px; height: 52px; object-fit: cover; border-radius: 4px; background: #f1f5f9; display: block; }
+        .tt-chars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .tt-char { border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; display: grid; gap: 4px; }
+        .tt-char .row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+        .tt-sec { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 13px; font-weight: 600; }
+        .tt-sec .sp { flex: 1; }
+        .tr-row { display: grid; grid-template-columns: 74px 64px 1fr auto 62px auto; gap: 6px; align-items: start; padding: 5px 6px; border-bottom: 1px solid var(--border-color); }
+        .tr-row.note { background: #f8fafc; }
+        .tr-row.empty { background: #fafafa; }
+        .tr-row textarea { resize: vertical; min-height: 32px; }
+        .tr-sets { display: flex; gap: 3px; }
+        .tr-sets button, .tr-auto { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; width: 30px; height: 32px; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .tr-sets button.x { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        .tr-sets button.chg { outline: 2px solid #ef4444; }
+        .tr-auto { width: 56px; }
+        .tr-auto.on { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+        .tr-auto.chg { outline: 2px solid #0284c7; }
+        .tr-ops { display: flex; gap: 3px; }
+        .tr-ops button { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; height: 32px; min-width: 28px; cursor: pointer; font-size: 12px; }
+        .tr-hint { font-size: 11px; color: var(--text-secondary); margin: 2px 0 6px; }
+        #tr-preview-wrap { margin-top: 14px; border-top: 2px solid var(--border-color); padding-top: 10px; }
+        #tr-preview { overflow-x: auto; }
+        #tr-rows { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        @media (max-width: 800px) { .tt-grid { grid-template-columns: 1fr 1fr; } .tt-chars { grid-template-columns: 1fr 1fr; } .tr-row { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+    <main class="main-content">
+        <div class="container" id="content-container">
+            <div id="main-header-banner" class="header-banner" style="display: block;">
+                
+                <img id="header-banner-img" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/11.png" alt="대문 이미지">
+            </div>
+        <section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=690" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/1.5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%BC%EC%98%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A6%AC%EC%82%AC6.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A0%88%EC%8B%9C%EC%95%845.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%99%80%EC%B9%B4%EB%82%985.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8B%9C%EB%82%98%EC%B8%A05.png"></td>
+        </tr>
+        <tr>
+            <td>46300</td>
+            <td>피오</td><td>아리사</td><td>수레시아</td><td>와카나</td><td>시나츠</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>6</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>6SP</td><td>6</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:30 OXOOX 오토 OFF</td>
+            <td>OXOOX</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:16 수레시아 → 아리사 시나츠 SET</td>
+            <td>O<span class="change-x">O</span>OO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:14 피오 → 피오 OFF</td>
+            <td><span class="change-x">X</span>OOOO</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:07 와카나 → 피오 SET 오토 ON</td>
+            <td><span class="change-x">O</span>OOOO</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:54 수레시아 → 피오 수레시아 OFF</td>
+            <td><span class="change-x">X</span>O<span class="change-x">X</span>OO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:48 피오 → 피오 SET</td>
+            <td><span class="change-x">O</span>OXOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:34 수레시아 → 수레시아 SET 시나츠 OFF 오토 OFF</td>
+            <td>OO<span class="change-x">O</span>O<span class="change-x">X</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:30 피오 → 시나츠 SET</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:13 피오 → 피오 시나츠 OFF</td>
+            <td><span class="change-x">X</span>OOO<span class="change-x">X</span></td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:01 수레시아 → 피오 시나츠 SET</td>
+            <td><span class="change-x">O</span>OOO<span class="change-x">O</span></td>
+            <td class="">OFF</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=690" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/1.5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%BC%EC%98%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%A6%AC%EC%82%AC6.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A0%88%EC%8B%9C%EC%95%845.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%99%80%EC%B9%B4%EB%82%985.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%BD%A7%EC%BD%94%EB%A1%9C6.png"></td>
+        </tr>
+        <tr>
+            <td>46200</td>
+            <td>피오</td><td>아리사</td><td>수레시아</td><td>와카나</td><td>콧코로</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>6</td><td>5</td><td>5</td><td>6</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>6SP</td><td>6</td><td>15</td><td>6SP</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:30 XXOXO 오토 ON</td>
+            <td>XXOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:15 와카나 → 아리사 와카나 SET 수레시아 콧코로 OFF 오토 OFF</td>
+            <td>X<span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span><span class="change-x">X</span></td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:08 와카나 → 피오 SET 와카나 OFF 오토 ON</td>
+            <td><span class="change-x">O</span>OX<span class="change-x">X</span>X</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:02 아리사 → 수레시아 SET 피오 아리사 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">X</span><span class="change-x">O</span>XX</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:54 아리사 → 피오 아리사 SET 오토 OFF</td>
+            <td><span class="change-x">O</span><span class="change-x">O</span>OXX</td>
+            <td class="bg-auto-off">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:51 아리사 → 아리사 OFF 오토 ON</td>
+            <td>O<span class="change-x">X</span>OXX</td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:48 아리사 → 아리사 와카나 SET</td>
+            <td>O<span class="change-x">O</span>O<span class="change-x">O</span>X</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:41 콧코로 → 콧코로 SET</td>
+            <td>OOOO<span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:27 와카나 → 아리사 와카나 OFF</td>
+            <td>O<span class="change-x">X</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:20 수레시아 → 아리사 SET 수레시아 콧코로 OFF</td>
+            <td>O<span class="change-x">O</span><span class="change-x">X</span>X<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:16 아리사 → 아리사 OFF</td>
+            <td>O<span class="change-x">X</span>XXX</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:10 와카나 → 아리사 와카나 SET</td>
+            <td>O<span class="change-x">O</span>X<span class="change-x">O</span>X</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=855" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/1.5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EC%B9%98%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8B%B0%EC%95%845.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%A1%B0%EB%AF%B85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A3%A8%EB%A3%A8%EC%9D%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%97%90%EB%A3%A85.png"></td>
+        </tr>
+        <tr>
+            <td>46100</td>
+            <td>성치카</td><td>티아</td><td>수조미</td><td>루루이</td><td>윈에루</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6SP</td><td>15</td><td>15</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 티아 OFF 오토 ON</td>
+                        <td>OXOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:20 윈에루 → 성치카 윈에루 OFF</td>
+                        <td><span class="change-x">X</span>XOO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:07 성치카 → 윈에루 SET</td>
+                        <td>XXOO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:59 수조미 → 수조미 윈에루 OFF</td>
+                        <td>XX<span class="change-x">X</span>O<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:54 윈에루 → 윈에루 SET</td>
+                        <td>XXXO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:50 윈에루 → 수조미 SET</td>
+                        <td>XX<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:47 수조미 → 수조미 OFF</td>
+                        <td>XX<span class="change-x">X</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:38 윈에루 → 수조미 SET</td>
+                        <td>XX<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:25 수조미 → 수조미 OFF</td>
+                        <td>XX<span class="change-x">X</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:20 윈에루 → 수조미 SET 루루이 OFF</td>
+                        <td>XX<span class="change-x">O</span><span class="change-x">X</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">수조미 → 수조미 OFF</td>
+                        <td>XX<span class="change-x">X</span>XO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:10 루루이 → 루루이 SET</td>
+                        <td>XXX<span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:08 루루이 → 수조미 SET</td>
+                        <td>XX<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=987" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/1.5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%B9%98%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A6%AC%EB%A6%AC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%A6%AC%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%97%90%EB%A3%A85.png"></td>
+        </tr>
+        <tr>
+            <td>43300</td>
+            <td>수치카</td><td>바레이스</td><td>수리리</td><td>성리스</td><td>윈에루</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>15</td><td>3</td><td>3</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:30 OOOOX 오토 OFF</td>
+            <td>OOOOX</td>
+            <td class="">OFF</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">1:13 바레이스 → 윈에루 SET 성리스 OFF 오토 ON</td>
+            <td>OOO<span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="bg-auto-on">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:56 윈에루 → 윈에루 OFF</td>
+            <td>OOOX<span class="change-x">X</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:35 수치카 → 성리스 SET 수치카 OFF</td>
+            <td><span class="change-x">X</span>OO<span class="change-x">O</span>X</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:25 윈에루 → 윈에루 SET 수리리 성리스 OFF</td>
+            <td>XO<span class="change-x">X</span><span class="change-x">X</span><span class="change-x">O</span></td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">바레이스 → 수리리 SET</td>
+            <td>XO<span class="change-x">O</span>XO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">수치카 → 수치카 SET</td>
+            <td><span class="change-x">O</span>OOXO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:16 성리스 → 성리스 SET</td>
+            <td>OOO<span class="change-x">O</span>O</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:11 바레이스 → 바레이스 OFF</td>
+            <td>O<span class="change-x">X</span>OOO</td>
+            <td class="">ON</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">0:04 수치카 → 바레이스 SET 수치카 성리스 OFF</td>
+            <td><span class="change-x">X</span><span class="change-x">O</span>O<span class="change-x">X</span>O</td>
+            <td class="">ON</td>
+        </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1150" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/1.5.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%B9%98%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A6%AC%EB%A6%AC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%85%B0%ED%94%BC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%85%B0%ED%94%BC6.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%A6%AC%EC%8A%A45.png"></td>
+        </tr>
+        <tr>
+            <td>38900</td>
+            <td>수치카</td><td>수리리</td><td>프셰피</td><td>셰피</td><td>성리스</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>3</td><td>3</td><td>9</td><td>3</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 OXXXO 오토 ON</td>
+                        <td>OXXXO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:06 성리스 → 셰피 SET 성리스 OFF</td>
+                        <td>OXX<span class="change-x">O</span><span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">수치카 → 수리리 SET</td>
+                        <td>O<span class="change-x">O</span>XOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:55 수리리 → 수리리 셰피 OFF</td>
+                        <td>O<span class="change-x">X</span>X<span class="change-x">X</span>X</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">수치카 → 셰피 SET</td>
+                        <td>OXX<span class="change-x">O</span>X</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:52 프셰피 → 프셰피 SET</td>
+                        <td>OX<span class="change-x">O</span>OX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:33 성리스 → 성리스 SET 셰피 OFF</td>
+                        <td>OXO<span class="change-x">X</span><span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:23 성리스 → 셰피 SET 성리스 OFF</td>
+                        <td>OXO<span class="change-x">O</span><span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:11 수치카 → 수리리 성리스 SET 프셰피 OFF</td>
+                        <td>O<span class="change-x">O</span><span class="change-x">X</span>O<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:05 프셰피 → 프셰피 SET</td>
+                        <td>OO<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">셰피 CR 낮으면 후반에 사망</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1280" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/2.8.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8C%A8%EB%8F%995.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B0%EC%82%AC%EB%A0%8C5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%9A%94%EB%A6%AC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%B8%A0%ED%82%A45.png"></td>
+        </tr>
+        <tr>
+            <td>45200</td>
+            <td>패동</td><td>거사렌</td><td>사요리</td><td>그레이스</td><td>사츠키</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>3</td><td>3</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XXOOO 오토 ON</td>
+                        <td>XXOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:00 사츠키 → 거사렌 SET 사츠키 OFF</td>
+                        <td>X<span class="change-x">O</span>OO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:49 그레이스</td>
+                        <td>XOOOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">사츠키 → 그레이스 OFF</td>
+                        <td>XOO<span class="change-x">X</span>X</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:46 사요리 → 사요리 OFF</td>
+                        <td>XO<span class="change-x">X</span>XX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:34 그레이스 → 패동 그레이스 SET 거사렌 OFF</td>
+                        <td><span class="change-x">O</span><span class="change-x">X</span>X<span class="change-x">O</span>X</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:33 사요리 → 오토 OFF</td>
+                        <td>OXXOX</td>
+                        <td class="bg-auto-off">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:29 패동 → 거사렌 SET 패동 OFF</td>
+                        <td><span class="change-x">X</span><span class="change-x">O</span>XOX</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">거사렌 → 사요리 SET 오토 ON</td>
+                        <td>XO<span class="change-x">O</span>OX</td>
+                        <td class="bg-auto-on">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:19 거사렌 → 사츠키 SET 거사렌 사요리 OFF</td>
+                        <td>X<span class="change-x">X</span><span class="change-x">X</span>O<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:12 거사렌 → 거사렌 사요리 SET</td>
+                        <td>X<span class="change-x">O</span><span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:07 패동 → 사요리 사츠키 OFF 오토 OFF</td>
+                        <td>XO<span class="change-x">X</span>O<span class="change-x">X</span></td>
+                        <td class="bg-auto-off">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:03 거사렌 → 사요리 사츠키 SET</td>
+                        <td>XO<span class="change-x">O</span>O<span class="change-x">O</span></td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">사츠키 CR 15 필수. 사츠키 전장1 만랩 필요할지도</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1422" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/2.8.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B3%A0%EC%BF%84%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%84%A4%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%83%90%EB%A3%A85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%A4%ED%94%BC6.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>44100</td>
+            <td>고쿄카</td><td>알네카</td><td>냐루</td><td>밤피</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>3</td><td>3</td><td>3</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XOOOX 오토 ON</td>
+                        <td>XOOOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:09 바이올렛 → 고쿄카 SET</td>
+                        <td><span class="change-x">O</span>OOOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:42 밤피 → 바이올렛 SET</td>
+                        <td>OOOO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">바이올렛 → 바이올렛 OFF</td>
+                        <td>OOOO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:22 알네카 → 알네카 OFF</td>
+                        <td>O<span class="change-x">X</span>OOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">TP 8.4 이상이라면 알네카 첫 UB가 어긋남</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1527" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/3.15.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EA%B8%80%EB%9D%BC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%89%B4%EC%82%AC%EB%A0%8C5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%93%9C%EB%A7%88%ED%98%B85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8B%9C%EC%8A%A4%EB%AF%B85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%80%EB%84%A4%ED%94%BC5.png"></td>
+        </tr>
+        <tr>
+            <td>48800</td>
+            <td>아글라</td><td>뉴사렌</td><td>드마호</td><td>시스미</td><td>귀네피</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>6</td><td>6</td><td>6</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XOOXO 오토 ON</td>
+                        <td>XOOXO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:11 뉴사렌 → 아글라 SET</td>
+                        <td><span class="change-x">O</span>OOXO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:59 뉴사렌 → 시스미 SET 뉴사렌 OFF</td>
+                        <td>O<span class="change-x">X</span>O<span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:53 시스미 → 뉴사렌 SET</td>
+                        <td>O<span class="change-x">O</span>OOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:48 드마호 → 드마호 귀네피 OFF</td>
+                        <td>OO<span class="change-x">X</span>O<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:32 시스미 → 드마호 SET</td>
+                        <td>OO<span class="change-x">O</span>OX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">드마호 → 드마호 OFF</td>
+                        <td>OO<span class="change-x">X</span>OX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:17 시스미 → 드마호 귀네피 SET 시스미 OFF</td>
+                        <td>OO<span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:12 아글라 → 시스미 SET</td>
+                        <td>OOO<span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1652" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/3.15.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%9E%80%ED%8C%8C5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%82%A4%EB%93%9C%EB%82%985.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%84%A4%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%BA%AC%EB%A3%A85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>36200</td>
+            <td>란파</td><td>수키드나</td><td>알네카</td><td>프캬루</td><td>바이올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6</td><td>3</td><td>15</td><td>6</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 OOOOO 오토 OFF</td>
+                        <td>OOOOO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:15 알네카 → 알네카 프캬루 OFF</td>
+                        <td>OO<span class="change-x">X</span><span class="change-x">X</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:10 와이번 → 프캬루 SET</td>
+                        <td>OOX<span class="change-x">O</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:03 보스 → 알네카 SET 란파 OFF</td>
+                        <td><span class="change-x">X</span>O<span class="change-x">O</span>OO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:40 와이번 → 란파 SET</td>
+                        <td><span class="change-x">O</span>OOOO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:21 프캬루 → 프캬루 OFF</td>
+                        <td>OOO<span class="change-x">X</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:12 와이번 → 프캬루 SET</td>
+                        <td>OOO<span class="change-x">O</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1746" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/4.20.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%ED%98%B86.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A0%88%EC%A7%93%ED%83%805.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B8%80%EB%A0%88%EC%96%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B0%EB%A9%94%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B8%EB%AF%B8%ED%98%B85.png"></td>
+        </tr>
+        <tr>
+            <td>44300</td>
+            <td>마호</td><td>수레짓타</td><td>글레어</td><td>거메스</td><td>걸미호</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>6</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6SP</td><td>3</td><td>6SP</td><td>6</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XOOOX 오토 ON</td>
+                        <td>XOOOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:12 수레짓타 → 걸미호 SET</td>
+                        <td>XOOO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:10 거메스 → 거메스 OFF</td>
+                        <td>XOO<span class="change-x">X</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:01 수레짓타 → 거메스 SET</td>
+                        <td>XOO<span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:52 글레어 → 글레어 OFF</td>
+                        <td>XO<span class="change-x">X</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:44 수레짓타 → 글레어 SET 수레짓타 OFF</td>
+                        <td>X<span class="change-x">X</span><span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:33 마호 → 수레짓타 SET</td>
+                        <td>X<span class="change-x">O</span>OOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:29 글레어 → 수레짓타 글레어 OFF</td>
+                        <td>X<span class="change-x">X</span><span class="change-x">X</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:24 거메스 → 수레짓타 SET</td>
+                        <td>X<span class="change-x">O</span>XOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:23 글레어 → 마호 글레어 SET</td>
+                        <td><span class="change-x">O</span>O<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:14 수레짓타 → 수레짓타 OFF</td>
+                        <td>O<span class="change-x">X</span>OOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">거메스 마공 가장 높게. 처음 마호마호힐의 TP가 거메스에 들어가면 OK</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=1901" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/4.20.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%ED%98%B86.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%EB%A6%AC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B8%80%EB%A0%88%EC%96%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B0%EB%A9%94%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B8%EB%AF%B8%ED%98%B85.png"></td>
+        </tr>
+        <tr>
+            <td>37100</td>
+            <td>마호</td><td>마리</td><td>글레어</td><td>거메스</td><td>걸미호</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>6</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6SP</td><td>3</td><td>6SP</td><td>6</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XXXXO 오토 ON</td>
+                        <td>XXXXO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:12 글레어 → 마호 글레어 거메스 SET</td>
+                        <td><span class="change-x">O</span>X<span class="change-x">O</span><span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:05 거메스 → 거메스 OFF</td>
+                        <td>OXO<span class="change-x">X</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:49 마리 → 마리 거메스 SET 글레어 OFF</td>
+                        <td>O<span class="change-x">O</span><span class="change-x">X</span><span class="change-x">O</span>O</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:42 걸미호 → 글레어 SET 걸미호 OFF</td>
+                        <td>OO<span class="change-x">O</span>O<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:27 글레어 → 마리 글레어 OFF</td>
+                        <td>O<span class="change-x">X</span><span class="change-x">X</span>OX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:13 글레어 → 마리 글레어 걸미호 SET</td>
+                        <td>O<span class="change-x">O</span><span class="change-x">O</span>O<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">거메스 마공 가장 높게. 처음 마호마호힐의 TP가 거메스에 들어가면 OK</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=2052" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/4.20.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A7%88%ED%98%B86.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EB%9D%BC%ED%81%AC%EB%84%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B1%B8%EB%AF%B8%ED%98%B85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%9B%84%EB%B6%80%ED%82%A45.png"></td>
+        </tr>
+        <tr>
+            <td>34600</td>
+            <td>마호</td><td>아라크네</td><td>네피</td><td>걸미호</td><td>후부키</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>6</td><td>5</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6SP</td><td>15</td><td>15</td><td>6</td><td>6</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 OOOXO 오토 OFF</td>
+                        <td>OOOXO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:02 보스 → 걸미호 SET</td>
+                        <td>OOO<span class="change-x">O</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:45 걸미호 → 걸미호 OFF</td>
+                        <td>OOO<span class="change-x">X</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:31 보스 → 걸미호 SET</td>
+                        <td>OOO<span class="change-x">O</span>O</td>
+                        <td class="">OFF</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><div class="boss-divider"></div><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=2196" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/5.11.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A6%AC%EC%9E%905.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%A0%88%EC%8B%9C%EC%95%845.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%99%80%EC%B9%B4%EB%82%985.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%BD%A7%EC%BD%94%EB%A1%9C6.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%8B%9C%EB%82%98%EC%B8%A05.png"></td>
+        </tr>
+        <tr>
+            <td>48500</td>
+            <td>리자</td><td>수레시아</td><td>와카나</td><td>콧코로</td><td>시나츠</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>6</td><td>15</td><td>6SP</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XXOOO 오토 ON</td>
+                        <td>XXOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:11 수레시아 → 리자 SET</td>
+                        <td><span class="change-x">O</span>XOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">리자 → 리자 OFF</td>
+                        <td><span class="change-x">X</span>XOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:00 시나츠 → 리자 SET</td>
+                        <td><span class="change-x">O</span>XOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:51 리자 → 수레시아 SET 리자 OFF</td>
+                        <td><span class="change-x">X</span><span class="change-x">O</span>OOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:41 와카나 → 리자 SET</td>
+                        <td><span class="change-x">O</span>OOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:36 시나츠 → 리자 시나츠 OFF</td>
+                        <td><span class="change-x">X</span>OOO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:30 와카나 → 시나츠 SET</td>
+                        <td>XOOO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">시나츠 → 시나츠 OFF</td>
+                        <td>XOOO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:20 콧코로 → 리자 SET</td>
+                        <td><span class="change-x">O</span>OOOX</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">리자 → 시나츠 SET</td>
+                        <td>OOOO<span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">적에게 저주가 들어가는지에 따라 리자의 스킬 효과가 바뀌기 때문에 전체적으로 운과 스펙이 필요(CR,마피)</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=2296" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/5.11.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EC%A1%B0%EB%AF%B85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%EC%95%846.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EB%A6%AC%EC%8A%A45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9C%88%EC%97%90%EB%A3%A85.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>46500</td>
+            <td>수조미</td><td>네아</td><td>성리스</td><td>윈에루</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>6</td><td>5</td><td>5</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>15</td><td>6</td><td>3</td><td>15</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 OOXXO 오토 OFF</td>
+                        <td>OOXXO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">1:12 수조미 → 윈에루 SET 오토 ON</td>
+                        <td>OOX<span class="change-x">O</span>O</td>
+                        <td class="bg-auto-on">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:22 윈에루 → 성리스 SET</td>
+                        <td>OO<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:18 성리스 → 수조미 성리스 OFF</td>
+                        <td><span class="change-x">X</span>O<span class="change-x">X</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:10 이사올렛 두번째 → 수조미 SET</td>
+                        <td><span class="change-x">O</span>OXOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">수조미 → 성리스 SET</td>
+                        <td>OO<span class="change-x">O</span>OO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:07 성리스 → 성리스 OFF 오토 OFF</td>
+                        <td>OO<span class="change-x">X</span>OO</td>
+                        <td class="bg-auto-off">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:02 이사올렛 → 성리스 SET</td>
+                        <td>OO<span class="change-x">O</span>OO</td>
+                        <td class="">OFF</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left empty-row-td"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-left">윈에루 CR 낮으면 터짐</td>
+                    </tr>
+    </tbody>
+</table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link"><a href="https://youtu.be/NWJLKx2WWU4?t=2426" target="_blank">【プリコネR】10月クラバト 4段階目 簡単セミオート編成とフルオート編成紹介 2026年10月【グレーターゴーレム】【ターボファング】【マダムプリズム】【アークデアム】【レサトパルト】</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/PurikoneKrSheet/main/images/Boss/5.11.png"></td>
+            <td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%84%B1%EC%B9%98%EC%B9%B45.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%8B%B0%EC%95%845.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%85%B0%ED%94%BC5.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%EC%95%846.png"></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%9D%B4%EC%82%AC%EC%98%AC%EB%A0%9B5.png"></td>
+        </tr>
+        <tr>
+            <td>43300</td>
+            <td>성치카</td><td>티아</td><td>프셰피</td><td>네아</td><td>이사올렛</td>
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            <td>5</td><td>5</td><td>5</td><td>6</td><td>5</td>
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            <td>42</td><td>42</td><td>42</td><td>42</td><td>42</td>
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            <td>6SP</td><td>15</td><td>3</td><td>6</td><td>15</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">TP 8.3</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>
+        
+                    <tr>
+                        <td colspan="4" class="text-left">1:30 XXOOO 오토 ON</td>
+                        <td>XXOOO</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:34 이사올렛 → 성치카 티아 SET 이사올렛 OFF</td>
+                        <td><span class="change-x">O</span><span class="change-x">O</span>OO<span class="change-x">X</span></td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:23 티아 → 티아 네아 OFF</td>
+                        <td>O<span class="change-x">X</span>O<span class="change-x">X</span>X</td>
+                        <td class="">ON</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-left">0:15 성치카 → 티아 네아 이사올렛 SET 성치카 OFF</td>
+                        <td><span class="change-x">X</span><span class="change-x">O</span>O<span class="change-x">O</span><span class="change-x">O</span></td>
+                        <td class="">ON</td>
+                    </tr>
+    </tbody>
+</table></div></div></section></div>
+    </main>
+
+    
+    
+
+    
+
+    
+
+    
+
+    <script>
+        const STORAGE_KEY = 'auto_save_page_data';
+        const GITHUB_BOSS_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Boss/";
+        const GITHUB_HEADER_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/Header/";
+
+        const bossList = [
+            "1.1", "1.2", "1.3", "1.4", "1.5", "1.6",
+            "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+            "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20",
+            "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "4.10", "4.11", "4.12", "4.13", "4.14", "4.15", "4.16", "4.17", "4.18", "4.19",
+            "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10", "5.11", "5.12"
+        ];
+
+        const headerList = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+        ];
+
+        let recentBosses = [];
+        let targetBossTd = null;
+
+        function saveToLocalStorage() {
+            const container = document.getElementById('content-container');
+            if (container) {
+                localStorage.setItem(STORAGE_KEY, container.innerHTML);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                loadPageFromFile(savedData);
+                return true;
+            }
+            return false;
+        }
+
+        function clearLocalStorage() {
+            if (confirm('자동 저장된 데이터를 삭제하고 초기화하시겠습니까?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // PointerEvent 기반 드래그 앤 드롭
+        let activeDragElement = null;
+        let autoScrollInterval = null;
+        let currentClientY = 0;
+
+        function bindDraggable(element, handle) {
+            handle.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+
+                activeDragElement = element;
+                element.classList.add('dragging');
+                handle.setPointerCapture(e.pointerId);
+
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp, { once: true });
+                window.addEventListener('pointercancel', onPointerUp, { once: true });
+
+                startAutoScrollLoop();
+            });
+        }
+
+        function onPointerMove(e) {
+            if (!activeDragElement) return;
+            currentClientY = e.clientY;
+
+            const container = document.getElementById('content-container');
+            const siblings = [...container.querySelectorAll('.card:not(.dragging), .boss-divider:not(.dragging)')];
+            
+            const nextSibling = siblings.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = e.clientY - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+
+            if (nextSibling) {
+                container.insertBefore(activeDragElement, nextSibling);
+            } else {
+                container.appendChild(activeDragElement);
+            }
+        }
+
+        function onPointerUp(e) {
+            if (!activeDragElement) return;
+
+            activeDragElement.classList.remove('dragging');
+            activeDragElement = null;
+
+            window.removeEventListener('pointermove', onPointerMove);
+            stopAutoScrollLoop();
+            saveToLocalStorage();
+        }
+
+        function startAutoScrollLoop() {
+            if (autoScrollInterval) return;
+
+            autoScrollInterval = setInterval(() => {
+                if (!activeDragElement) return;
+
+                const threshold = 120;
+                const scrollSpeed = 15;
+
+                if (currentClientY > 0 && currentClientY < threshold) {
+                    window.scrollBy(0, -scrollSpeed);
+                } else if (currentClientY > 0 && (window.innerHeight - currentClientY) < threshold) {
+                    window.scrollBy(0, scrollSpeed);
+                }
+            }, 16);
+        }
+
+        function stopAutoScrollLoop() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initModals();
+            
+            const loaded = loadFromLocalStorage();
+            if (!loaded) {
+                const tables = document.querySelectorAll('.output-table');
+                tables.forEach(table => attachBossClickToTable(table));
+            }
+
+            const targetContainer = document.getElementById('content-container');
+            const observer = new MutationObserver(() => {
+                saveToLocalStorage();
+            });
+            observer.observe(targetContainer, { childList: true, subtree: true, characterData: true });
+        });
+
+        function initModals() {
+            const bossContainer = document.getElementById('boss-grid-container');
+            bossContainer.innerHTML = '';
+            bossList.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                bossContainer.appendChild(item);
+            });
+
+            const headerContainer = document.getElementById('header-grid-container');
+            headerContainer.innerHTML = '';
+            headerList.forEach(header => {
+                const item = document.createElement('div');
+                item.className = 'header-item';
+                item.onclick = () => selectHeaderImage(header);
+                item.innerHTML = `<img src="${GITHUB_HEADER_IMAGE_BASE}${header}.png" alt="대문 ${header}">`;
+                headerContainer.appendChild(item);
+            });
+
+            renderRecentBosses();
+        }
+
+        function renderRecentBosses() {
+            const wrapper = document.getElementById('recent-boss-wrapper');
+            const recentContainer = document.getElementById('recent-boss-grid');
+            recentContainer.innerHTML = '';
+
+            if (recentBosses.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+
+            wrapper.style.display = 'block';
+            recentBosses.forEach(boss => {
+                const item = document.createElement('div');
+                item.className = 'boss-item recent-item';
+                item.onclick = () => selectBoss(boss);
+                item.innerHTML = `<img src="${GITHUB_BOSS_IMAGE_BASE}${boss}.png" alt="${boss}">`;
+                recentContainer.appendChild(item);
+            });
+        }
+
+        function openBossModal(element) {
+            targetBossTd = element;
+            renderRecentBosses();
+            document.getElementById('boss-modal').style.display = 'flex';
+        }
+
+        function closeBossModal() {
+            document.getElementById('boss-modal').style.display = 'none';
+            targetBossTd = null;
+        }
+
+        function selectBoss(bossName) {
+            if (targetBossTd) {
+                const imgUrl = `${GITHUB_BOSS_IMAGE_BASE}${encodeURIComponent(bossName)}.png`;
+                targetBossTd.innerHTML = `<img src="${imgUrl}" alt="${bossName}">`;
+                targetBossTd.classList.remove('boss-clickable');
+            }
+
+            recentBosses = recentBosses.filter(b => b !== bossName);
+            recentBosses.unshift(bossName);
+            if (recentBosses.length > 10) {
+                recentBosses.pop();
+            }
+
+            closeBossModal();
+            saveToLocalStorage();
+        }
+
+        function openHeaderModal() {
+            document.getElementById('header-modal').style.display = 'flex';
+        }
+
+        function closeHeaderModal() {
+            document.getElementById('header-modal').style.display = 'none';
+        }
+
+        function selectHeaderImage(headerName) {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            
+            bannerImg.src = `${GITHUB_HEADER_IMAGE_BASE}${headerName}.png`;
+            bannerWrapper.style.display = 'block';
+
+            closeHeaderModal();
+            saveToLocalStorage();
+        }
+
+        function removeHeaderBanner() {
+            const bannerWrapper = document.getElementById('main-header-banner');
+            const bannerImg = document.getElementById('header-banner-img');
+            bannerImg.src = '';
+            bannerWrapper.style.display = 'none';
+            saveToLocalStorage();
+        }
+
+        function attachBossClickToTable(table) {
+            const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+            if (firstImgTd) {
+                firstImgTd.classList.add('boss-clickable');
+                if (!firstImgTd.querySelector('img')) {
+                    firstImgTd.innerHTML = `<div class="boss-placeholder">👾 보스 선택<br>(클릭)</div>`;
+                }
+                firstImgTd.onclick = function() {
+                    openBossModal(this);
+                };
+            }
+        }
+
+        function toggleAdminPanel() {
+            document.getElementById('admin-panel-root').classList.toggle('open');
+        }
+
+        function findInsertionTarget() {
+            const containers = document.querySelectorAll('.card-body .table-responsive');
+            for (const c of containers) {
+                if (!c.querySelector('table')) return c;
+            }
+            return null;
+        }
+
+        function createNewCardSection() {
+            const section = document.createElement('section');
+            section.className = 'card';
+            
+            const tools = document.createElement('div');
+            tools.className = 'card-tools';
+
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'card-btn drag-handle';
+            dragHandle.textContent = '≡ 이동';
+
+            const spaceBtn = document.createElement('button');
+            spaceBtn.className = 'card-btn add-space-btn';
+            spaceBtn.textContent = '+ 구분선';
+            spaceBtn.onclick = function() {
+                addBossSpaceAfter(section);
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'card-btn delete-btn';
+            delBtn.textContent = '✕ 삭제';
+            delBtn.onclick = function() { 
+                section.remove(); 
+                saveToLocalStorage();
+            };
+
+            tools.appendChild(dragHandle);
+            tools.appendChild(spaceBtn);
+            tools.appendChild(delBtn);
+            addEditButton(tools, section);
+            section.appendChild(tools);
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+            const responsive = document.createElement('div');
+            responsive.className = 'table-responsive';
+            body.appendChild(responsive);
+            section.appendChild(body);
+            
+            bindDraggable(section, dragHandle);
+
+            document.getElementById('content-container').appendChild(section);
+            return responsive;
+        }
+
+        function addBossSpaceAfter(targetCard) {
+            const divider = document.createElement('div');
+            divider.className = 'boss-divider';
+
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'card-btn drag-handle';
+            dragHandle.style.position = 'absolute';
+            dragHandle.style.left = '10px';
+            dragHandle.textContent = '≡ 이동';
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'divider-delete-btn';
+            delBtn.textContent = '구분선 삭제 ✕';
+            delBtn.onclick = function() { 
+                divider.remove(); 
+                saveToLocalStorage();
+            };
+
+            divider.appendChild(dragHandle);
+            divider.appendChild(delBtn);
+
+            bindDraggable(divider, dragHandle);
+
+            targetCard.after(divider);
+            saveToLocalStorage();
+        }
+
+        function addGuideTable() {
+            const textarea = document.getElementById('admin-paste-area');
+            const statusEl = document.getElementById('admin-status');
+            const raw = textarea.value.trim();
+
+            statusEl.className = 'admin-status';
+            statusEl.textContent = '';
+
+            if (!raw) {
+                statusEl.textContent = '붙여넣을 테이블 HTML을 입력해주세요.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            const parser = new DOMParser();
+            const parsedDoc = parser.parseFromString(raw, 'text/html');
+            const tables = parsedDoc.querySelectorAll('table.output-table');
+
+            if (tables.length === 0) {
+                statusEl.textContent = '유효한 테이블(class="output-table")을 찾지 못했습니다.';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+
+            let addedCount = 0;
+            tables.forEach(table => {
+                const importedTable = document.importNode(table, true);
+                let target = findInsertionTarget();
+                if (!target) {
+                    target = createNewCardSection();
+                }
+                target.appendChild(importedTable);
+                attachBossClickToTable(importedTable);
+                addedCount++;
+            });
+
+            textarea.value = '';
+            statusEl.textContent = `테이블 ${addedCount}개를 추가했습니다.`;
+            statusEl.className = 'admin-status success';
+            saveToLocalStorage();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                loadPageFromFile(e.target.result);
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function loadPageFromFile(htmlContent) {
+            const statusEl = document.getElementById('admin-status');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            const newContent = doc.querySelector('#content-container') || doc.body;
+            if (!newContent) return;
+
+            const fileHeaderBanner = newContent.querySelector('#main-header-banner img');
+            const currentBanner = document.getElementById('main-header-banner');
+            const currentBannerImg = document.getElementById('header-banner-img');
+
+            if (fileHeaderBanner && fileHeaderBanner.getAttribute('src')) {
+                currentBannerImg.src = fileHeaderBanner.getAttribute('src');
+                currentBanner.style.display = 'block';
+            } else {
+                currentBannerImg.src = '';
+                currentBanner.style.display = 'none';
+            }
+
+            const currentContainer = document.getElementById('content-container');
+            currentContainer.querySelectorAll('.card, .boss-divider').forEach(el => el.remove());
+
+            const loadedNodes = newContent.children;
+            let loadedCardsCount = 0;
+
+            Array.from(loadedNodes).forEach(node => {
+                if (node.id === 'main-header-banner') return;
+
+                const importedNode = document.importNode(node, true);
+
+                if (importedNode.classList.contains('card')) {
+                    loadedCardsCount++;
+                    
+                    let tools = importedNode.querySelector('.card-tools');
+                    if (!tools) {
+                        tools = document.createElement('div');
+                        tools.className = 'card-tools';
+                        importedNode.insertBefore(tools, importedNode.firstChild);
+                    }
+                    tools.innerHTML = '';
+
+                    const dragHandle = document.createElement('span');
+                    dragHandle.className = 'card-btn drag-handle';
+                    dragHandle.textContent = '≡ 이동';
+
+                    const spaceBtn = document.createElement('button');
+                    spaceBtn.className = 'card-btn add-space-btn';
+                    spaceBtn.textContent = '+ 구분선';
+                    spaceBtn.onclick = function() { addBossSpaceAfter(importedNode); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'card-btn delete-btn';
+                    delBtn.textContent = '✕ 삭제';
+                    delBtn.onclick = function() { 
+                        importedNode.remove(); 
+                        saveToLocalStorage();
+                    };
+
+                    tools.appendChild(dragHandle);
+                    tools.appendChild(spaceBtn);
+                    tools.appendChild(delBtn);
+                    addEditButton(tools, importedNode);
+
+                    bindDraggable(importedNode, dragHandle);
+
+                    const table = importedNode.querySelector('.output-table');
+                    if (table) attachBossClickToTable(table);
+                }
+
+                if (importedNode.classList.contains('boss-divider')) {
+                    importedNode.innerHTML = '';
+
+                    const dragHandle = document.createElement('span');
+                    dragHandle.className = 'card-btn drag-handle';
+                    dragHandle.style.position = 'absolute';
+                    dragHandle.style.left = '10px';
+                    dragHandle.textContent = '≡ 이동';
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'divider-delete-btn';
+                    delBtn.textContent = '구분선 삭제 ✕';
+                    delBtn.onclick = function() { 
+                        importedNode.remove(); 
+                        saveToLocalStorage();
+                    };
+
+                    importedNode.appendChild(dragHandle);
+                    importedNode.appendChild(delBtn);
+
+                    bindDraggable(importedNode, dragHandle);
+                }
+
+                currentContainer.appendChild(importedNode);
+            });
+
+            if (statusEl) {
+                statusEl.textContent = `데이터를 로드했습니다. (${loadedCardsCount}개 카드 복원)`;
+                statusEl.className = 'admin-status success';
+            }
+            saveToLocalStorage();
+        }
+
+        function downloadPage() {
+            const rawHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const parser = new DOMParser();
+            const cloneDoc = parser.parseFromString(rawHtml, 'text/html');
+
+            const panel = cloneDoc.querySelector('#admin-panel-root');
+            if (panel) panel.remove();
+            const toggleBtn = cloneDoc.querySelector('#admin-toggle-btn');
+            if (toggleBtn) toggleBtn.remove();
+            const bossModal = cloneDoc.querySelector('#boss-modal');
+            if (bossModal) bossModal.remove();
+            const headerModal = cloneDoc.querySelector('#header-modal');
+            if (headerModal) headerModal.remove();
+            const tacticModalEl = cloneDoc.querySelector('#tactic-modal');
+            if (tacticModalEl) tacticModalEl.remove();
+
+            cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn, .drag-handle').forEach(btn => btn.remove());
+
+            cloneDoc.querySelectorAll('.card, .boss-divider').forEach(el => {
+                el.removeAttribute('draggable');
+            });
+
+            cloneDoc.querySelectorAll('.output-table').forEach(table => {
+                const firstImgTd = table.querySelector('tbody tr:first-child td.img-td:first-child');
+                if (firstImgTd) {
+                    firstImgTd.classList.remove('boss-clickable');
+                    firstImgTd.removeAttribute('onclick');
+
+                    if (!firstImgTd.querySelector('img')) {
+                        firstImgTd.innerHTML = '';
+                    }
+                }
+            });
+
+            const htmlString = '<!DOCTYPE html>\n' + cloneDoc.documentElement.outerHTML;
+            const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'webP.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // =====================================================
+        // 택틱 편집기 (세미오토 표를 폼으로 직접 만들고 수정)
+        // =====================================================
+        const GITHUB_CHAR_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
+        let T = null;
+        let tacticCard = null;
+
+        function tEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function formatTimeInput(raw) {
+            const t = String(raw || '').trim();
+            if (!t) return '';
+            if (t.includes(':')) return t;
+            if (/^\d+$/.test(t)) {
+                if (t.length === 1) return `0:0${t}`;
+                if (t.length === 2) return `0:${t}`;
+                if (t.length === 3) return `${t[0]}:${t.slice(1)}`;
+                if (t.length === 4) return `${t.slice(0, 2)}:${t.slice(2)}`;
+            }
+            return t;
+        }
+        function emptyTactic() {
+            return { title: '', url: '', boss: '', dmg: '', tp: '',
+                chars: [0, 1, 2, 3, 4].map(() => ({ name: '', star: '5', rank: '', cr: '', img: '' })),
+                rows: [] };
+        }
+        function charImgUrl(name, star) {
+            return (name && star) ? GITHUB_CHAR_IMAGE_BASE + encodeURIComponent(`${name}${star}.png`) : '';
+        }
+
+        // ---- 표 → 모델 ----
+        function parseTacticTable(table) {
+            const rows = Array.from(table.tBodies[0] ? table.tBodies[0].rows : []);
+            if (rows.length < 6 || rows[0].cells.length !== 6 || rows[1].cells.length !== 6) {
+                throw new Error('세미오토 택틱 표 구조(6열, 보스/캐릭터/⭐/RANK/CR/TP 행)가 아닙니다.');
+            }
+            const txt = td => (td ? td.textContent.replace(/ /g, ' ').trim() : '');
+            const m = emptyTactic();
+            const th = table.querySelector('thead th');
+            if (th) {
+                const a = th.querySelector('a');
+                m.title = (a ? a.textContent : th.textContent).trim();
+                m.url = a ? (a.getAttribute('href') || '') : '';
+            }
+            const img0 = rows[0].cells[0].querySelector('img');
+            m.boss = img0 ? (img0.getAttribute('src') || '') : '';
+            m.dmg = txt(rows[1].cells[0]);
+            for (let i = 0; i < 5; i++) {
+                const im = rows[0].cells[i + 1].querySelector('img');
+                m.chars[i] = {
+                    name: txt(rows[1].cells[i + 1]),
+                    star: txt(rows[2].cells[i + 1]),
+                    rank: txt(rows[3].cells[i + 1]),
+                    cr: txt(rows[4].cells[i + 1]),
+                    img: im ? (im.getAttribute('src') || '') : ''
+                };
+            }
+            m.tp = txt(rows[5].cells[0]).replace(/^TP\s*/i, '');
+            const splitTime = html => {
+                const mt = html.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+([\s\S]*)$/);
+                return mt ? { time: mt[1], action: mt[2] } : { time: '', action: html.trim() };
+            };
+            rows.slice(6).forEach(tr => {
+                const tds = Array.from(tr.cells);
+                if (tds.length === 1) {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tds[0].innerHTML)));
+                } else if (tds.length === 3 && tds[0].classList.contains('empty-row-td')) {
+                    m.rows.push({ type: 'empty', time: '', action: '', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' });
+                } else if (tds.length === 3) {
+                    const setStr = txt(tds[1]).replace(/\s+/g, '');
+                    const set = [0, 1, 2, 3, 4].map(i => setStr[i] === 'X' ? 'X' : 'O');
+                    const auto = txt(tds[2]).toUpperCase() === 'ON' ? 'ON' : 'OFF';
+                    m.rows.push(Object.assign({ type: 'normal', set, auto }, splitTime(tds[0].innerHTML)));
+                } else {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tr.textContent)));
+                }
+            });
+            return m;
+        }
+
+        // ---- 모델 → 표 HTML ----
+        function buildTacticHTML(m) {
+            const guideText = (m.title || '').trim() || '공략 타임라인';
+            const url = (m.url || '').trim();
+            const headerContent = url ? `<a href="${tEsc(url)}" target="_blank">${tEsc(guideText)}</a>` : tEsc(guideText);
+            const tpVal = (m.tp || '').trim();
+            const tpText = tpVal ? (tpVal.toUpperCase().startsWith('TP') ? tpVal : `TP ${tpVal}`) : 'TP';
+            let rowsHtml = '';
+            let prevStates = null, prevAuto = null;
+            m.rows.forEach(r => {
+                const content = (r.time ? formatTimeInput(r.time) + ' ' : '') + (r.action || '');
+                if (r.type === 'empty') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left empty-row-td"></td>
+            <td></td>
+            <td></td>
+        </tr>`;
+                } else if (r.type === 'note') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="6" class="text-left">${content}</td>
+        </tr>`;
+                } else {
+                    let autoBgClass = '';
+                    if (prevAuto !== null && prevAuto !== r.auto) autoBgClass = r.auto === 'ON' ? 'bg-auto-on' : 'bg-auto-off';
+                    let setContent = '';
+                    r.set.forEach((ch, i) => {
+                        setContent += (prevStates && prevStates[i] !== ch) ? `<span class="change-x">${ch}</span>` : ch;
+                    });
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left">${content}</td>
+            <td>${setContent}</td>
+            <td class="${autoBgClass}">${tEsc(r.auto)}</td>
+        </tr>`;
+                    prevStates = r.set.slice();
+                    prevAuto = r.auto;
+                }
+            });
+            const imgCell = src => `<td class="img-td">${src ? `<img src="${tEsc(src)}">` : ''}</td>`;
+            return `<table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link">${headerContent}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            ${imgCell(m.boss)}
+            ${m.chars.map(c => imgCell(c.name ? c.img : '')).join('')}
+        </tr>
+        <tr>
+            <td>${tEsc(m.dmg)}</td>
+            ${m.chars.map(c => `<td>${tEsc(c.name)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            ${m.chars.map(c => `<td>${tEsc(c.star)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            ${m.chars.map(c => `<td>${tEsc(c.rank)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            ${m.chars.map(c => `<td>${tEsc(c.cr)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">${tEsc(tpText)}</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>${rowsHtml}
+    </tbody>
+</table>`;
+        }
+
+        // ---- 편집 UI ----
+        function openTacticEditor(card) {
+            tacticCard = card || null;
+            let m;
+            if (card && card.querySelector('.output-table')) {
+                try { m = parseTacticTable(card.querySelector('.output-table')); }
+                catch (e) { alert(e.message); return; }
+            } else {
+                m = emptyTactic();
+            }
+            T = m;
+            document.getElementById('tactic-title').textContent = card ? '택틱 수정' : '새 택틱 만들기';
+            const modal = document.getElementById('tactic-modal');
+            modal.querySelectorAll('[data-b]').forEach(inp => { inp.value = T[inp.dataset.b] || ''; });
+            renderTacticChars();
+            renderTacticRows();
+            refreshBossThumb();
+            renderTacticPreview();
+            modal.style.display = 'flex';
+            modal.scrollTop = 0;
+        }
+        function closeTacticEditor() {
+            document.getElementById('tactic-modal').style.display = 'none';
+            T = null; tacticCard = null;
+        }
+        function refreshBossThumb() {
+            const im = document.getElementById('tt-boss-img');
+            im.style.visibility = T.boss ? 'visible' : 'hidden';
+            im.src = T.boss || '';
+        }
+        function tacticPickBoss() {
+            const proxy = {
+                classList: { remove() {} },
+                set innerHTML(v) {
+                    const mt = String(v).match(/src="([^"]+)"/);
+                    if (T) { T.boss = mt ? mt[1] : ''; refreshBossThumb(); renderTacticPreview(); }
+                }
+            };
+            openBossModal(proxy);
+        }
+        function tacticClearBoss() { T.boss = ''; refreshBossThumb(); renderTacticPreview(); }
+
+        function renderTacticChars() {
+            document.getElementById('tt-chars').innerHTML = T.chars.map((c, i) => `
+                <div class="tt-char" data-ci="${i}">
+                    <img src="${tEsc(c.name ? c.img : '')}" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
+                    <div><label>캐릭터 ${i + 1}</label><input type="text" data-cf="name" value="${tEsc(c.name)}"></div>
+                    <div class="row2">
+                        <div><label>⭐</label><input type="text" data-cf="star" value="${tEsc(c.star)}"></div>
+                        <div><label>RANK</label><input type="text" data-cf="rank" value="${tEsc(c.rank)}"></div>
+                        <div><label>CR</label><input type="text" data-cf="cr" value="${tEsc(c.cr)}"></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function rowHtml(r, i) {
+            const ops = `<div class="tr-ops"><button type="button" data-act="up" title="위로">▲</button><button type="button" data-act="down" title="아래로">▼</button><button type="button" data-act="dup" title="복제">⧉</button><button type="button" data-act="del" title="삭제">✕</button></div>`;
+            const typeSel = `<select data-f="type"><option value="normal"${r.type === 'normal' ? ' selected' : ''}>행동</option><option value="note"${r.type === 'note' ? ' selected' : ''}>설명</option><option value="empty"${r.type === 'empty' ? ' selected' : ''}>빈 행</option></select>`;
+            if (r.type === 'empty') {
+                return `<div class="tr-row empty" data-i="${i}">${typeSel}<div></div><div style="color:#94a3b8;font-size:12px;padding-top:7px;">(빈 행)</div><div></div><div></div>${ops}</div>`;
+            }
+            const time = `<input type="text" data-f="time" value="${tEsc(r.time)}" placeholder="시간">`;
+            const action = `<textarea data-f="action" rows="1" placeholder="행동 내용">${tEsc(r.action)}</textarea>`;
+            if (r.type === 'note') {
+                return `<div class="tr-row note" data-i="${i}">${typeSel}${time}${action}<div></div><div></div>${ops}</div>`;
+            }
+            const sets = r.set.map((v, k) => `<button type="button" data-s="${k}" class="${v === 'X' ? 'x' : ''}">${v}</button>`).join('');
+            return `<div class="tr-row" data-i="${i}">${typeSel}${time}${action}<div class="tr-sets">${sets}</div><button type="button" class="tr-auto ${r.auto === 'ON' ? 'on' : ''}" data-f="auto">${r.auto}</button>${ops}</div>`;
+        }
+        function renderTacticRows() {
+            const box = document.getElementById('tr-rows');
+            box.innerHTML = T.rows.length ? T.rows.map(rowHtml).join('') : '<div style="padding:16px;color:#94a3b8;font-size:13px;text-align:center;">행이 없습니다. 위의 "+ 행동 행"을 눌러 추가하세요.</div>';
+            markTacticChanges();
+        }
+        function markTacticChanges() {
+            let prev = null, prevAuto = null;
+            T.rows.forEach((r, i) => {
+                const el = document.querySelector(`#tr-rows .tr-row[data-i="${i}"]`);
+                if (!el || r.type !== 'normal') return;
+                el.querySelectorAll('.tr-sets button').forEach((b, k) => b.classList.toggle('chg', !!prev && prev[k] !== r.set[k]));
+                const a = el.querySelector('.tr-auto');
+                if (a) a.classList.toggle('chg', prevAuto !== null && prevAuto !== r.auto);
+                prev = r.set; prevAuto = r.auto;
+            });
+        }
+        let tacticPreviewTimer = null;
+        function renderTacticPreview() {
+            clearTimeout(tacticPreviewTimer);
+            tacticPreviewTimer = setTimeout(() => {
+                if (!T) return;
+                document.getElementById('tr-preview').innerHTML = `<div class="table-responsive">${buildTacticHTML(T)}</div>`;
+            }, 120);
+        }
+        function addTacticRow(type) {
+            const lastNormal = [...T.rows].reverse().find(r => r.type === 'normal');
+            T.rows.push({ type, time: '', action: '', set: lastNormal ? lastNormal.set.slice() : ['O', 'O', 'O', 'O', 'O'], auto: lastNormal ? lastNormal.auto : 'OFF' });
+            renderTacticRows();
+            renderTacticPreview();
+            const box = document.getElementById('tr-rows');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        (function bindTacticEvents() {
+            const modal = document.getElementById('tactic-modal');
+            if (!modal) return;
+            modal.addEventListener('input', e => {
+                const t = e.target;
+                if (!T) return;
+                if (t.dataset.b) { T[t.dataset.b] = t.value; renderTacticPreview(); return; }
+                const ch = t.closest('.tt-char');
+                if (ch && t.dataset.cf) {
+                    const c = T.chars[+ch.dataset.ci];
+                    c[t.dataset.cf] = t.value;
+                    if (t.dataset.cf === 'name' && t.value.trim() && !String(c.star).trim()) {
+                        c.star = '5';
+                        const si = ch.querySelector('input[data-cf="star"]');
+                        if (si) si.value = '5';
+                    }
+                    if (t.dataset.cf === 'name' || t.dataset.cf === 'star') {
+                        c.img = charImgUrl(c.name.trim(), c.star.trim());
+                        const im = ch.querySelector('img');
+                        im.style.visibility = 'visible';
+                        im.src = c.name ? c.img : '';
+                    }
+                    renderTacticPreview();
+                    return;
+                }
+                const row = t.closest('.tr-row');
+                if (row && (t.dataset.f === 'time' || t.dataset.f === 'action')) {
+                    T.rows[+row.dataset.i][t.dataset.f] = t.value;
+                    renderTacticPreview();
+                }
+            });
+            modal.addEventListener('change', e => {
+                const t = e.target, row = t.closest('.tr-row');
+                if (row && t.dataset.f === 'type') {
+                    T.rows[+row.dataset.i].type = t.value;
+                    renderTacticRows(); renderTacticPreview();
+                }
+            });
+            modal.addEventListener('click', e => {
+                const b = e.target.closest('button');
+                if (!b || !T) return;
+                const row = b.closest('.tr-row');
+                if (!row) return;
+                const i = +row.dataset.i, r = T.rows[i];
+                if (b.dataset.s !== undefined) {
+                    const k = +b.dataset.s;
+                    r.set[k] = r.set[k] === 'O' ? 'X' : 'O';
+                    b.textContent = r.set[k]; b.classList.toggle('x', r.set[k] === 'X');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                if (b.dataset.f === 'auto') {
+                    r.auto = r.auto === 'ON' ? 'OFF' : 'ON';
+                    b.textContent = r.auto; b.classList.toggle('on', r.auto === 'ON');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                const act = b.dataset.act;
+                if (act === 'del') T.rows.splice(i, 1);
+                else if (act === 'up' && i > 0) [T.rows[i - 1], T.rows[i]] = [T.rows[i], T.rows[i - 1]];
+                else if (act === 'down' && i < T.rows.length - 1) [T.rows[i + 1], T.rows[i]] = [T.rows[i], T.rows[i + 1]];
+                else if (act === 'dup') T.rows.splice(i + 1, 0, JSON.parse(JSON.stringify(r)));
+                else return;
+                renderTacticRows(); renderTacticPreview();
+            });
+        })();
+
+        function applyTactic() {
+            if (!T) return;
+            const html = buildTacticHTML(T);
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newTable = document.importNode(doc.querySelector('table.output-table'), true);
+            if (tacticCard) {
+                const old = tacticCard.querySelector('.output-table');
+                if (old) old.replaceWith(newTable);
+                else tacticCard.querySelector('.table-responsive').appendChild(newTable);
+            } else {
+                let target = findInsertionTarget();
+                if (!target) target = createNewCardSection();
+                target.appendChild(newTable);
+            }
+            attachBossClickToTable(newTable);
+            closeTacticEditor();
+            saveToLocalStorage();
+            const st = document.getElementById('admin-status');
+            if (st) { st.textContent = '택틱을 적용했습니다.'; st.className = 'admin-status success'; }
+        }
+
+        function addEditButton(tools, card) {
+            if (tools.querySelector('.edit-btn')) return;
+            const btn = document.createElement('button');
+            btn.className = 'card-btn edit-btn';
+            btn.style.background = '#f59e0b';
+            btn.textContent = '✏ 편집';
+            btn.onclick = function () { openTacticEditor(card); };
+            tools.insertBefore(btn, tools.children[1] || null);
+        }
+
+    </script>
+
+</body></html>
