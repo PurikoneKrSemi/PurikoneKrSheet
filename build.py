@@ -209,7 +209,7 @@ JP_NEWS_SCRIPT = r"""
         '<button type="button" data-lang="ja" aria-pressed="' + (!ko) + '">日本語</button></div>';
     }
     html += '</div></div>';
-    html += '<p class="jpn-note">일본 서버 공식 홈페이지의 공지를 모아 둔 페이지입니다.<br>월별 아카이브는 한국 서버 적용 시기(일본 서버 +13개월) 기준이며, 공지 속 날짜는 일본 서버 기준 그대로입니다.<br>항목을 누르면 자세한 내용이 펼쳐집니다.<br>번역은 DeepL을 사용했습니다.</p>';
+    html += '<p class="jpn-note">일본 서버 공식 홈페이지의 공지를 모아 둔 페이지입니다.<br>월별 아카이브는 한국 서버 적용 시기(일본 서버 +13개월) 기준이며, 공지 속 날짜는 일본 서버 기준 그대로입니다.<br>항목을 누르면 자세한 내용이 펼쳐집니다.</p>';
 
     if (chips.length > 0) {
       html += '<ul class="jpn-chips">';
@@ -347,8 +347,14 @@ def process_jp_news():
     index_path = os.path.join(JP_NEWS_DIR, "index.json")
     months = []
     if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            months = sorted(json.load(f).get("months", []))      # 다른 탭과 같은 오름차순
+        try:
+            with open(index_path, "r", encoding="utf-8-sig") as f:
+                months = sorted(json.load(f).get("months", []))  # 다른 탭과 같은 오름차순
+        except Exception as e:
+            print("[jp_news] index.json 을 읽지 못했습니다: %s (%s)" % (os.path.abspath(index_path), e))
+    else:
+        print("[jp_news] index.json 이 없습니다: %s  (build.py 를 저장소 최상위 폴더에서 실행했는지 확인하세요)" % os.path.abspath(index_path))
+    print("[jp_news] 월 %d개 -> jp_news.html" % len(months))
 
     if not months:
         html = (
