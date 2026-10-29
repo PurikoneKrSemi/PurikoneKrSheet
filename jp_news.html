@@ -1,0 +1,306 @@
+
+<style>
+  /* 카드 폭 고정: 내용 길이에 따라 박스 폭이 변하지 않게 한다 */
+  html { scrollbar-gutter: stable; }
+  #page-content { width: 100%; max-width: 100%; min-width: 0; }
+  /* 월별 아카이브 아래의 외부 링크 (index_template 의 .inline-timeline-panel 자리를 그대로 이용) */
+  .jpn-sheetlink a {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+    padding: 10px 14px; border-radius: 999px; background: #ec4899; color: #fff;
+    font-size: 15px; font-weight: 600; text-decoration: none; text-align: center;
+  }
+  .jpn-sheetlink a:hover { background: #db2777; }
+  .jpn-wrap { width: 100%; max-width: 980px; min-width: 0; margin: 0 auto; box-sizing: border-box; }
+  .jpn-item { min-width: 0; }
+  .jpn-head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+  .jpn-title { margin: 0; font-size: 22px; font-weight: 700; color: #334155; }
+  .jpn-note { margin: 0 0 14px; font-size: 13px; color: #64748b; }
+
+  .jpn-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+  .jpn-chip {
+    padding: 8px 18px; border: 0; border-radius: 999px; background: #fff; color: #334155;
+    font-size: 15px; cursor: pointer; box-shadow: 0 1px 4px rgba(15, 23, 42, .06);
+  }
+  .jpn-chip[aria-pressed="true"] { background: #ec4899; color: #fff; }
+
+  .jpn-list { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .jpn-item { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, .07); overflow: hidden; }
+  .jpn-item[hidden] { display: none; }
+
+  .jpn-head {
+    width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+    border: 0; background: transparent; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  }
+  .jpn-head:hover { background: #fff7fb; }
+  .jpn-thumb { flex: 0 0 auto; width: 120px; height: 68px; object-fit: cover; border-radius: 8px; background: #fce7f3; }
+  .jpn-meta { flex: 1 1 auto; min-width: 0; }
+  .jpn-line { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 4px; }
+  .jpn-date { font-size: 15px; font-weight: 600; color: #ec4899; }
+  .jpn-badge { padding: 2px 9px; border-radius: 999px; background: #6b7280; color: #fff; font-size: 12px; line-height: 1.5; }
+  /* 긴 제목은 한 줄로 줄이고 …로 생략, 카드를 펼치면 전체 제목을 보여 준다 */
+  .jpn-name { display: block; font-size: 16px; line-height: 1.5; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jpn-item.is-open .jpn-name { white-space: normal; overflow: visible; word-break: break-word; }
+  .jpn-chev { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: #e5e7eb; position: relative; transition: transform .2s ease; }
+  .jpn-chev::before {
+    content: ''; position: absolute; left: 7px; top: 6px; width: 6px; height: 6px;
+    border-right: 2px solid #475569; border-bottom: 2px solid #475569; transform: rotate(45deg);
+  }
+  .jpn-item.is-open .jpn-chev { transform: rotate(180deg); }
+
+  .jpn-body { display: none; padding: 4px 18px 18px; border-top: 1px solid #f1f5f9; color: #1e293b; line-height: 1.7; font-size: 15px; word-break: break-word; }
+  .jpn-item.is-open .jpn-body { display: block; }
+  .jpn-body { min-width: 0; max-width: 100%; overflow-x: auto; }
+  .jpn-body pre, .jpn-body code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .jpn-body img { max-width: 100%; height: auto; border-radius: 6px; }
+  .jpn-body h1, .jpn-body h2, .jpn-body h3, .jpn-body h4 { margin: 18px 0 8px; color: #be185d; line-height: 1.4; }
+  .jpn-body h1 { font-size: 20px; } .jpn-body h2 { font-size: 18px; } .jpn-body h3, .jpn-body h4 { font-size: 16px; }
+  .jpn-body table { width: 100% !important; max-width: 100%; border-collapse: collapse; margin: 10px 0; display: block; overflow-x: auto; }
+  .jpn-body th, .jpn-body td { border: 1px solid #e2e8f0; padding: 6px 10px; }
+  .jpn-body a { color: #4f46e5; }
+  .jpn-source { margin-top: 16px; font-size: 13px; }
+  .jpn-source a { color: #64748b; }
+
+  .jpn-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .jpn-allbtn { padding: 6px 14px; border: 1px solid #f9a8d4; border-radius: 999px; background: #fff; color: #be185d; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .jpn-allbtn[aria-pressed="true"] { background: #be185d; border-color: #be185d; color: #fff; }
+  .jpn-tag { padding: 2px 9px; border-radius: 999px; background: #fce7f3; color: #be185d; font-size: 12px; line-height: 1.5; }
+  .jpn-lang { display: inline-flex; padding: 3px; border-radius: 999px; background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .06); }
+  .jpn-lang button { padding: 5px 14px; border: 0; border-radius: 999px; background: transparent; color: #64748b; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .jpn-lang button[aria-pressed="true"] { background: #ec4899; color: #fff; }
+  .jpn-orig { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jpn-item.is-open .jpn-orig { white-space: normal; overflow: visible; word-break: break-word; }
+  .jpn-untr { margin: 10px 0 0; padding: 6px 10px; border-radius: 8px; background: #f8fafc; color: #64748b; font-size: 12px; }
+
+  .jpn-empty, .jpn-error { padding: 40px 12px; text-align: center; color: #64748b; background: #fff; border-radius: 12px; }
+  .jpn-error { color: #dc2626; }
+
+  @media (max-width: 900px) {
+    .jpn-wrap { margin-top: 16px; }
+  }
+
+  @media (max-width: 600px) {
+    .jpn-head { padding: 12px 12px; gap: 10px; }
+    .jpn-thumb { width: 84px; height: 48px; }
+    .jpn-name { font-size: 15px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+    .jpn-item.is-open .jpn-name { display: block; -webkit-line-clamp: unset; }
+    .jpn-orig { white-space: normal; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .jpn-item.is-open .jpn-orig { display: block; -webkit-line-clamp: unset; }
+    .jpn-body { padding: 4px 12px 14px; font-size: 14px; }
+    .jpn-chip { padding: 7px 14px; font-size: 14px; }
+  }
+</style>
+<div id="page-content"><div class="subtab-header-panel"><div class="top-tab-dropdown-wrapper"><div class="custom-select-trigger" onclick="toggleCustomDropdown(event)"><span id="selected-subtab-label">26년11월</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="custom-select-options"><div class="custom-option selected" onclick="selectCustomOption(this, '2025-10', '26년11월')">26년11월</div><div class="custom-option" onclick="selectCustomOption(this, '2025-11', '26년12월')">26년12월</div><div class="custom-option" onclick="selectCustomOption(this, '2025-12', '27년1월')">27년1월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-01', '27년2월')">27년2월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-02', '27년3월')">27년3월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-03', '27년4월')">27년4월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-04', '27년5월')">27년5월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-05', '27년6월')">27년6월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-06', '27년7월')">27년7월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-07', '27년8월')">27년8월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-08', '27년9월')">27년9월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-09', '27년10월')">27년10월</div><div class="custom-option" onclick="selectCustomOption(this, '2026-10', '27년11월')">27년11월</div></div></div><div class="inline-timeline-panel jpn-sheetlink"><a href="https://docs.google.com/spreadsheets/d/1i4NJeBFWgVYayfRrNZl_-CxhN5unesAp5m33S_cEMiY/edit?gid=293652162#gid=293652162" target="_blank" rel="noopener noreferrer">미래시 시트 ↗</a></div></div><div id="jpn-root"></div></div>
+<script>
+(function () {
+  var MONTHS = ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"];               // 오름차순 (과거 -> 최신)
+  var root = document.getElementById('jpn-root');
+  var cache = {};
+  var tagOrder = [];                      // jp_news/index.json 의 tags (칩 표시 순서)
+  var state = { month: null, all: false, cat: 'all', lang: 'ko', open: {}, view: null };
+
+  try { if (localStorage.getItem('jpn_lang') === 'ja') state.lang = 'ja'; } catch (e) {}
+
+  function labelOf(key) {
+    var p = String(key).split('-');
+    return p[0] + '년 ' + parseInt(p[1], 10) + '월';
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* 방어용: 본문 HTML에서 스크립트/이벤트 속성을 한 번 더 제거 */
+  function clean(html) {
+    var t = document.createElement('template');
+    t.innerHTML = html || '';
+    t.content.querySelectorAll('script,iframe,object,embed,style,link,meta,form').forEach(function (n) { n.remove(); });
+    t.content.querySelectorAll('*').forEach(function (n) {
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var name = a.name.toLowerCase(), val = (a.value || '').trim().toLowerCase();
+        if (name.indexOf('on') === 0) n.removeAttribute(a.name);
+        if ((name === 'href' || name === 'src') && val.indexOf('javascript:') === 0) n.removeAttribute(a.name);
+      });
+    });
+    return t.innerHTML;
+  }
+
+  async function loadMonth(key) {
+    if (cache[key]) return cache[key];
+    var res = await fetch('jp_news/' + key + '.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    cache[key] = await res.json();
+    return cache[key];
+  }
+
+  async function loadTagOrder() {
+    try {
+      var r = await fetch('jp_news/index.json', { cache: 'no-cache' });
+      if (r.ok) { var j = await r.json(); if (Array.isArray(j.tags)) tagOrder = j.tags; }
+    } catch (e) {}
+  }
+
+  function prep(items) {
+    /* '숨김' 처리한 공지는 사이트에 내보내지 않는다 */
+    return items.filter(function (it) { return !it.hidden; }).map(function (it) {
+      it.cats = Array.isArray(it.cats) ? it.cats : (it.cat ? [it.cat] : []);
+      it.tags = Array.isArray(it.tags) ? it.tags : [];
+      return it;
+    }).sort(function (a, b) {
+      return (b.date || '').localeCompare(a.date || '') || String(b.id).localeCompare(String(a.id));
+    });
+  }
+
+  async function buildView() {
+    if (state.all) {
+      var list = await Promise.all(MONTHS.map(function (k) { return loadMonth(k).catch(function () { return { items: [] }; }); }));
+      var all = [];
+      list.forEach(function (d) { all = all.concat(d.items || []); });
+      return { title: '전체 월 모아보기', items: prep(all), empty: '표시할 공지가 없습니다.' };
+    }
+    var data = await loadMonth(state.month);
+    return { title: (data.label || labelOf(data.month)) + ' 일본 서버 업데이트', items: prep(data.items || []), empty: '이 달에 표시할 공지가 없습니다.' };
+  }
+
+  function keysOf(it) { return it.cats.concat(it.tags); }
+
+  function render(view) {
+    state.view = view;
+    var items = view.items;
+    var cats = [], tags = [], hasKo = false;
+    items.forEach(function (it) {
+      it.cats.forEach(function (c) { if (cats.indexOf(c) < 0) cats.push(c); });
+      it.tags.forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); });
+      if (it.title_ko || it.html_ko) hasKo = true;
+    });
+    tags.sort(function (a, b) {                 // 태그는 편집기에서 정한 순서대로
+      var i = tagOrder.indexOf(a), j = tagOrder.indexOf(b);
+      return (i < 0 ? 999 : i) - (j < 0 ? 999 : j);
+    });
+    var chips = cats.concat(tags.filter(function (t) { return cats.indexOf(t) < 0; }));
+    if (state.cat !== 'all' && chips.indexOf(state.cat) < 0) state.cat = 'all';
+    var ko = hasKo && state.lang === 'ko';
+
+    var html = '<div class="jpn-wrap">';
+    html += '<div class="jpn-head-row"><h2 class="jpn-title">' + esc(view.title) + '</h2><div class="jpn-tools">';
+    html += '<button type="button" class="jpn-allbtn" aria-pressed="' + state.all + '" title="모든 달의 공지를 한 번에 모아 봅니다">전체 월 모아보기</button>';
+    if (hasKo) {
+      html += '<div class="jpn-lang" role="group" aria-label="언어">' +
+        '<button type="button" data-lang="ko" aria-pressed="' + (ko) + '">한국어</button>' +
+        '<button type="button" data-lang="ja" aria-pressed="' + (!ko) + '">日本語</button></div>';
+    }
+    html += '</div></div>';
+    html += '<p class="jpn-note">일본 서버 공식 홈페이지의 공지를 모아 둔 페이지입니다.<br>월별 아카이브는 한국 서버 적용 시기(일본 서버 +13개월) 기준이며, 공지 속 날짜는 일본 서버 기준 그대로입니다.<br>항목을 누르면 자세한 내용이 펼쳐집니다.<br>번역은 DeepL을 사용했습니다.</p>';
+
+    if (chips.length > 0) {
+      html += '<ul class="jpn-chips">';
+      html += '<li><button type="button" class="jpn-chip" data-cat="all" aria-pressed="' + (state.cat === 'all') + '">모든 것</button></li>';
+      chips.forEach(function (c) {
+        html += '<li><button type="button" class="jpn-chip" data-cat="' + esc(c) + '" aria-pressed="' + (state.cat === c) + '">' + esc(c) + '</button></li>';
+      });
+      html += '</ul>';
+    }
+
+    if (!items.length) {
+      html += '<div class="jpn-empty">' + esc(view.empty) + '</div>';
+    } else {
+      html += '<ul class="jpn-list">';
+      items.forEach(function (it, i) {
+        var keys = keysOf(it);
+        var show = state.cat === 'all' || keys.indexOf(state.cat) >= 0;
+        var key = String(it.id);
+        var isOpen = !!state.open[key];
+        var useKo = ko && !!it.title_ko;
+        var bodyKo = ko && !!it.html_ko;
+        html += '<li class="jpn-item' + (isOpen ? ' is-open' : '') + '" data-id="' + esc(key) + '" data-keys="' + esc(keys.join('|')) + '"' + (show ? '' : ' hidden') + '>';
+        html += '<button type="button" class="jpn-head" aria-expanded="' + isOpen + '" aria-controls="jpn-b-' + i + '">';
+        if (it.thumb) html += '<img class="jpn-thumb" loading="lazy" referrerpolicy="no-referrer" alt="" src="' + esc(it.thumb) + '">';
+        html += '<span class="jpn-meta"><span class="jpn-line"><span class="jpn-date">' + esc((it.date || '').replace(/-/g, '/')) + '</span>';
+        it.cats.forEach(function (c) { html += '<span class="jpn-badge">' + esc(c) + '</span>'; });
+        it.tags.forEach(function (t) { html += '<span class="jpn-tag">' + esc(t) + '</span>'; });
+        html += '</span><span class="jpn-name" lang="' + (useKo ? 'ko' : 'ja') + '">' + esc(useKo ? it.title_ko : it.title);
+        if (useKo && it.title) html += '<span class="jpn-orig" lang="ja">' + esc(it.title) + '</span>';
+        html += '</span></span><span class="jpn-chev" aria-hidden="true"></span></button>';
+        html += '<div class="jpn-body" id="jpn-b-' + i + '" lang="' + (bodyKo ? 'ko' : 'ja') + '">' + clean(bodyKo ? it.html_ko : it.html);
+        if (ko && !bodyKo) html += '<p class="jpn-untr">아직 번역되지 않은 공지입니다. (일본어 원문)</p>';
+        if (it.url) html += '<div class="jpn-source"><a href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">공식 홈페이지 원문 보기 ↗</a></div>';
+        html += '</div></li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+    root.innerHTML = html;
+  }
+
+  async function refresh() {
+    root.innerHTML = '<div class="jpn-empty">불러오는 중…</div>';
+    try {
+      render(await buildView());
+    } catch (e) {
+      root.innerHTML = '<div class="jpn-error">데이터를 불러오지 못했습니다: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  async function show(key) {
+    state.month = key;
+    state.all = false;
+    state.cat = 'all';
+    state.open = {};
+    await refresh();
+  }
+
+  root.addEventListener('click', function (e) {
+    var lang = e.target.closest('.jpn-lang button');
+    if (lang) {
+      state.lang = lang.getAttribute('data-lang');
+      try { localStorage.setItem('jpn_lang', state.lang); } catch (err) {}
+      if (state.view) render(state.view);
+      return;
+    }
+    if (e.target.closest('.jpn-allbtn')) {
+      state.all = !state.all;
+      state.open = {};
+      refresh();
+      return;
+    }
+    var chip = e.target.closest('.jpn-chip');
+    if (chip) {
+      state.cat = chip.getAttribute('data-cat');
+      root.querySelectorAll('.jpn-chip').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b === chip));
+      });
+      root.querySelectorAll('.jpn-item').forEach(function (li) {
+        li.hidden = !(state.cat === 'all' || li.getAttribute('data-keys').split('|').indexOf(state.cat) >= 0);
+      });
+      return;
+    }
+    var head = e.target.closest('.jpn-head');
+    if (head) {
+      var li = head.parentNode;
+      var open = li.classList.toggle('is-open');
+      state.open[li.getAttribute('data-id')] = open;
+      head.setAttribute('aria-expanded', String(open));
+    }
+  });
+
+  /* index_template.html 의 월별 아카이브(사이드바/모바일 드롭다운)가 호출하는 함수 */
+  window.toggleCustomDropdown = function (e) {
+    e.stopPropagation();
+    var w = document.querySelector('.top-tab-dropdown-wrapper');
+    if (w) w.classList.toggle('open');
+  };
+
+  window.selectCustomOption = function (el, key) {
+    document.querySelectorAll('.custom-option').forEach(function (o) { o.classList.remove('selected'); });
+    el.classList.add('selected');
+    var label = document.getElementById('selected-subtab-label');
+    if (label) label.textContent = el.getAttribute('data-archive-label') || el.textContent;
+    var w = document.querySelector('.top-tab-dropdown-wrapper');
+    if (w) w.classList.remove('open');
+    show(key);
+  };
+
+  if (MONTHS.length) loadTagOrder().then(function () { show(MONTHS[0]); });   // 처음에는 첫 번째 달 (다른 탭과 동일)
+})();
+</script>

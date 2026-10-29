@@ -15,10 +15,7 @@
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-size: cover;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    background: #f7f2ed;
   }
 
   :root {
@@ -926,7 +923,12 @@
           onclick="switchTab(event, this, 'abyss.html')">
           심연토벌전
         </button>
-
+        <button
+            type="button"
+            class="main-tab-btn"
+            onclick="switchTab(event, this, 'jp_news.html')">
+            미래시
+          </button>
       </div>
 
     </nav>
@@ -964,36 +966,9 @@
 
 <script>
 
-  const bgImages = ["images/bg/PC_11.jpg", "images/bg/PC_12.jpg", "images/bg/PC_13.jpg", "images/bg/PC_14.jpg", "images/bg/PC_15.jpg", "images/bg/PC_16.jpg", "images/bg/PC_17.jpg", "images/bg/PC_18.jpg", "images/bg/PC_19.jpg", "images/bg/PC_20.jpg", "images/bg/PC_21.jpg", "images/bg/PC_22.jpg", "images/bg/PC_23.jpg", "images/bg/PC_24.jpg", "images/bg/PC_25.jpg", "images/bg/PC_26.jpg", "images/bg/_PC_20.jpg", "images/bg/_PC_21.jpg", "images/bg/_PC_22.jpg", "images/bg/_PC_23.jpg", "images/bg/_PC_24.jpg", "images/bg/_PC_25.jpg", "images/bg/_PC_26.jpg", "images/bg/_PC_27.jpg", "images/bg/_PC_28.jpg"];
-  const ENABLE_RANDOM_BACKGROUND = true;
 
-  let currentRandomBackground = null;
 
-  /*
-   * 랜덤 배경은 데스크톱 레이아웃(901px 이상)에서만 사용.
-   * 모바일/태블릿에서는 배경 이미지를 쓰지 않는다.
-   * 화면 폭이 바뀌어도 같은 이미지를 유지한다.
-   */
-  function setRandomBackground() {
-    if (!ENABLE_RANDOM_BACKGROUND) return;
 
-    if (window.innerWidth < DESKTOP_BREAKPOINT) {
-      document.body.style.backgroundImage = '';
-      return;
-    }
-
-    if (!Array.isArray(bgImages) || bgImages.length === 0) return;
-
-    if (!currentRandomBackground) {
-      currentRandomBackground =
-        bgImages[Math.floor(Math.random() * bgImages.length)];
-    }
-
-    document.body.style.backgroundImage =
-      `url('${currentRandomBackground}')`;
-  }
-
-  window.addEventListener('resize', setRandomBackground);
 
 
   const DESKTOP_BREAKPOINT = 901;
@@ -2275,8 +2250,6 @@
       'DOMContentLoaded',
       () => {
 
-        setRandomBackground();
-
         loadPage(
           'semi_auto.html'
         );
@@ -2285,8 +2258,6 @@
     );
 
   } else {
-
-    setRandomBackground();
 
     loadPage(
       'semi_auto.html'
