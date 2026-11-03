@@ -406,6 +406,15 @@
                 </div>
 
                 <button type="button" class="btn-add" id="btn-add-party" onclick="addPartyToResult()">➕ 이 조합을 최종 결과에 추가</button>
+
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+                    <label style="font-weight: 700; font-size: 13px;">📝 설명 행 추가 (위 '추가할 섹션'에 들어가며, 한 줄 전체를 열 구분 없이 사용)</label>
+                    <textarea id="note-input" rows="2" style="width: 100%; margin-top: 6px;" placeholder="표 안에 넣을 설명 입력 (줄바꿈 가능)" oninput="saveToLocalStorage()"></textarea>
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <button type="button" class="btn-add" id="btn-add-note" style="margin-top: 0; font-size: 14px;" onclick="addNoteToResult()">➕ 설명 행을 최종 결과에 추가</button>
+                        <button type="button" id="btn-cancel-note" style="display: none; background: #6b7280; color: white; white-space: nowrap;" onclick="cancelNoteEdit()">취소</button>
+                    </div>
+                </div>
             </div>
         </div>
         </div>
@@ -476,6 +485,7 @@
         let bossModalTarget = "single";
         
         let partyList = [];
+        let editingNoteIndex = -1;
         let recentBosses = [];
         let recentChars = [];
         let activeCharIndex = 1;
@@ -655,7 +665,7 @@
         }
 
         function selectAllBossCells() {
-            partyList.forEach((_, idx) => selectedRowIndexes.add(idx));
+            partyList.forEach((it, idx) => { if (!isNote(it)) selectedRowIndexes.add(idx); });
             document.querySelectorAll('.boss-selectable-cell').forEach(cell => cell.classList.add('selected'));
         }
 
@@ -677,7 +687,7 @@
 
             let updatedCount = 0;
             selectedRowIndexes.forEach(idx => {
-                if (partyList[idx]) {
+                if (partyList[idx] && !isNote(partyList[idx])) {
                     partyList[idx].bossImgSrc = batchSelectedBossSrc;
                     updatedCount++;
                 }
@@ -820,6 +830,7 @@
         }
 
         function moveParty(sourceIdx, targetIdx, insertBefore) {
+            if (editingNoteIndex >= 0) cancelNoteEdit();
             const draggedItem = partyList.splice(sourceIdx, 1)[0];
 
             let newIndex = targetIdx;
@@ -1054,6 +1065,7 @@
 
         function removeParty(index) {
             if (editingIndex === index) resetInputForm();
+            if (editingNoteIndex >= 0) cancelNoteEdit();
             selectedRowIndexes.delete(index);
             partyList.splice(index, 1);
             renderFinalPreview();
@@ -1063,9 +1075,88 @@
             if (confirm('추가된 모든 조합을 삭제하시겠습니까?')) {
                 partyList = [];
                 selectedRowIndexes.clear();
+                cancelNoteEdit();
                 resetInputForm();
                 renderFinalPreview();
             }
+        }
+
+        function isNote(item) { return !!item && item.type === 'note'; }
+
+        function escapeNoteHtml(t) {
+            return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function resetNoteForm() {
+            document.getElementById('note-input').value = '';
+            editingNoteIndex = -1;
+            const b = document.getElementById('btn-add-note');
+            b.innerText = '➕ 설명 행을 최종 결과에 추가';
+            b.classList.remove('edit-mode');
+            document.getElementById('btn-cancel-note').style.display = 'none';
+        }
+
+        function cancelNoteEdit() {
+            resetNoteForm();
+            saveToLocalStorage();
+        }
+
+        function addNoteToResult() {
+            const text = document.getElementById('note-input').value.replace(/\r\n?/g, '\n').trim();
+            if (!text) { alert('설명 내용을 입력해주세요.'); return; }
+            const sectionIdx = parseInt(document.getElementById('section-select').value, 10);
+
+            if (editingNoteIndex >= 0 && isNote(partyList[editingNoteIndex])) {
+                partyList[editingNoteIndex] = { type: 'note', sectionIndex: sectionIdx, text: text };
+            } else {
+                partyList.push({ type: 'note', sectionIndex: sectionIdx, text: text });
+            }
+            resetNoteForm();
+            renderFinalPreview();
+        }
+
+        function editNote(index) {
+            const item = partyList[index];
+            if (!isNote(item)) return;
+            editingNoteIndex = index;
+            document.getElementById('section-select').value = item.sectionIndex !== undefined ? item.sectionIndex : 0;
+            document.getElementById('note-input').value = item.text || '';
+            const b = document.getElementById('btn-add-note');
+            b.innerText = `💾 설명 행 수정 완료`;
+            b.classList.add('edit-mode');
+            document.getElementById('btn-cancel-note').style.display = 'block';
+            saveToLocalStorage();
+            const body = document.getElementById('party-section-body');
+            if (body.style.display === 'none') togglePartySection();
+            document.getElementById('note-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('note-input').focus();
+        }
+
+        // 전초퀘스트(0)·노말/하드(1)는 입력이 없으면 표에서 숨김. 베하/익스(2)는 항상 표시.
+        function getVisibleSections(sections) {
+            const list = [];
+            for (let s = 0; s < 3; s++) {
+                if (s === 2 || sections[s].length > 0) list.push(s);
+            }
+            return list;
+        }
+
+        function noteRowHTML(item, colspan, preview) {
+            const style = 'text-align: left !important; white-space: pre-line !important; word-break: break-word !important; padding: 8px 12px !important; background: #f8fafc;';
+            const text = escapeNoteHtml(item.text);
+            if (!preview) {
+                return `
+        <tr class="note-row"><td colspan="${colspan}" class="note-td" style="${style}">${text}</td></tr>`;
+            }
+            const idx = item.originalIndex;
+            return `
+        <tr class="draggable-row note-row" data-idx="${idx}" onmousedown="handleRowMouseDown(event, ${idx})">
+            <td colspan="8" class="note-td" style="${style}">${text}</td>
+            <td style="width: 45px; text-align: center;">
+                <button class="btn-row-edit" onclick="editNote(${idx})">수정</button>
+                <button class="btn-row-del" onclick="removeParty(${idx})">삭제</button>
+            </td>
+        </tr>`;
         }
 
         function parseAndImportHTML() {
@@ -1086,17 +1177,38 @@
                 }
 
                 const importedPartyList = [];
-                const tbodies = Array.from(doc.querySelectorAll('tbody'));
+                const table = doc.querySelector('table');
+                const sectionByName = {};
+                SECTION_DEFAULTS.forEach((n, i) => { sectionByName[n.replace(/\s+/g, '')] = i; });
 
-                for (let s = 0; s < Math.min(tbodies.length, 3); s++) {
-                    const tbody = tbodies[s];
-                    if (!tbody) continue;
+                // thead/tbody를 순서대로 훑으면서 thead의 제목으로 섹션을 판별 (생략된 섹션이 있어도 정확히 매칭)
+                let currentSection = -1;
+                let fallbackSection = -1;
+                const blocks = table ? Array.from(table.children) : [];
+                for (const blk of blocks) {
+                    const tag = blk.tagName.toLowerCase();
+                    if (tag === 'thead') {
+                        fallbackSection++;
+                        const ths = Array.from(blk.querySelectorAll('tr:not(.guide-link-row) th'));
+                        const title = ths.length ? ths[0].textContent.replace(/\s+/g, '') : '';
+                        currentSection = (title in sectionByName) ? sectionByName[title] : Math.min(fallbackSection, 2);
+                        continue;
+                    }
+                    if (tag !== 'tbody') continue;
+                    const s = currentSection >= 0 ? currentSection : Math.min(Math.max(fallbackSection, 0), 2);
 
-                    const trs = Array.from(tbody.querySelectorAll('tr'));
-
+                    const trs = Array.from(blk.querySelectorAll('tr'));
                     for (let i = 0; i < trs.length; i++) {
                         const tr = trs[i];
                         const tds = tr.querySelectorAll('td');
+
+                        if (tr.classList.contains('note-row') || (tds.length === 1 && tds[0].classList.contains('note-td'))) {
+                            const nNode = tds[0].cloneNode(true);
+                            nNode.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+                            const text = nNode.textContent.trim();
+                            if (text) importedPartyList.push({ type: 'note', sectionIndex: s, text: text });
+                            continue;
+                        }
 
                         if (tds.length >= 8) {
                             const bossImg = tds[0].querySelector('img');
@@ -1142,7 +1254,7 @@
                             }
 
                             importedPartyList.push({
-                                sectionIndex: s < 3 ? s : 2,
+                                sectionIndex: s,
                                 bossImgSrc: bossImgSrc,
                                 dmg: dmg,
                                 operation: operation,
@@ -1153,7 +1265,7 @@
                 }
 
                 if (importedPartyList.length === 0) {
-                    alert('불러올 수 있는 조합 데이터 행이 없습니다.');
+                    alert('불러올 수 있는 조합/설명 데이터 행이 없습니다.');
                     return;
                 }
 
@@ -1162,7 +1274,8 @@
                 resetInputForm();
                 renderFinalPreview();
                 closeImportModal();
-                alert(`${importedPartyList.length}개의 조합 데이터를 각 섹션별로 정확하게 불러왔습니다!`);
+                const noteCnt = importedPartyList.filter(isNote).length;
+                alert(`${importedPartyList.length - noteCnt}개의 조합${noteCnt ? `과 ${noteCnt}개의 설명 행` : ''} 데이터를 각 섹션별로 정확하게 불러왔습니다!`);
 
             } catch (e) {
                 console.error(e);
@@ -1211,10 +1324,11 @@
             const sections = groupPartiesBySection();
             let tableInnerHtml = '';
 
-            for (let s = 0; s < 3; s++) {
+            const visibleSections = getVisibleSections(sections);
+            for (const s of visibleSections) {
                 const sectionItems = sections[s];
                 const sectionTitle = getHeaderContent(s);
-                const linkRow = (s === 0) ? getLinkRowHTML(8) : '';
+                const linkRow = (s === visibleSections[0]) ? getLinkRowHTML(8) : '';
                 const hasAnyItems = sectionItems.length > 0;
 
                 tableInnerHtml += `
@@ -1231,6 +1345,7 @@
         <tr><td colspan="8" style="text-align: center; color: #9ca3af; padding: 12px;">등록된 조합이 없습니다.</td></tr>`;
                 } else {
                     sectionItems.forEach(item => {
+                        if (isNote(item)) { tableInnerHtml += noteRowHTML(item, 8, false); return; }
                         const showCR = hasValidCR(item.chars);
                         const rowspanAttr = showCR ? ' rowspan="2"' : '';
 
@@ -1297,6 +1412,8 @@ ${tableInnerHtml}
                 currentOperation: document.getElementById('operation-input').value,
                 currentChars: currentChars,
                 editingIndex: editingIndex,
+                currentNote: document.getElementById('note-input').value,
+                editingNoteIndex: editingNoteIndex,
                 isStickyOff: document.querySelector('.sticky-container').classList.contains('unstick')
             };
             localStorage.setItem('priconne_abyss_builder_data', JSON.stringify(state));
@@ -1356,6 +1473,14 @@ ${tableInnerHtml}
                         updateCharInfo(i);
                     });
                 }
+                if (state.currentNote !== undefined) document.getElementById('note-input').value = state.currentNote;
+                if (typeof state.editingNoteIndex === 'number' && state.editingNoteIndex >= 0 && isNote(partyList[state.editingNoteIndex])) {
+                    editingNoteIndex = state.editingNoteIndex;
+                    const nb = document.getElementById('btn-add-note');
+                    nb.innerText = '💾 설명 행 수정 완료';
+                    nb.classList.add('edit-mode');
+                    document.getElementById('btn-cancel-note').style.display = 'block';
+                }
                 if (typeof state.editingIndex === 'number' && state.editingIndex >= 0) {
                     editingIndex = state.editingIndex;
                     const btnAdd = document.getElementById('btn-add-party');
@@ -1389,10 +1514,11 @@ ${tableInnerHtml}
             const sections = groupPartiesBySection();
             let tableInnerHtml = '';
 
-            for (let s = 0; s < 3; s++) {
+            const visibleSections = getVisibleSections(sections);
+            for (const s of visibleSections) {
                 const sectionItems = sections[s];
                 const sectionTitle = getHeaderContent(s);
-                const linkRow = (s === 0) ? getLinkRowHTML(9) : '';
+                const linkRow = (s === visibleSections[0]) ? getLinkRowHTML(9) : '';
                 const hasAnyItems = sectionItems.length > 0;
 
                 tableInnerHtml += `
@@ -1409,6 +1535,7 @@ ${tableInnerHtml}
         <tr><td colspan="9" style="text-align: center; color: #9ca3af; padding: 12px;">등록된 조합이 없습니다.</td></tr>`;
                 } else {
                     sectionItems.forEach(item => {
+                        if (isNote(item)) { tableInnerHtml += noteRowHTML(item, 8, true); return; }
                         const showCR = hasValidCR(item.chars);
                         const rowspanAttr = showCR ? ' rowspan="2"' : '';
                         const idx = item.originalIndex;
@@ -1508,6 +1635,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 recentChars = [];
                 selectedRowIndexes.clear();
 
+                cancelNoteEdit();
                 resetInputForm();
                 renderRecentBosses();
                 renderRecentCharTags();
