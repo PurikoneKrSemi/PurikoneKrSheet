@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html data-hwp-extension="rhwp" data-hwp-extension-version="0.8.6" lang="ko"><head>
+<html lang="ko"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>데이터 리포트</title>
@@ -525,6 +525,45 @@
         .admin-status.success { color: #059669; }
         .admin-status.error { color: #dc2626; }
     
+        /* ===== 택틱 편집기 ===== */
+        #boss-modal { z-index: 1100; }
+        #tactic-modal { z-index: 1050; align-items: flex-start; overflow-y: auto; }
+        .tactic-box { background: #fff; width: min(1040px, 96vw); margin: 20px auto; border-radius: 12px; padding: 18px 20px 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .tactic-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .tactic-head h3 { margin: 0; font-size: 18px; flex: 1; }
+        .tt-btn { border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+        .tt-btn:hover { background: #e2e8f0; }
+        .tt-btn.pri { background: var(--primary-color); border-color: var(--primary-color); color: #fff; font-weight: 600; }
+        .tt-btn.danger { color: #b91c1c; }
+        .tt-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .tt-field label, .tt-char label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+        .tt-field input, .tt-char input, .tr-row input, .tr-row textarea, .tr-row select { width: 100%; font: inherit; font-size: 13px; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .tt-boss { display: flex; align-items: center; gap: 6px; }
+        .tt-boss img, .tt-char img { width: 52px; height: 52px; object-fit: cover; border-radius: 4px; background: #f1f5f9; display: block; }
+        .tt-chars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .tt-char { border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; display: grid; gap: 4px; }
+        .tt-char .row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+        .tt-sec { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 13px; font-weight: 600; }
+        .tt-sec .sp { flex: 1; }
+        .tr-row { display: grid; grid-template-columns: 74px 64px 1fr auto 62px auto; gap: 6px; align-items: start; padding: 5px 6px; border-bottom: 1px solid var(--border-color); }
+        .tr-row.note { background: #f8fafc; }
+        .tr-row.empty { background: #fafafa; }
+        .tr-row textarea { resize: vertical; min-height: 32px; }
+        .tr-sets { display: flex; gap: 3px; }
+        .tr-sets button, .tr-auto { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; width: 30px; height: 32px; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .tr-sets button.x { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        .tr-sets button.chg { outline: 2px solid #ef4444; }
+        .tr-auto { width: 56px; }
+        .tr-auto.on { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+        .tr-auto.chg { outline: 2px solid #0284c7; }
+        .tr-ops { display: flex; gap: 3px; }
+        .tr-ops button { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; height: 32px; min-width: 28px; cursor: pointer; font-size: 12px; }
+        .tr-hint { font-size: 11px; color: var(--text-secondary); margin: 2px 0 6px; }
+        #tr-preview-wrap { margin-top: 14px; border-top: 2px solid var(--border-color); padding-top: 10px; }
+        #tr-preview { overflow-x: auto; }
+        #tr-rows { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        @media (max-width: 800px) { .tt-grid { grid-template-columns: 1fr 1fr; } .tt-chars { grid-template-columns: 1fr 1fr; } .tr-row { grid-template-columns: 1fr 1fr; } }
+    
         body { padding-bottom: 16px !important; }
 
         /* 원본 HTML의 본문 크기를 유지하고 가운데 정렬 */
@@ -797,12 +836,8 @@
 </thead>
 <tbody>
 <tr>
-<td class="img-td"><img alt="1.1" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/1.1.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%9E%80%ED%8C%8C5.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%82%A4%EB%93%9C%EB%82%985.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%BA%AC%EB%A3%A85.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%98%B8%EB%A7%88%EB%A0%885.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/1.1.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%9E%80%ED%8C%8C5.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%ED%82%A4%EB%93%9C%EB%82%985.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%94%84%EC%BA%AC%EB%A3%A85.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%ED%98%B8%EB%A7%88%EB%A0%885.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
 </tr>
 <tr>
 <td>38600</td>
@@ -817,18 +852,17 @@
 <td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">TP 4.4</td>
+<td class="th-label">CR</td>
+<td>Set</td><td>Auto</td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">TP 1:30 OOOOO 오토 ON</td>
 <td>Set</td>
 <td>Auto</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">1:30 OOOOO 오토 ON</td>
-<td>OOOOO</td>
-<td class="">ON</td>
-</tr>
-<tr>
 <td class="text-left" colspan="4">1:11 프캬루 → 프캬루 OFF</td>
-<td>OO<span class="change-x">X</span>OO</td>
+<td>OOXOO</td>
 <td class="">ON</td>
 </tr>
 <tr>
@@ -852,7 +886,7 @@
 <td class="">OFF</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">0:48 프캬루 → 란파 수키드나 바이올렛 OFF</td>
+<td class="text-left" colspan="4">0:48 란파 → 란파 수키드나 바이올렛 OFF</td>
 <td><span class="change-x">X</span><span class="change-x">X</span>OO<span class="change-x">X</span></td>
 <td class="">OFF</td>
 </tr>
@@ -915,12 +949,8 @@
 </thead>
 <tbody>
 <tr>
-<td class="img-td"><img alt="2.6" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/2.6.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%BF%A0%EB%9D%BC5.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/2.6.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%A9%94%EB%91%90%EC%82%AC5.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%EC%BF%A0%EB%9D%BC5.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%8A%A45.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%8C%EB%A6%AC%EC%8A%A45.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B0%94%EC%9D%B4%EC%98%AC%EB%A0%9B5.png"/></td>
 </tr>
 <tr>
 <td>31000</td>
@@ -935,18 +965,17 @@
 <td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">TP 5.3</td>
+<td class="th-label">CR</td>
+<td>Set</td><td>Auto</td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">TP 1:30 OOOOX 오토 ON</td>
 <td>Set</td>
 <td>Auto</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">1:30 OOOOX 오토 ON</td>
-<td>OOOOX</td>
-<td class="">ON</td>
-</tr>
-<tr>
 <td class="text-left" colspan="4">1:08 바이올렛 → 메두사 OFF</td>
-<td><span class="change-x">X</span>OOOX</td>
+<td>XOOOX</td>
 <td class="">ON</td>
 </tr>
 <tr>
@@ -973,11 +1002,6 @@
 <td class="text-left" colspan="4">0:11 알리스 → 알리스 OFF</td>
 <td>OOO<span class="change-x">X</span>O</td>
 <td class="">ON</td>
-</tr>
-<tr>
-<td class="text-left" colspan="4"></td>
-<td></td>
-<td></td>
 </tr>
 </tbody>
 </table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
@@ -1926,12 +1950,8 @@
 </thead>
 <tbody>
 <tr>
-<td class="img-td"><img alt="5.11" src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/5.11.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td>
-<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/3095e7e68ee25ba5870c1a5f0e0f817ce69dcd63/images/Boss/5.11.png"/></td>
+<td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%84%A4%ED%94%BC5.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EB%B4%89%ED%99%A95.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%82%AC%ED%82%A4%EB%85%B85.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%95%84%EC%9D%B4%EB%9D%BC5.png"/></td><td class="img-td"><img src="https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/%EC%88%98%EB%84%A4%EC%95%845.png"/></td>
 </tr>
 <tr>
 <td>27500</td>
@@ -1946,19 +1966,18 @@
 <td>38</td><td>38</td><td>38</td><td>38</td><td>38</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">TP 4.4</td>
+<td class="th-label">CR</td>
+<td>Set</td><td>Auto</td><td></td><td></td><td></td>
+</tr>
+<tr>
+<td class="text-left" colspan="4">TP 1:30 XOOOX 오토 OFF</td>
 <td>Set</td>
 <td>Auto</td>
 </tr>
 <tr>
-<td class="text-left" colspan="4">1:30 XOOOX 오토 OFF</td>
-<td>XOOOX</td>
-<td class="">OFF</td>
-</tr>
-<tr>
 <td class="text-left" colspan="4">1:05 아이라 → 오토 ON</td>
 <td>XOOOX</td>
-<td class="bg-auto-on">ON</td>
+<td class="">ON</td>
 </tr>
 <tr>
 <td class="text-left" colspan="4">0:29 아이라 → 아이라 OFF</td>
@@ -1984,6 +2003,14 @@
 <td class="text-left" colspan="4">0:06 아이라 → 사키노 SET</td>
 <td>XX<span class="change-x">O</span>OO</td>
 <td class="">ON</td>
+</tr>
+<tr>
+<td class="text-left empty-row-td" colspan="4"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td class="text-left" colspan="6">딜이 부족하면 배리어 깨지는 타이밍에 따라 성공할수도 실패할수도 있음</td>
 </tr>
 </tbody>
 </table></div></div></section><section class="card"><div class="card-body"><div class="table-responsive"><table class="output-table">
@@ -23371,6 +23398,7 @@
             tools.appendChild(dragHandle);
             tools.appendChild(spaceBtn);
             tools.appendChild(delBtn);
+            addEditButton(tools, section);
             section.appendChild(tools);
 
             const body = document.createElement('div');
@@ -23529,6 +23557,7 @@
                     tools.appendChild(dragHandle);
                     tools.appendChild(spaceBtn);
                     tools.appendChild(delBtn);
+                    addEditButton(tools, importedNode);
 
                     bindDraggable(importedNode, dragHandle);
 
@@ -23582,6 +23611,8 @@
             if (bossModal) bossModal.remove();
             const headerModal = cloneDoc.querySelector('#header-modal');
             if (headerModal) headerModal.remove();
+            const tacticModalEl = cloneDoc.querySelector('#tactic-modal');
+            if (tacticModalEl) tacticModalEl.remove();
 
             cloneDoc.querySelectorAll('.banner-tools, .card-tools, .divider-delete-btn, .drag-handle').forEach(btn => btn.remove());
 
@@ -23612,46 +23643,371 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // =====================================================
+        // 택틱 편집기 (세미오토 표를 폼으로 직접 만들고 수정)
+        // =====================================================
+        const GITHUB_CHAR_IMAGE_BASE = "https://raw.githubusercontent.com/PurikoneKrSemi/SemiAutoSheet/main/images/";
+        let T = null;
+        let tacticCard = null;
+
+        function tEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function formatTimeInput(raw) {
+            const t = String(raw || '').trim();
+            if (!t) return '';
+            if (t.includes(':')) return t;
+            if (/^\d+$/.test(t)) {
+                if (t.length === 1) return `0:0${t}`;
+                if (t.length === 2) return `0:${t}`;
+                if (t.length === 3) return `${t[0]}:${t.slice(1)}`;
+                if (t.length === 4) return `${t.slice(0, 2)}:${t.slice(2)}`;
+            }
+            return t;
+        }
+        function emptyTactic() {
+            return { title: '', url: '', boss: '', dmg: '', tp: '',
+                chars: [0, 1, 2, 3, 4].map(() => ({ name: '', star: '5', rank: '', cr: '', img: '' })),
+                rows: [] };
+        }
+        function charImgUrl(name, star) {
+            return (name && star) ? GITHUB_CHAR_IMAGE_BASE + encodeURIComponent(`${name}${star}.png`) : '';
+        }
+
+        // ---- 표 → 모델 ----
+        function parseTacticTable(table) {
+            const rows = Array.from(table.tBodies[0] ? table.tBodies[0].rows : []);
+            if (rows.length < 6 || rows[0].cells.length !== 6 || rows[1].cells.length !== 6) {
+                throw new Error('세미오토 택틱 표 구조(6열, 보스/캐릭터/⭐/RANK/CR/TP 행)가 아닙니다.');
+            }
+            const txt = td => (td ? td.textContent.replace(/ /g, ' ').trim() : '');
+            const m = emptyTactic();
+            const th = table.querySelector('thead th');
+            if (th) {
+                const a = th.querySelector('a');
+                m.title = (a ? a.textContent : th.textContent).trim();
+                m.url = a ? (a.getAttribute('href') || '') : '';
+            }
+            const img0 = rows[0].cells[0].querySelector('img');
+            m.boss = img0 ? (img0.getAttribute('src') || '') : '';
+            m.dmg = txt(rows[1].cells[0]);
+            for (let i = 0; i < 5; i++) {
+                const im = rows[0].cells[i + 1].querySelector('img');
+                m.chars[i] = {
+                    name: txt(rows[1].cells[i + 1]),
+                    star: txt(rows[2].cells[i + 1]),
+                    rank: txt(rows[3].cells[i + 1]),
+                    cr: txt(rows[4].cells[i + 1]),
+                    img: im ? (im.getAttribute('src') || '') : ''
+                };
+            }
+            m.tp = txt(rows[5].cells[0]).replace(/^TP\s*/i, '');
+            const splitTime = html => {
+                const mt = html.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+([\s\S]*)$/);
+                return mt ? { time: mt[1], action: mt[2] } : { time: '', action: html.trim() };
+            };
+            rows.slice(6).forEach(tr => {
+                const tds = Array.from(tr.cells);
+                if (tds.length === 1) {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tds[0].innerHTML)));
+                } else if (tds.length === 3 && tds[0].classList.contains('empty-row-td')) {
+                    m.rows.push({ type: 'empty', time: '', action: '', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' });
+                } else if (tds.length === 3) {
+                    const setStr = txt(tds[1]).replace(/\s+/g, '');
+                    const set = [0, 1, 2, 3, 4].map(i => setStr[i] === 'X' ? 'X' : 'O');
+                    const auto = txt(tds[2]).toUpperCase() === 'ON' ? 'ON' : 'OFF';
+                    m.rows.push(Object.assign({ type: 'normal', set, auto }, splitTime(tds[0].innerHTML)));
+                } else {
+                    m.rows.push(Object.assign({ type: 'note', set: ['O', 'O', 'O', 'O', 'O'], auto: 'OFF' }, splitTime(tr.textContent)));
+                }
+            });
+            return m;
+        }
+
+        // ---- 모델 → 표 HTML ----
+        function buildTacticHTML(m) {
+            const guideText = (m.title || '').trim() || '공략 타임라인';
+            const url = (m.url || '').trim();
+            const headerContent = url ? `<a href="${tEsc(url)}" target="_blank">${tEsc(guideText)}</a>` : tEsc(guideText);
+            const tpVal = (m.tp || '').trim();
+            const tpText = tpVal ? (tpVal.toUpperCase().startsWith('TP') ? tpVal : `TP ${tpVal}`) : 'TP';
+            let rowsHtml = '';
+            let prevStates = null, prevAuto = null;
+            m.rows.forEach(r => {
+                const content = (r.time ? formatTimeInput(r.time) + ' ' : '') + (r.action || '');
+                if (r.type === 'empty') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left empty-row-td"></td>
+            <td></td>
+            <td></td>
+        </tr>`;
+                } else if (r.type === 'note') {
+                    rowsHtml += `
+        <tr>
+            <td colspan="6" class="text-left">${content}</td>
+        </tr>`;
+                } else {
+                    let autoBgClass = '';
+                    if (prevAuto !== null && prevAuto !== r.auto) autoBgClass = r.auto === 'ON' ? 'bg-auto-on' : 'bg-auto-off';
+                    let setContent = '';
+                    r.set.forEach((ch, i) => {
+                        setContent += (prevStates && prevStates[i] !== ch) ? `<span class="change-x">${ch}</span>` : ch;
+                    });
+                    rowsHtml += `
+        <tr>
+            <td colspan="4" class="text-left">${content}</td>
+            <td>${setContent}</td>
+            <td class="${autoBgClass}">${tEsc(r.auto)}</td>
+        </tr>`;
+                    prevStates = r.set.slice();
+                    prevAuto = r.auto;
+                }
+            });
+            const imgCell = src => `<td class="img-td">${src ? `<img src="${tEsc(src)}">` : ''}</td>`;
+            return `<table class="output-table">
+    <colgroup>
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+        <col style="width: 16.66%;">
+    </colgroup>
+    <thead>
+        <tr>
+            <th colspan="6" class="header-link">${headerContent}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            ${imgCell(m.boss)}
+            ${m.chars.map(c => imgCell(c.name ? c.img : '')).join('')}
+        </tr>
+        <tr>
+            <td>${tEsc(m.dmg)}</td>
+            ${m.chars.map(c => `<td>${tEsc(c.name)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">⭐</td>
+            ${m.chars.map(c => `<td>${tEsc(c.star)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">RANK</td>
+            ${m.chars.map(c => `<td>${tEsc(c.rank)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td class="th-label">CR</td>
+            ${m.chars.map(c => `<td>${tEsc(c.cr)}</td>`).join('')}
+        </tr>
+        <tr>
+            <td colspan="4" class="text-left">${tEsc(tpText)}</td>
+            <td>Set</td>
+            <td>Auto</td>
+        </tr>${rowsHtml}
+    </tbody>
+</table>`;
+        }
+
+        // ---- 편집 UI ----
+        function openTacticEditor(card) {
+            tacticCard = card || null;
+            let m;
+            if (card && card.querySelector('.output-table')) {
+                try { m = parseTacticTable(card.querySelector('.output-table')); }
+                catch (e) { alert(e.message); return; }
+            } else {
+                m = emptyTactic();
+            }
+            T = m;
+            document.getElementById('tactic-title').textContent = card ? '택틱 수정' : '새 택틱 만들기';
+            const modal = document.getElementById('tactic-modal');
+            modal.querySelectorAll('[data-b]').forEach(inp => { inp.value = T[inp.dataset.b] || ''; });
+            renderTacticChars();
+            renderTacticRows();
+            refreshBossThumb();
+            renderTacticPreview();
+            modal.style.display = 'flex';
+            modal.scrollTop = 0;
+        }
+        function closeTacticEditor() {
+            document.getElementById('tactic-modal').style.display = 'none';
+            T = null; tacticCard = null;
+        }
+        function refreshBossThumb() {
+            const im = document.getElementById('tt-boss-img');
+            im.style.visibility = T.boss ? 'visible' : 'hidden';
+            im.src = T.boss || '';
+        }
+        function tacticPickBoss() {
+            const proxy = {
+                classList: { remove() {} },
+                set innerHTML(v) {
+                    const mt = String(v).match(/src="([^"]+)"/);
+                    if (T) { T.boss = mt ? mt[1] : ''; refreshBossThumb(); renderTacticPreview(); }
+                }
+            };
+            openBossModal(proxy);
+        }
+        function tacticClearBoss() { T.boss = ''; refreshBossThumb(); renderTacticPreview(); }
+
+        function renderTacticChars() {
+            document.getElementById('tt-chars').innerHTML = T.chars.map((c, i) => `
+                <div class="tt-char" data-ci="${i}">
+                    <img src="${tEsc(c.name ? c.img : '')}" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
+                    <div><label>캐릭터 ${i + 1}</label><input type="text" data-cf="name" value="${tEsc(c.name)}"></div>
+                    <div class="row2">
+                        <div><label>⭐</label><input type="text" data-cf="star" value="${tEsc(c.star)}"></div>
+                        <div><label>RANK</label><input type="text" data-cf="rank" value="${tEsc(c.rank)}"></div>
+                        <div><label>CR</label><input type="text" data-cf="cr" value="${tEsc(c.cr)}"></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function rowHtml(r, i) {
+            const ops = `<div class="tr-ops"><button type="button" data-act="up" title="위로">▲</button><button type="button" data-act="down" title="아래로">▼</button><button type="button" data-act="dup" title="복제">⧉</button><button type="button" data-act="del" title="삭제">✕</button></div>`;
+            const typeSel = `<select data-f="type"><option value="normal"${r.type === 'normal' ? ' selected' : ''}>행동</option><option value="note"${r.type === 'note' ? ' selected' : ''}>설명</option><option value="empty"${r.type === 'empty' ? ' selected' : ''}>빈 행</option></select>`;
+            if (r.type === 'empty') {
+                return `<div class="tr-row empty" data-i="${i}">${typeSel}<div></div><div style="color:#94a3b8;font-size:12px;padding-top:7px;">(빈 행)</div><div></div><div></div>${ops}</div>`;
+            }
+            const time = `<input type="text" data-f="time" value="${tEsc(r.time)}" placeholder="시간">`;
+            const action = `<textarea data-f="action" rows="1" placeholder="행동 내용">${tEsc(r.action)}</textarea>`;
+            if (r.type === 'note') {
+                return `<div class="tr-row note" data-i="${i}">${typeSel}${time}${action}<div></div><div></div>${ops}</div>`;
+            }
+            const sets = r.set.map((v, k) => `<button type="button" data-s="${k}" class="${v === 'X' ? 'x' : ''}">${v}</button>`).join('');
+            return `<div class="tr-row" data-i="${i}">${typeSel}${time}${action}<div class="tr-sets">${sets}</div><button type="button" class="tr-auto ${r.auto === 'ON' ? 'on' : ''}" data-f="auto">${r.auto}</button>${ops}</div>`;
+        }
+        function renderTacticRows() {
+            const box = document.getElementById('tr-rows');
+            box.innerHTML = T.rows.length ? T.rows.map(rowHtml).join('') : '<div style="padding:16px;color:#94a3b8;font-size:13px;text-align:center;">행이 없습니다. 위의 "+ 행동 행"을 눌러 추가하세요.</div>';
+            markTacticChanges();
+        }
+        function markTacticChanges() {
+            let prev = null, prevAuto = null;
+            T.rows.forEach((r, i) => {
+                const el = document.querySelector(`#tr-rows .tr-row[data-i="${i}"]`);
+                if (!el || r.type !== 'normal') return;
+                el.querySelectorAll('.tr-sets button').forEach((b, k) => b.classList.toggle('chg', !!prev && prev[k] !== r.set[k]));
+                const a = el.querySelector('.tr-auto');
+                if (a) a.classList.toggle('chg', prevAuto !== null && prevAuto !== r.auto);
+                prev = r.set; prevAuto = r.auto;
+            });
+        }
+        let tacticPreviewTimer = null;
+        function renderTacticPreview() {
+            clearTimeout(tacticPreviewTimer);
+            tacticPreviewTimer = setTimeout(() => {
+                if (!T) return;
+                document.getElementById('tr-preview').innerHTML = `<div class="table-responsive">${buildTacticHTML(T)}</div>`;
+            }, 120);
+        }
+        function addTacticRow(type) {
+            const lastNormal = [...T.rows].reverse().find(r => r.type === 'normal');
+            T.rows.push({ type, time: '', action: '', set: lastNormal ? lastNormal.set.slice() : ['O', 'O', 'O', 'O', 'O'], auto: lastNormal ? lastNormal.auto : 'OFF' });
+            renderTacticRows();
+            renderTacticPreview();
+            const box = document.getElementById('tr-rows');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        (function bindTacticEvents() {
+            const modal = document.getElementById('tactic-modal');
+            if (!modal) return;
+            modal.addEventListener('input', e => {
+                const t = e.target;
+                if (!T) return;
+                if (t.dataset.b) { T[t.dataset.b] = t.value; renderTacticPreview(); return; }
+                const ch = t.closest('.tt-char');
+                if (ch && t.dataset.cf) {
+                    const c = T.chars[+ch.dataset.ci];
+                    c[t.dataset.cf] = t.value;
+                    if (t.dataset.cf === 'name' && t.value.trim() && !String(c.star).trim()) {
+                        c.star = '5';
+                        const si = ch.querySelector('input[data-cf="star"]');
+                        if (si) si.value = '5';
+                    }
+                    if (t.dataset.cf === 'name' || t.dataset.cf === 'star') {
+                        c.img = charImgUrl(c.name.trim(), c.star.trim());
+                        const im = ch.querySelector('img');
+                        im.style.visibility = 'visible';
+                        im.src = c.name ? c.img : '';
+                    }
+                    renderTacticPreview();
+                    return;
+                }
+                const row = t.closest('.tr-row');
+                if (row && (t.dataset.f === 'time' || t.dataset.f === 'action')) {
+                    T.rows[+row.dataset.i][t.dataset.f] = t.value;
+                    renderTacticPreview();
+                }
+            });
+            modal.addEventListener('change', e => {
+                const t = e.target, row = t.closest('.tr-row');
+                if (row && t.dataset.f === 'type') {
+                    T.rows[+row.dataset.i].type = t.value;
+                    renderTacticRows(); renderTacticPreview();
+                }
+            });
+            modal.addEventListener('click', e => {
+                const b = e.target.closest('button');
+                if (!b || !T) return;
+                const row = b.closest('.tr-row');
+                if (!row) return;
+                const i = +row.dataset.i, r = T.rows[i];
+                if (b.dataset.s !== undefined) {
+                    const k = +b.dataset.s;
+                    r.set[k] = r.set[k] === 'O' ? 'X' : 'O';
+                    b.textContent = r.set[k]; b.classList.toggle('x', r.set[k] === 'X');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                if (b.dataset.f === 'auto') {
+                    r.auto = r.auto === 'ON' ? 'OFF' : 'ON';
+                    b.textContent = r.auto; b.classList.toggle('on', r.auto === 'ON');
+                    markTacticChanges(); renderTacticPreview(); return;
+                }
+                const act = b.dataset.act;
+                if (act === 'del') T.rows.splice(i, 1);
+                else if (act === 'up' && i > 0) [T.rows[i - 1], T.rows[i]] = [T.rows[i], T.rows[i - 1]];
+                else if (act === 'down' && i < T.rows.length - 1) [T.rows[i + 1], T.rows[i]] = [T.rows[i], T.rows[i + 1]];
+                else if (act === 'dup') T.rows.splice(i + 1, 0, JSON.parse(JSON.stringify(r)));
+                else return;
+                renderTacticRows(); renderTacticPreview();
+            });
+        })();
+
+        function applyTactic() {
+            if (!T) return;
+            const html = buildTacticHTML(T);
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newTable = document.importNode(doc.querySelector('table.output-table'), true);
+            if (tacticCard) {
+                const old = tacticCard.querySelector('.output-table');
+                if (old) old.replaceWith(newTable);
+                else tacticCard.querySelector('.table-responsive').appendChild(newTable);
+            } else {
+                let target = findInsertionTarget();
+                if (!target) target = createNewCardSection();
+                target.appendChild(newTable);
+            }
+            attachBossClickToTable(newTable);
+            closeTacticEditor();
+            saveToLocalStorage();
+            const st = document.getElementById('admin-status');
+            if (st) { st.textContent = '택틱을 적용했습니다.'; st.className = 'admin-status success'; }
+        }
+
+        function addEditButton(tools, card) {
+            if (tools.querySelector('.edit-btn')) return;
+            const btn = document.createElement('button');
+            btn.className = 'card-btn edit-btn';
+            btn.style.background = '#f59e0b';
+            btn.textContent = '✏ 편집';
+            btn.onclick = function () { openTacticEditor(card); };
+            tools.insertBefore(btn, tools.children[1] || null);
+        }
+
     </script>
-<!-- Code injected by live-server -->
 <script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
-<whale-quicksearch style="visibility: visible;" translate="no"></whale-quicksearch><script>
         const BASE_SECONDS = 90;
         
         function toggleCustomDropdown(e) {
