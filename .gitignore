@@ -3,3 +3,5 @@ htmls/news_editor.html
 crawl_news.py
 patch_template.py
 translate_news.py
+ignored/
+
